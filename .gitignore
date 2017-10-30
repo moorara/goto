@@ -1,0 +1,14 @@
+# Compiled object files, static and dynamic libs
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.dylib
+
+# Test files
+*.out
+*.test
+
+# This repo is a set of packages
+vendor/
