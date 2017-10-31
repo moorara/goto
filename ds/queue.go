@@ -4,10 +4,10 @@ package ds
 type Queue interface {
 	Size() int
 	IsEmpty() bool
-	Enqueue(Value)
-	Dequeue() Value
-	Peek() Value
-	Contains(Value) bool
+	Enqueue(Generic)
+	Dequeue() Generic
+	Peek() Generic
+	Contains(Generic) bool
 }
 
 type arrayQueue struct {
@@ -17,10 +17,11 @@ type arrayQueue struct {
 	rearNodeIndex  int
 	frontNode      *arrayNode
 	rearNode       *arrayNode
+	comparator     Comparator
 }
 
 // NewQueue creates a new array-list queue
-func NewQueue(nodeSize int) Queue {
+func NewQueue(nodeSize int, comparator Comparator) Queue {
 	return &arrayQueue{
 		listSize:       0,
 		nodeSize:       nodeSize,
@@ -28,6 +29,7 @@ func NewQueue(nodeSize int) Queue {
 		rearNodeIndex:  -1,
 		frontNode:      nil,
 		rearNode:       nil,
+		comparator:     comparator,
 	}
 }
 
@@ -39,7 +41,7 @@ func (q *arrayQueue) IsEmpty() bool {
 	return q.listSize == 0
 }
 
-func (q *arrayQueue) Enqueue(item Value) {
+func (q *arrayQueue) Enqueue(item Generic) {
 	if q.frontNode == nil && q.rearNode == nil {
 		q.frontNodeIndex = 0
 		q.rearNodeIndex = 0
@@ -58,7 +60,7 @@ func (q *arrayQueue) Enqueue(item Value) {
 	}
 }
 
-func (q *arrayQueue) Dequeue() Value {
+func (q *arrayQueue) Dequeue() Generic {
 	if q.listSize == 0 {
 		return nil
 	}
@@ -75,7 +77,7 @@ func (q *arrayQueue) Dequeue() Value {
 	return item
 }
 
-func (q *arrayQueue) Peek() Value {
+func (q *arrayQueue) Peek() Generic {
 	if q.listSize == 0 {
 		return nil
 	}
@@ -83,12 +85,12 @@ func (q *arrayQueue) Peek() Value {
 	return q.frontNode.block[q.frontNodeIndex]
 }
 
-func (q *arrayQueue) Contains(item Value) bool {
+func (q *arrayQueue) Contains(item Generic) bool {
 	n := q.frontNode
 	i := q.frontNodeIndex
 
 	for n != nil && (n != q.rearNode || i <= q.rearNodeIndex) {
-		if n.block[i].Compare(item) == 0 {
+		if q.comparator.Compare(n.block[i], item) == 0 {
 			return true
 		}
 

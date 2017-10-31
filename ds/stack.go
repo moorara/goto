@@ -4,26 +4,28 @@ package ds
 type Stack interface {
 	Size() int
 	IsEmpty() bool
-	Push(Value)
-	Pop() Value
-	Peek() Value
-	Contains(Value) bool
+	Push(Generic)
+	Pop() Generic
+	Peek() Generic
+	Contains(Generic) bool
 }
 
 type arrayStack struct {
-	listSize  int
-	nodeSize  int
-	nodeIndex int
-	topNode   *arrayNode
+	listSize   int
+	nodeSize   int
+	nodeIndex  int
+	topNode    *arrayNode
+	comparator Comparator
 }
 
 // NewStack creates a new array-list stack
-func NewStack(nodeSize int) Stack {
+func NewStack(nodeSize int, comparator Comparator) Stack {
 	return &arrayStack{
-		listSize:  0,
-		nodeSize:  nodeSize,
-		nodeIndex: -1,
-		topNode:   nil,
+		listSize:   0,
+		nodeSize:   nodeSize,
+		nodeIndex:  -1,
+		topNode:    nil,
+		comparator: comparator,
 	}
 }
 
@@ -35,7 +37,7 @@ func (s *arrayStack) IsEmpty() bool {
 	return s.listSize == 0
 }
 
-func (s *arrayStack) Push(item Value) {
+func (s *arrayStack) Push(item Generic) {
 	s.listSize++
 	s.nodeIndex++
 
@@ -51,7 +53,7 @@ func (s *arrayStack) Push(item Value) {
 	s.topNode.block[s.nodeIndex] = item
 }
 
-func (s *arrayStack) Pop() Value {
+func (s *arrayStack) Pop() Generic {
 	if s.listSize == 0 {
 		return nil
 	}
@@ -70,7 +72,7 @@ func (s *arrayStack) Pop() Value {
 	return item
 }
 
-func (s *arrayStack) Peek() Value {
+func (s *arrayStack) Peek() Generic {
 	if s.listSize == 0 {
 		return nil
 	}
@@ -78,12 +80,12 @@ func (s *arrayStack) Peek() Value {
 	return s.topNode.block[s.nodeIndex]
 }
 
-func (s *arrayStack) Contains(item Value) bool {
+func (s *arrayStack) Contains(item Generic) bool {
 	n := s.topNode
 	i := s.nodeIndex
 
 	for n != nil {
-		if n.block[i].Compare(item) == 0 {
+		if s.comparator.Compare(n.block[i], item) == 0 {
 			return true
 		}
 

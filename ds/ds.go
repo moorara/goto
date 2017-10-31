@@ -1,19 +1,16 @@
 package ds
 
 type (
-	// Value represents a comparable value
-	Value interface {
-		Compare(Value) int
+	// Value represents a generic data type
+	Generic interface{}
+
+	// Comparator is used for comparing
+	Comparator interface {
+		Compare(a Generic, b Generic) int
 	}
 
-	// Key represents a comparable key
-	Key interface {
-		Compare(Key) int
-	}
-
-	// BitStringKey represents a comparable bit-string key
-	BitStringKey interface {
-		BitString() []byte
-		Compare(BitStringKey) int
+	// BitStringer is used for bit-string representation
+	BitStringer interface {
+		BitString(a Generic) []byte
 	}
 )

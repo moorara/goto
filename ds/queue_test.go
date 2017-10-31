@@ -7,59 +7,68 @@ import (
 )
 
 /*
- * value is defined in ds_test.go
- * newValueArray is defined in queue_test.go
+ * stringComparator is defined in ds_test.go
+ * stringBitStringer is defined in queue_test.go
  */
 
 func TestQueue(t *testing.T) {
 	tests := []struct {
 		nodeSize             int
+		comparator           Comparator
+		enqueueItems         []string
 		expectedSize         int
 		expectedIsEmpty      bool
-		expectedPeek         value
-		enqueueItems         []value
-		expectedContains     []value
-		expectedDequeueItems []value
+		expectedPeek         string
+		expectedContains     []string
+		expectedDequeueItems []string
 	}{
 		{
-			2, 0, true,
-			value{},
-			[]value{},
-			[]value{},
-			[]value{},
+			2,
+			&stringComparator{},
+			[]string{},
+			0, true,
+			"",
+			[]string{},
+			[]string{},
 		},
 		{
-			2, 2, false,
-			value{"a"},
-			newValueArray("a", "b"),
-			newValueArray("a", "b"),
-			newValueArray("a", "b"),
+			2,
+			&stringComparator{},
+			[]string{"a", "b"},
+			2, false,
+			"a",
+			[]string{"a", "b"},
+			[]string{"a", "b"},
 		},
 		{
-			2, 3, false,
-			value{"a"},
-			newValueArray("a", "b", "c"),
-			newValueArray("a", "b", "c"),
-			newValueArray("a", "b", "c"),
+			2,
+			&stringComparator{},
+			[]string{"a", "b", "c"},
+			3, false,
+			"a",
+			[]string{"a", "b", "c"},
+			[]string{"a", "b", "c"},
 		},
 		{
-			2, 7, false,
-			value{"a"},
-			newValueArray("a", "b", "c", "d", "e", "f", "g"),
-			newValueArray("a", "b", "c", "d", "e", "f", "g"),
-			newValueArray("a", "b", "c", "d", "e", "f", "g"),
+			2,
+			&stringComparator{},
+			[]string{"a", "b", "c", "d", "e", "f", "g"},
+			7, false,
+			"a",
+			[]string{"a", "b", "c", "d", "e", "f", "g"},
+			[]string{"a", "b", "c", "d", "e", "f", "g"},
 		},
 	}
 
 	for _, test := range tests {
-		queue := NewQueue(test.nodeSize)
+		queue := NewQueue(test.nodeSize, test.comparator)
 
 		// Queue initially should be empty
 		assert.Zero(t, queue.Size())
 		assert.True(t, queue.IsEmpty())
-		assert.Nil(t, queue.Dequeue())
 		assert.Nil(t, queue.Peek())
 		queue.Contains(nil)
+		assert.Nil(t, queue.Dequeue())
 
 		for _, item := range test.enqueueItems {
 			queue.Enqueue(item)
@@ -85,7 +94,8 @@ func TestQueue(t *testing.T) {
 		// Queue should be empty at the end
 		assert.Zero(t, queue.Size())
 		assert.True(t, queue.IsEmpty())
-		assert.Nil(t, queue.Dequeue())
 		assert.Nil(t, queue.Peek())
+		queue.Contains(nil)
+		assert.Nil(t, queue.Dequeue())
 	}
 }

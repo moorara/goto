@@ -7,52 +7,61 @@ import (
 )
 
 /*
- * value is defined in ds_test.go
- * newValueArray is defined in queue_test.go
+ * stringComparator is defined in ds_test.go
+ * stringBitStringer is defined in queue_test.go
  */
 
 func TestStack(t *testing.T) {
 	tests := []struct {
 		nodeSize         int
+		comparator       Comparator
+		pushItems        []string
 		expectedSize     int
 		expectedIsEmpty  bool
-		expectedPeek     value
-		pushItems        []value
-		expectedContains []value
-		expectedPopItems []value
+		expectedPeek     string
+		expectedContains []string
+		expectedPopItems []string
 	}{
 		{
-			2, 0, true,
-			value{},
-			[]value{},
-			[]value{},
-			[]value{},
+			2,
+			&stringComparator{},
+			[]string{},
+			0, true,
+			"",
+			[]string{},
+			[]string{},
 		},
 		{
-			2, 2, false,
-			value{"b"},
-			newValueArray("a", "b"),
-			newValueArray("a", "b"),
-			newValueArray("b", "a"),
+			2,
+			&stringComparator{},
+			[]string{"a", "b"},
+			2, false,
+			"b",
+			[]string{"a", "b"},
+			[]string{"b", "a"},
 		},
 		{
-			2, 3, false,
-			value{"c"},
-			newValueArray("a", "b", "c"),
-			newValueArray("a", "b", "c"),
-			newValueArray("c", "b", "a"),
+			2,
+			&stringComparator{},
+			[]string{"a", "b", "c"},
+			3, false,
+			"c",
+			[]string{"a", "b", "c"},
+			[]string{"c", "b", "a"},
 		},
 		{
-			2, 7, false,
-			value{"g"},
-			newValueArray("a", "b", "c", "d", "e", "f", "g"),
-			newValueArray("a", "b", "c", "d", "e", "f", "g"),
-			newValueArray("g", "f", "e", "d", "c", "b", "a"),
+			2,
+			&stringComparator{},
+			[]string{"a", "b", "c", "d", "e", "f", "g"},
+			7, false,
+			"g",
+			[]string{"a", "b", "c", "d", "e", "f", "g"},
+			[]string{"g", "f", "e", "d", "c", "b", "a"},
 		},
 	}
 
 	for _, test := range tests {
-		stack := NewStack(test.nodeSize)
+		stack := NewStack(test.nodeSize, test.comparator)
 
 		// Stack initially should be empty
 		assert.Zero(t, stack.Size())

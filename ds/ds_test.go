@@ -1,7 +1,7 @@
 package ds
 
 import (
-	"bytes"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -9,100 +9,113 @@ import (
 )
 
 type (
-	value struct {
-		v string
-	}
+	intComparator  struct{}
+	intBitStringer struct{}
 
-	key struct {
-		k string
-	}
-
-	bitStringKey struct {
-		k []byte
-	}
+	stringComparator  struct{}
+	stringBitStringer struct{}
 )
 
-func newValueArray(items ...string) []value {
-	arr := make([]value, len(items))
-	for i, item := range items {
-		arr[i] = value{item}
+func (ic *intComparator) Compare(a Generic, b Generic) int {
+	intA, _ := a.(int)
+	intB, _ := b.(int)
+	diff := intA - intB
+	switch {
+	case diff < 0:
+		return -1
+	case diff > 0:
+		return 1
+	default:
+		return 0
 	}
-	return arr
 }
 
-func (a value) Compare(b Value) int {
-	c, _ := b.(value)
-	return strings.Compare(a.v, c.v)
+func (ib *intBitStringer) BitString(a Generic) []byte {
+	intA, _ := a.(int)
+	return []byte(strconv.Itoa(intA))
 }
 
-func (a key) Compare(b Key) int {
-	c, _ := b.(key)
-	return strings.Compare(a.k, c.k)
+func (sc *stringComparator) Compare(a Generic, b Generic) int {
+	strA, _ := a.(string)
+	strB, _ := b.(string)
+	return strings.Compare(strA, strB)
 }
 
-func (a bitStringKey) BitString() []byte {
-	return a.k
+func (sb *stringBitStringer) BitString(a Generic) []byte {
+	strA, _ := a.(string)
+	return []byte(strA)
 }
 
-func (a bitStringKey) Compare(b BitStringKey) int {
-	c, _ := b.(bitStringKey)
-	return bytes.Compare(a.k, c.k)
-}
-
-func TestValue(t *testing.T) {
+func TestIntComparator(t *testing.T) {
 	tests := []struct {
-		a                  Value
-		b                  Value
+		a                  int
+		b                  int
+		comparator         Comparator
 		expectedComparison int
 	}{
-		{value{"Same"}, value{"Same"}, 0},
-		{value{"Alice"}, value{"Bob"}, -1},
-		{value{"Milad"}, value{"Jackie"}, 1},
+		{27, 27, &intComparator{}, 0},
+		{88, 27, &intComparator{}, 1},
+		{77, 99, &intComparator{}, -1},
 	}
 
 	for _, test := range tests {
-		comparison := test.a.Compare(test.b)
+		comparison := test.comparator.Compare(test.a, test.b)
 
 		assert.Equal(t, test.expectedComparison, comparison)
 	}
 }
 
-func TestKey(t *testing.T) {
+func TestIntBitStringer(t *testing.T) {
 	tests := []struct {
-		a                  Key
-		b                  Key
-		expectedComparison int
+		a                 int
+		bitStringer       BitStringer
+		expectedBitString []byte
 	}{
-		{key{"Same"}, key{"Same"}, 0},
-		{key{"Alice"}, key{"Bob"}, -1},
-		{key{"Milad"}, key{"Jackie"}, 1},
+		{27, &intBitStringer{}, []byte{0x32, 0x37}},
+		{69, &intBitStringer{}, []byte{0x36, 0x39}},
+		{88, &intBitStringer{}, []byte{0x38, 0x38}},
 	}
 
 	for _, test := range tests {
-		comparison := test.a.Compare(test.b)
+		bitString := test.bitStringer.BitString(test.a)
+
+		assert.Equal(t, test.expectedBitString, bitString)
+	}
+}
+
+func TestStringComparator(t *testing.T) {
+	tests := []struct {
+		a                  string
+		b                  string
+		comparator         Comparator
+		expectedComparison int
+	}{
+		{"Same", "Same", &stringComparator{}, 0},
+		{"Milad", "Jackie", &stringComparator{}, 1},
+		{"Alice", "Bob", &stringComparator{}, -1},
+	}
+
+	for _, test := range tests {
+		comparison := test.comparator.Compare(test.a, test.b)
 
 		assert.Equal(t, test.expectedComparison, comparison)
 	}
 }
 
-func TestBitStringKey(t *testing.T) {
+func TestStringBitStringer(t *testing.T) {
 	tests := []struct {
-		a                  BitStringKey
-		b                  BitStringKey
-		expectedBitStringA []byte
-		expectedBitStringB []byte
-		expectedComparison int
+		a                 string
+		bitStringer       BitStringer
+		expectedBitString []byte
 	}{
-		{bitStringKey{[]byte{0, 1, 2, 3}}, bitStringKey{[]byte{0, 1, 2, 3}}, []byte{0, 1, 2, 3}, []byte{0, 1, 2, 3}, 0},
-		{bitStringKey{[]byte{2, 2, 2, 2}}, bitStringKey{[]byte{1, 1, 1, 1}}, []byte{2, 2, 2, 2}, []byte{1, 1, 1, 1}, 1},
-		{bitStringKey{[]byte{4, 4, 4, 4}}, bitStringKey{[]byte{8, 8, 8, 8}}, []byte{4, 4, 4, 4}, []byte{8, 8, 8, 8}, -1},
+		{"Barak", &stringBitStringer{}, []byte{0x42, 0x61, 0x72, 0x61, 0x6b}},
+		{"Justin", &stringBitStringer{}, []byte{0x4a, 0x75, 0x73, 0x74, 0x69, 0x6e}},
+		{"Milad", &stringBitStringer{}, []byte{0x4d, 0x69, 0x6c, 0x61, 0x64}},
 	}
 
 	for _, test := range tests {
-		comparison := test.a.Compare(test.b)
+		bitString := test.bitStringer.BitString(test.a)
 
-		assert.Equal(t, test.expectedBitStringA, test.a.BitString())
-		assert.Equal(t, test.expectedBitStringB, test.b.BitString())
-		assert.Equal(t, test.expectedComparison, comparison)
+		assert.Equal(t, test.expectedBitString, bitString)
 	}
 }
