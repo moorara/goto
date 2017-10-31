@@ -24,7 +24,7 @@ func TestStack(t *testing.T) {
 	}{
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{},
 			0, true,
 			"",
@@ -33,7 +33,7 @@ func TestStack(t *testing.T) {
 		},
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{"a", "b"},
 			2, false,
 			"b",
@@ -42,7 +42,7 @@ func TestStack(t *testing.T) {
 		},
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{"a", "b", "c"},
 			3, false,
 			"c",
@@ -51,7 +51,7 @@ func TestStack(t *testing.T) {
 		},
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
 			7, false,
 			"g",
@@ -101,7 +101,7 @@ func TestStack(t *testing.T) {
 }
 
 func BenchmarkStack(b *testing.B) {
-	stack := NewStack(1024, &intComparator{})
+	stack := NewStack(1024, &IntComparator{})
 
 	for n := 0; n < b.N; n++ {
 		stack.Push(n)

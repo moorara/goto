@@ -24,7 +24,7 @@ func TestQueue(t *testing.T) {
 	}{
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{},
 			0, true,
 			"",
@@ -33,7 +33,7 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{"a", "b"},
 			2, false,
 			"a",
@@ -42,7 +42,7 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{"a", "b", "c"},
 			3, false,
 			"a",
@@ -51,7 +51,7 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			2,
-			&stringComparator{},
+			&StringComparator{},
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
 			7, false,
 			"a",
@@ -101,7 +101,7 @@ func TestQueue(t *testing.T) {
 }
 
 func BenchmarkQueue(b *testing.B) {
-	queue := NewQueue(1024, &intComparator{})
+	queue := NewQueue(1024, &IntComparator{})
 
 	for n := 0; n < b.N; n++ {
 		queue.Enqueue(n)
