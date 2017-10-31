@@ -99,3 +99,15 @@ func TestStack(t *testing.T) {
 		assert.False(t, stack.Contains(nil))
 	}
 }
+
+func BenchmarkStack(b *testing.B) {
+	stack := NewStack(1024, &intComparator{})
+
+	for n := 0; n < b.N; n++ {
+		stack.Push(n)
+	}
+
+	for n := 0; n < b.N; n++ {
+		stack.Pop()
+	}
+}

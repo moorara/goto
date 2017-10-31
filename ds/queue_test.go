@@ -99,3 +99,15 @@ func TestQueue(t *testing.T) {
 		assert.Nil(t, queue.Dequeue())
 	}
 }
+
+func BenchmarkQueue(b *testing.B) {
+	queue := NewQueue(1024, &intComparator{})
+
+	for n := 0; n < b.N; n++ {
+		queue.Enqueue(n)
+	}
+
+	for n := 0; n < b.N; n++ {
+		queue.Dequeue()
+	}
+}
