@@ -4,8 +4,7 @@ import (
 	. "github.com/moorara/go-box/ds"
 )
 
-// MaxHeap represents a max-heap (priority queue) data structure
-type MaxHeap struct {
+type maxHeap struct {
 	last            int
 	keys            []Generic
 	values          []Generic
@@ -15,7 +14,7 @@ type MaxHeap struct {
 
 // NewMaxHeap creates a new max-heap (priority queue)
 func NewMaxHeap(initialSize int, keyComparator Comparator, valueComparator Comparator) Heap {
-	return &MaxHeap{
+	return &maxHeap{
 		last:            0,
 		keys:            make([]Generic, initialSize),
 		values:          make([]Generic, initialSize),
@@ -24,7 +23,7 @@ func NewMaxHeap(initialSize int, keyComparator Comparator, valueComparator Compa
 	}
 }
 
-func (h *MaxHeap) resize(newSize int) {
+func (h *maxHeap) resize(newSize int) {
 	newKeys := make([]Generic, newSize)
 	newValues := make([]Generic, newSize)
 
@@ -35,18 +34,15 @@ func (h *MaxHeap) resize(newSize int) {
 	h.values = newValues
 }
 
-// Size returns size of heap
-func (h *MaxHeap) Size() int {
+func (h *maxHeap) Size() int {
 	return h.last
 }
 
-// IsEmpty determines if heap is empty or not
-func (h *MaxHeap) IsEmpty() bool {
+func (h *maxHeap) IsEmpty() bool {
 	return h.last == 0
 }
 
-// Insert inserts a new key into heap
-func (h *MaxHeap) Insert(key Generic, value Generic) {
+func (h *maxHeap) Insert(key Generic, value Generic) {
 	if h.last == len(h.keys)-1 {
 		h.resize(len(h.keys) * 2)
 	}
@@ -66,8 +62,7 @@ func (h *MaxHeap) Insert(key Generic, value Generic) {
 	h.values[i] = value
 }
 
-// Delete deletes the maximum key from heap
-func (h *MaxHeap) Delete() (Generic, Generic) {
+func (h *maxHeap) Delete() (Generic, Generic) {
 	if h.last == 0 {
 		return nil, nil
 	}
@@ -101,8 +96,7 @@ func (h *MaxHeap) Delete() (Generic, Generic) {
 	return maxKey, maxValue
 }
 
-// Peek returns the maximum key from heap without deleting it
-func (h *MaxHeap) Peek() (Generic, Generic) {
+func (h *maxHeap) Peek() (Generic, Generic) {
 	if h.last == 0 {
 		return nil, nil
 	}
@@ -110,8 +104,7 @@ func (h *MaxHeap) Peek() (Generic, Generic) {
 	return h.keys[1], h.values[1]
 }
 
-// Contains checks if a key exists in heap
-func (h *MaxHeap) ContainsKey(key Generic) bool {
+func (h *maxHeap) ContainsKey(key Generic) bool {
 	for i := 1; i <= h.last; i++ {
 		if h.keyComparator.Compare(h.keys[i], key) == 0 {
 			return true
@@ -121,8 +114,7 @@ func (h *MaxHeap) ContainsKey(key Generic) bool {
 	return false
 }
 
-// Contains checks if a value exists in heap
-func (h *MaxHeap) ContainsValue(value Generic) bool {
+func (h *maxHeap) ContainsValue(value Generic) bool {
 	for i := 1; i <= h.last; i++ {
 		if h.valueComparator.Compare(h.values[i], value) == 0 {
 			return true

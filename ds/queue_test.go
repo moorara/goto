@@ -6,11 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-/*
- * stringComparator is defined in ds_test.go
- * stringBitStringer is defined in queue_test.go
- */
-
 func TestQueue(t *testing.T) {
 	tests := []struct {
 		nodeSize             int

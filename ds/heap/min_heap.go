@@ -4,8 +4,7 @@ import (
 	. "github.com/moorara/go-box/ds"
 )
 
-// MinHeap represents a min-heap (priority queue) data structure
-type MinHeap struct {
+type minHeap struct {
 	last            int
 	keys            []Generic
 	values          []Generic
@@ -15,7 +14,7 @@ type MinHeap struct {
 
 // NewMinHeap creates a new min-heap (priority queue)
 func NewMinHeap(initialSize int, keyComparator Comparator, valueComparator Comparator) Heap {
-	return &MinHeap{
+	return &minHeap{
 		last:            0,
 		keys:            make([]Generic, initialSize),
 		values:          make([]Generic, initialSize),
@@ -24,7 +23,7 @@ func NewMinHeap(initialSize int, keyComparator Comparator, valueComparator Compa
 	}
 }
 
-func (h *MinHeap) resize(newSize int) {
+func (h *minHeap) resize(newSize int) {
 	newKeys := make([]Generic, newSize)
 	newValues := make([]Generic, newSize)
 
@@ -35,18 +34,15 @@ func (h *MinHeap) resize(newSize int) {
 	h.values = newValues
 }
 
-// Size returns size of heap
-func (h *MinHeap) Size() int {
+func (h *minHeap) Size() int {
 	return h.last
 }
 
-// IsEmpty determines if heap is empty or not
-func (h *MinHeap) IsEmpty() bool {
+func (h *minHeap) IsEmpty() bool {
 	return h.last == 0
 }
 
-// Insert inserts a new key into heap
-func (h *MinHeap) Insert(key Generic, value Generic) {
+func (h *minHeap) Insert(key Generic, value Generic) {
 	if h.last == len(h.keys)-1 {
 		h.resize(len(h.keys) * 2)
 	}
@@ -66,8 +62,7 @@ func (h *MinHeap) Insert(key Generic, value Generic) {
 	h.values[i] = value
 }
 
-// Delete deletes the minimum key from heap
-func (h *MinHeap) Delete() (Generic, Generic) {
+func (h *minHeap) Delete() (Generic, Generic) {
 	if h.last == 0 {
 		return nil, nil
 	}
@@ -101,8 +96,7 @@ func (h *MinHeap) Delete() (Generic, Generic) {
 	return minKey, minValue
 }
 
-// Peek returns the minimum key from heap without deleting it
-func (h *MinHeap) Peek() (Generic, Generic) {
+func (h *minHeap) Peek() (Generic, Generic) {
 	if h.last == 0 {
 		return nil, nil
 	}
@@ -110,8 +104,7 @@ func (h *MinHeap) Peek() (Generic, Generic) {
 	return h.keys[1], h.values[1]
 }
 
-// Contains checks if a key exists in heap
-func (h *MinHeap) ContainsKey(key Generic) bool {
+func (h *minHeap) ContainsKey(key Generic) bool {
 	for i := 1; i <= h.last; i++ {
 		if h.keyComparator.Compare(h.keys[i], key) == 0 {
 			return true
@@ -121,8 +114,7 @@ func (h *MinHeap) ContainsKey(key Generic) bool {
 	return false
 }
 
-// Contains checks if a value exists in heap
-func (h *MinHeap) ContainsValue(value Generic) bool {
+func (h *minHeap) ContainsValue(value Generic) bool {
 	for i := 1; i <= h.last; i++ {
 		if h.valueComparator.Compare(h.values[i], value) == 0 {
 			return true
