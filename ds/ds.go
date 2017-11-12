@@ -1,7 +1,7 @@
 package ds
 
 type (
-	// Value represents a generic data type
+	// Generic represents a generic data type
 	Generic interface{}
 
 	// Comparator is used for comparing
