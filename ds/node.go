@@ -1,5 +1,7 @@
 package ds
 
+import . "github.com/moorara/go-box/dt"
+
 type arrayNode struct {
 	block []Generic
 	next  *arrayNode

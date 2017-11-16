@@ -1,17 +1,17 @@
 package sort
 
 import (
-	. "github.com/moorara/go-box/ds"
+	. "github.com/moorara/go-box/dt"
 )
 
-func partition(a []Generic, lo, hi int, cmp Comparator) int {
+func partition(a []Generic, lo, hi int, compare Compare) int {
 	v := a[lo]
 	var i, j int = lo, hi + 1
 
 	for true {
-		for i++; i < hi && cmp.Compare(a[i], v) < 0; i++ {
+		for i++; i < hi && compare(a[i], v) < 0; i++ {
 		}
-		for j--; j > lo && cmp.Compare(a[j], v) > 0; j-- {
+		for j--; j > lo && compare(a[j], v) > 0; j-- {
 		}
 		if i >= j {
 			break
@@ -24,23 +24,23 @@ func partition(a []Generic, lo, hi int, cmp Comparator) int {
 }
 
 // QuickSort implements quick sort algorithm
-func quickSort(a []Generic, lo, hi int, cmp Comparator) {
+func quickSort(a []Generic, lo, hi int, compare Compare) {
 	if lo >= hi {
 		return
 	}
 
-	j := partition(a, lo, hi, cmp)
-	quickSort(a, lo, j-1, cmp)
-	quickSort(a, j+1, hi, cmp)
+	j := partition(a, lo, hi, compare)
+	quickSort(a, lo, j-1, compare)
+	quickSort(a, j+1, hi, compare)
 }
 
 // QuickSort implements quick sort algorithm
-func QuickSort(a []Generic, cmp Comparator) {
+func QuickSort(a []Generic, compare Compare) {
 	Shuffle(a)
-	quickSort(a, 0, len(a)-1, cmp)
+	quickSort(a, 0, len(a)-1, compare)
 }
 
-func quickSort3Way(a []Generic, lo, hi int, cmp Comparator) {
+func quickSort3Way(a []Generic, lo, hi int, compare Compare) {
 	if lo >= hi {
 		return
 	}
@@ -49,7 +49,7 @@ func quickSort3Way(a []Generic, lo, hi int, cmp Comparator) {
 	var lt, i, gt int = lo, lo + 1, hi
 
 	for i <= gt {
-		c := cmp.Compare(a[i], v)
+		c := compare(a[i], v)
 		switch {
 		case c < 0:
 			a[lt], a[i] = a[i], a[lt]
@@ -63,11 +63,11 @@ func quickSort3Way(a []Generic, lo, hi int, cmp Comparator) {
 		}
 	}
 
-	quickSort3Way(a, lo, lt-1, cmp)
-	quickSort3Way(a, gt+1, hi, cmp)
+	quickSort3Way(a, lo, lt-1, compare)
+	quickSort3Way(a, gt+1, hi, compare)
 }
 
 // QuickSort3Way implements 3-way quick sort algorithm
-func QuickSort3Way(a []Generic, cmp Comparator) {
-	quickSort3Way(a, 0, len(a)-1, cmp)
+func QuickSort3Way(a []Generic, compare Compare) {
+	quickSort3Way(a, 0, len(a)-1, compare)
 }

@@ -1,25 +1,25 @@
 package heap
 
 import (
-	. "github.com/moorara/go-box/ds"
+	. "github.com/moorara/go-box/dt"
 )
 
 type minHeap struct {
-	last            int
-	keys            []Generic
-	values          []Generic
-	keyComparator   Comparator
-	valueComparator Comparator
+	last         int
+	keys         []Generic
+	values       []Generic
+	keyCompare   Compare
+	valueCompare Compare
 }
 
 // NewMinHeap creates a new min-heap (priority queue)
-func NewMinHeap(initialSize int, keyComparator Comparator, valueComparator Comparator) Heap {
+func NewMinHeap(initialSize int, keyCompare, valueCompare Compare) Heap {
 	return &minHeap{
-		last:            0,
-		keys:            make([]Generic, initialSize),
-		values:          make([]Generic, initialSize),
-		keyComparator:   keyComparator,
-		valueComparator: valueComparator,
+		last:         0,
+		keys:         make([]Generic, initialSize),
+		values:       make([]Generic, initialSize),
+		keyCompare:   keyCompare,
+		valueCompare: valueCompare,
 	}
 }
 
@@ -51,7 +51,7 @@ func (h *minHeap) Insert(key Generic, value Generic) {
 	var i int
 
 	for i = h.last; true; i /= 2 {
-		if i == 1 || h.keyComparator.Compare(key, h.keys[i/2]) >= 0 {
+		if i == 1 || h.keyCompare(key, h.keys[i/2]) >= 0 {
 			break
 		}
 		h.keys[i] = h.keys[i/2]
@@ -76,10 +76,10 @@ func (h *minHeap) Delete() (Generic, Generic) {
 	var i, j int
 
 	for i, j = 1, 2; j <= h.last; i, j = j, j*2 {
-		if j < h.last && h.keyComparator.Compare(h.keys[j], h.keys[j+1]) > 0 {
+		if j < h.last && h.keyCompare(h.keys[j], h.keys[j+1]) > 0 {
 			j++
 		}
-		if h.keyComparator.Compare(lastKey, h.keys[j]) <= 0 {
+		if h.keyCompare(lastKey, h.keys[j]) <= 0 {
 			break
 		}
 		h.keys[i] = h.keys[j]
@@ -106,7 +106,7 @@ func (h *minHeap) Peek() (Generic, Generic) {
 
 func (h *minHeap) ContainsKey(key Generic) bool {
 	for i := 1; i <= h.last; i++ {
-		if h.keyComparator.Compare(h.keys[i], key) == 0 {
+		if h.keyCompare(h.keys[i], key) == 0 {
 			return true
 		}
 	}
@@ -116,7 +116,7 @@ func (h *minHeap) ContainsKey(key Generic) bool {
 
 func (h *minHeap) ContainsValue(value Generic) bool {
 	for i := 1; i <= h.last; i++ {
-		if h.valueComparator.Compare(h.values[i], value) == 0 {
+		if h.valueCompare(h.values[i], value) == 0 {
 			return true
 		}
 	}

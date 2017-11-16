@@ -3,13 +3,14 @@ package ds
 import (
 	"testing"
 
+	. "github.com/moorara/go-box/dt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStack(t *testing.T) {
 	tests := []struct {
 		nodeSize         int
-		comparator       Comparator
+		compare          Compare
 		pushItems        []string
 		expectedSize     int
 		expectedIsEmpty  bool
@@ -19,7 +20,7 @@ func TestStack(t *testing.T) {
 	}{
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{},
 			0, true,
 			"",
@@ -28,7 +29,7 @@ func TestStack(t *testing.T) {
 		},
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{"a", "b"},
 			2, false,
 			"b",
@@ -37,7 +38,7 @@ func TestStack(t *testing.T) {
 		},
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{"a", "b", "c"},
 			3, false,
 			"c",
@@ -46,7 +47,7 @@ func TestStack(t *testing.T) {
 		},
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
 			7, false,
 			"g",
@@ -56,7 +57,7 @@ func TestStack(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		stack := NewStack(test.nodeSize, test.comparator)
+		stack := NewStack(test.nodeSize, test.compare)
 
 		// Stack initially should be empty
 		assert.Zero(t, stack.Size())
@@ -96,7 +97,7 @@ func TestStack(t *testing.T) {
 }
 
 func BenchmarkStack(b *testing.B) {
-	stack := NewStack(1024, &IntComparator{})
+	stack := NewStack(1024, CompareInt)
 
 	for n := 0; n < b.N; n++ {
 		stack.Push(n)

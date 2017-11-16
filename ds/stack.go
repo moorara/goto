@@ -1,5 +1,7 @@
 package ds
 
+import . "github.com/moorara/go-box/dt"
+
 // Stack represents a stack data structure
 type Stack interface {
 	Size() int
@@ -11,21 +13,21 @@ type Stack interface {
 }
 
 type arrayStack struct {
-	listSize   int
-	nodeSize   int
-	nodeIndex  int
-	topNode    *arrayNode
-	comparator Comparator
+	listSize  int
+	nodeSize  int
+	nodeIndex int
+	topNode   *arrayNode
+	compare   Compare
 }
 
 // NewStack creates a new array-list stack
-func NewStack(nodeSize int, comparator Comparator) Stack {
+func NewStack(nodeSize int, compare Compare) Stack {
 	return &arrayStack{
-		listSize:   0,
-		nodeSize:   nodeSize,
-		nodeIndex:  -1,
-		topNode:    nil,
-		comparator: comparator,
+		listSize:  0,
+		nodeSize:  nodeSize,
+		nodeIndex: -1,
+		topNode:   nil,
+		compare:   compare,
 	}
 }
 
@@ -85,7 +87,7 @@ func (s *arrayStack) Contains(item Generic) bool {
 	i := s.nodeIndex
 
 	for n != nil {
-		if s.comparator.Compare(n.block[i], item) == 0 {
+		if s.compare(n.block[i], item) == 0 {
 			return true
 		}
 

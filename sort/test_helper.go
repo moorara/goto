@@ -4,17 +4,8 @@ import (
 	"math/rand"
 	"time"
 
-	. "github.com/moorara/go-box/ds"
+	. "github.com/moorara/go-box/dt"
 )
-
-func toGenericArray(items ...interface{}) []Generic {
-	genericItems := make([]Generic, len(items))
-	for i := 0; i < len(genericItems); i++ {
-		genericItems[i] = items[i]
-	}
-
-	return genericItems
-}
 
 func genGenericIntArray(size int) []Generic {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -41,9 +32,9 @@ func genGenericStringArray(size, strMinLen, strMaxLen int) []Generic {
 	return items
 }
 
-func isSorted(items []Generic, cmp Comparator) bool {
+func isSorted(items []Generic, compare Compare) bool {
 	for i := 0; i < len(items)-1; i++ {
-		if cmp.Compare(items[i], items[i+1]) > 0 {
+		if compare(items[i], items[i+1]) > 0 {
 			return false
 		}
 	}

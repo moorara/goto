@@ -1,7 +1,7 @@
 package heap
 
 import (
-	. "github.com/moorara/go-box/ds"
+	. "github.com/moorara/go-box/dt"
 )
 
 // Heap represents a heap (priority queue) data structure

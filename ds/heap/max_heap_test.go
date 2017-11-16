@@ -4,15 +4,15 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/moorara/go-box/ds"
+	. "github.com/moorara/go-box/dt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMaxHeap(t *testing.T) {
 	tests := []struct {
 		initialSize           int
-		keyComparator         Comparator
-		valueComparator       Comparator
+		keyCompare            Compare
+		valueCompare          Compare
 		insertKeys            []int
 		insertValues          []string
 		expectedSize          int
@@ -26,7 +26,7 @@ func TestMaxHeap(t *testing.T) {
 	}{
 		{
 			2,
-			&IntComparator{}, &StringComparator{},
+			CompareInt, CompareString,
 			[]int{}, []string{},
 			0, true,
 			0, "",
@@ -35,7 +35,7 @@ func TestMaxHeap(t *testing.T) {
 		},
 		{
 			2,
-			&IntComparator{}, &StringComparator{},
+			CompareInt, CompareString,
 			[]int{10, 30, 20}, []string{"ten", "thirty", "twenty"},
 			3, false,
 			30, "thirty",
@@ -44,7 +44,7 @@ func TestMaxHeap(t *testing.T) {
 		},
 		{
 			4,
-			&IntComparator{}, &StringComparator{},
+			CompareInt, CompareString,
 			[]int{10, 30, 20, 50, 40}, []string{"ten", "thirty", "twenty", "fifty", "forty"},
 			5, false,
 			50, "fifty",
@@ -53,7 +53,7 @@ func TestMaxHeap(t *testing.T) {
 		},
 		{
 			4,
-			&IntComparator{}, &StringComparator{},
+			CompareInt, CompareString,
 			[]int{10, 30, 20, 50, 40, 60, 70, 90, 80}, []string{"ten", "thirty", "twenty", "fifty", "forty", "sixty", "seventy", "ninety", "eighty"},
 			9, false,
 			90, "ninety",
@@ -63,7 +63,7 @@ func TestMaxHeap(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		heap := NewMaxHeap(test.initialSize, test.keyComparator, test.valueComparator)
+		heap := NewMaxHeap(test.initialSize, test.keyCompare, test.valueCompare)
 
 		// Heap initially should be empty
 		peekKey, peekValue := heap.Peek()
@@ -122,7 +122,7 @@ func TestMaxHeap(t *testing.T) {
 }
 
 func BenchmarkMaxHeap(b *testing.B) {
-	heap := NewMaxHeap(1024, &IntComparator{}, &StringComparator{})
+	heap := NewMaxHeap(1024, CompareInt, CompareString)
 
 	for n := 0; n < b.N; n++ {
 		heap.Insert(n, strconv.Itoa(n))

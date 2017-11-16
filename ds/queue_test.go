@@ -3,13 +3,14 @@ package ds
 import (
 	"testing"
 
+	. "github.com/moorara/go-box/dt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueue(t *testing.T) {
 	tests := []struct {
 		nodeSize             int
-		comparator           Comparator
+		compare              Compare
 		enqueueItems         []string
 		expectedSize         int
 		expectedIsEmpty      bool
@@ -19,7 +20,7 @@ func TestQueue(t *testing.T) {
 	}{
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{},
 			0, true,
 			"",
@@ -28,7 +29,7 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{"a", "b"},
 			2, false,
 			"a",
@@ -37,7 +38,7 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{"a", "b", "c"},
 			3, false,
 			"a",
@@ -46,7 +47,7 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			2,
-			&StringComparator{},
+			CompareString,
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
 			7, false,
 			"a",
@@ -56,7 +57,7 @@ func TestQueue(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		queue := NewQueue(test.nodeSize, test.comparator)
+		queue := NewQueue(test.nodeSize, test.compare)
 
 		// Queue initially should be empty
 		assert.Zero(t, queue.Size())
@@ -96,7 +97,7 @@ func TestQueue(t *testing.T) {
 }
 
 func BenchmarkQueue(b *testing.B) {
-	queue := NewQueue(1024, &IntComparator{})
+	queue := NewQueue(1024, CompareInt)
 
 	for n := 0; n < b.N; n++ {
 		queue.Enqueue(n)

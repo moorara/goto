@@ -1,5 +1,7 @@
 package ds
 
+import . "github.com/moorara/go-box/dt"
+
 // Queue represents a stack data structure
 type Queue interface {
 	Size() int
@@ -17,11 +19,11 @@ type arrayQueue struct {
 	rearNodeIndex  int
 	frontNode      *arrayNode
 	rearNode       *arrayNode
-	comparator     Comparator
+	compare        Compare
 }
 
 // NewQueue creates a new array-list queue
-func NewQueue(nodeSize int, comparator Comparator) Queue {
+func NewQueue(nodeSize int, compare Compare) Queue {
 	return &arrayQueue{
 		listSize:       0,
 		nodeSize:       nodeSize,
@@ -29,7 +31,7 @@ func NewQueue(nodeSize int, comparator Comparator) Queue {
 		rearNodeIndex:  -1,
 		frontNode:      nil,
 		rearNode:       nil,
-		comparator:     comparator,
+		compare:        compare,
 	}
 }
 
@@ -90,7 +92,7 @@ func (q *arrayQueue) Contains(item Generic) bool {
 	i := q.frontNodeIndex
 
 	for n != nil && (n != q.rearNode || i <= q.rearNodeIndex) {
-		if q.comparator.Compare(n.block[i], item) == 0 {
+		if q.compare(n.block[i], item) == 0 {
 			return true
 		}
 
