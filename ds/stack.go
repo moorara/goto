@@ -1,6 +1,8 @@
 package ds
 
-import . "github.com/moorara/go-box/dt"
+import (
+	. "github.com/moorara/go-box/dt"
+)
 
 // Stack represents a stack data structure
 type Stack interface {

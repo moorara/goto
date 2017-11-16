@@ -2,6 +2,7 @@ package sort
 
 import (
 	. "github.com/moorara/go-box/dt"
+	"github.com/moorara/go-box/util"
 )
 
 func partition(a []Generic, lo, hi int, compare Compare) int {
@@ -23,6 +24,25 @@ func partition(a []Generic, lo, hi int, compare Compare) int {
 	return j
 }
 
+// Select finds the kth smallest item of an array in O(n) time on average
+func Select(a []Generic, k int, compare Compare) Generic {
+	util.Shuffle(a)
+	var lo, hi int = 0, len(a) - 1
+	for lo < hi {
+		j := partition(a, lo, hi, compare)
+		switch {
+		case j < k:
+			lo = j + 1
+		case j > k:
+			hi = j - 1
+		default:
+			return a[k]
+		}
+	}
+
+	return a[k]
+}
+
 // QuickSort implements quick sort algorithm
 func quickSort(a []Generic, lo, hi int, compare Compare) {
 	if lo >= hi {
@@ -36,7 +56,7 @@ func quickSort(a []Generic, lo, hi int, compare Compare) {
 
 // QuickSort implements quick sort algorithm
 func QuickSort(a []Generic, compare Compare) {
-	Shuffle(a)
+	util.Shuffle(a)
 	quickSort(a, 0, len(a)-1, compare)
 }
 

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/moorara/go-box/dt"
+	"github.com/moorara/go-box/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +22,7 @@ func TestHeapSortInt(t *testing.T) {
 	for _, test := range tests {
 		HeapSort(test.items, test.compare)
 
-		assert.True(t, isSorted(test.items, test.compare))
+		assert.True(t, util.IsSorted(test.items, test.compare))
 	}
 }
 
@@ -39,20 +40,20 @@ func TestHeapSortString(t *testing.T) {
 	for _, test := range tests {
 		HeapSort(test.items, test.compare)
 
-		assert.True(t, isSorted(test.items, test.compare))
+		assert.True(t, util.IsSorted(test.items, test.compare))
 	}
 }
 
 func BenchmarkHeapSortInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := genGenericIntArray(1000)
+		items := util.GenerateIntArray(1000, -1000, 1000)
 		HeapSort(items, CompareInt)
 	}
 }
 
 func BenchmarkHeapSortString(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := genGenericStringArray(1000, 10, 20)
+		items := util.GenerateStringArray(1000, 10, 50)
 		HeapSort(items, CompareString)
 	}
 }

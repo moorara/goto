@@ -1,6 +1,8 @@
 package ds
 
-import . "github.com/moorara/go-box/dt"
+import (
+	. "github.com/moorara/go-box/dt"
+)
 
 // Queue represents a stack data structure
 type Queue interface {
