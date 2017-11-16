@@ -9,6 +9,7 @@
 # Test files
 *.out
 *.test
+reports/
 
 # This repo is a set of packages
 vendor/
