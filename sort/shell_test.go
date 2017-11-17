@@ -46,14 +46,14 @@ func TestShellSortString(t *testing.T) {
 
 func BenchmarkShellSortInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntArray(1000, -1000, 1000)
+		items := util.GenerateIntSlice(1000, -1000, 1000)
 		ShellSort(items, CompareInt)
 	}
 }
 
 func BenchmarkShellSortString(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringArray(1000, 10, 50)
+		items := util.GenerateStringSlice(1000, 10, 50)
 		ShellSort(items, CompareString)
 	}
 }

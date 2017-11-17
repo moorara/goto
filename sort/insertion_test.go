@@ -46,14 +46,14 @@ func TestInsertionSortString(t *testing.T) {
 
 func BenchmarkInsertionSortInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntArray(1000, -1000, 1000)
+		items := util.GenerateIntSlice(1000, -1000, 1000)
 		InsertionSort(items, CompareInt)
 	}
 }
 
 func BenchmarkInsertionSortString(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringArray(1000, 10, 50)
+		items := util.GenerateStringSlice(1000, 10, 50)
 		InsertionSort(items, CompareString)
 	}
 }

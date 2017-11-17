@@ -46,14 +46,14 @@ func TestHeapSortString(t *testing.T) {
 
 func BenchmarkHeapSortInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntArray(1000, -1000, 1000)
+		items := util.GenerateIntSlice(1000, -1000, 1000)
 		HeapSort(items, CompareInt)
 	}
 }
 
 func BenchmarkHeapSortString(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringArray(1000, 10, 50)
+		items := util.GenerateStringSlice(1000, 10, 50)
 		HeapSort(items, CompareString)
 	}
 }

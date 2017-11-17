@@ -66,7 +66,7 @@ func TestGenerateString(t *testing.T) {
 	}
 }
 
-func TestGenerateIntArray(t *testing.T) {
+func TestGenerateIntSlice(t *testing.T) {
 	tests := []struct {
 		size int
 		min  int
@@ -81,7 +81,7 @@ func TestGenerateIntArray(t *testing.T) {
 	SeedWithNow()
 
 	for _, test := range tests {
-		items := GenerateIntArray(test.size, test.min, test.max)
+		items := GenerateIntSlice(test.size, test.min, test.max)
 		for _, item := range items {
 			if CompareInt(item, test.min) < 0 || CompareInt(item, test.max) > 0 {
 				t.Errorf("%d is not between %d and %d.", item, test.min, test.max)
@@ -90,7 +90,7 @@ func TestGenerateIntArray(t *testing.T) {
 	}
 }
 
-func TestGenerateStringArray(t *testing.T) {
+func TestGenerateStringSlice(t *testing.T) {
 	tests := []struct {
 		size   int
 		minLen int
@@ -105,7 +105,7 @@ func TestGenerateStringArray(t *testing.T) {
 	SeedWithNow()
 
 	for _, test := range tests {
-		items := GenerateStringArray(test.size, test.minLen, test.maxLen)
+		items := GenerateStringSlice(test.size, test.minLen, test.maxLen)
 		for _, item := range items {
 			if len(item.(string)) < test.minLen || len(item.(string)) > test.maxLen {
 				t.Errorf("%s length is not between %d and %d.", item, test.minLen, test.maxLen)

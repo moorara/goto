@@ -82,28 +82,28 @@ func TestMergeSortRecString(t *testing.T) {
 
 func BenchmarkMergeSortInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntArray(1000, -1000, 1000)
+		items := util.GenerateIntSlice(1000, -1000, 1000)
 		MergeSort(items, CompareInt)
 	}
 }
 
 func BenchmarkMergeSortString(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringArray(1000, 10, 50)
+		items := util.GenerateStringSlice(1000, 10, 50)
 		MergeSort(items, CompareString)
 	}
 }
 
 func BenchmarkMergeSortRecInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntArray(1000, -1000, 1000)
+		items := util.GenerateIntSlice(1000, -1000, 1000)
 		MergeSortRec(items, CompareInt)
 	}
 }
 
 func BenchmarkMergeSortRecString(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringArray(1000, 10, 50)
+		items := util.GenerateStringSlice(1000, 10, 50)
 		MergeSortRec(items, CompareString)
 	}
 }

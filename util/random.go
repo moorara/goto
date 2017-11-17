@@ -37,8 +37,8 @@ func GenerateString(minLen, maxLen int) string {
 	return string(bytes)
 }
 
-// GenerateIntArray generates an array with random integers
-func GenerateIntArray(size, min, max int) []Generic {
+// GenerateIntSlice generates an array with random integers
+func GenerateIntSlice(size, min, max int) []Generic {
 	items := make([]Generic, size)
 	for i := 0; i < len(items); i++ {
 		items[i] = min + rand.Intn(max-min+1)
@@ -47,8 +47,8 @@ func GenerateIntArray(size, min, max int) []Generic {
 	return items
 }
 
-// GenerateStringArray generates an array with random strings
-func GenerateStringArray(size, minLen, maxLen int) []Generic {
+// GenerateStringSlice generates an array with random strings
+func GenerateStringSlice(size, minLen, maxLen int) []Generic {
 	items := make([]Generic, size)
 	for i := 0; i < len(items); i++ {
 		items[i] = GenerateString(minLen, maxLen)
