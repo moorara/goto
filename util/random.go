@@ -28,10 +28,10 @@ func GenerateInt(min, max int) int {
 
 // GenerateString generates a random string
 func GenerateString(minLen, maxLen int) string {
-	strLen := minLen + rand.Intn(maxLen-minLen+1)
+	strLen := GenerateInt(minLen, maxLen)
 	bytes := make([]byte, strLen)
 	for j := 0; j < strLen; j++ {
-		bytes[j] = byte(65 + rand.Intn(90-65+1))
+		bytes[j] = byte(GenerateInt(65, 95))
 	}
 
 	return string(bytes)
@@ -41,7 +41,7 @@ func GenerateString(minLen, maxLen int) string {
 func GenerateIntSlice(size, min, max int) []Generic {
 	items := make([]Generic, size)
 	for i := 0; i < len(items); i++ {
-		items[i] = min + rand.Intn(max-min+1)
+		items[i] = GenerateInt(min, max)
 	}
 
 	return items

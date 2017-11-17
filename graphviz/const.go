@@ -10,6 +10,7 @@ const (
 	EdgeDirBoth    = "both"
 
 	ColorBlack       = "black"
+	ColorWhite       = "white"
 	ColorGray        = "gray"
 	ColorRed         = "red"
 	ColorCoral       = "coral"

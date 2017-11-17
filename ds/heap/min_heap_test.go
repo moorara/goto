@@ -11,8 +11,8 @@ import (
 func TestMinHeap(t *testing.T) {
 	tests := []struct {
 		initialSize           int
-		keyCompare            Compare
-		valueCompare          Compare
+		compareKey            Compare
+		compareValue          Compare
 		insertKeys            []int
 		insertValues          []string
 		expectedSize          int
@@ -63,7 +63,7 @@ func TestMinHeap(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		heap := NewMinHeap(test.initialSize, test.keyCompare, test.valueCompare)
+		heap := NewMinHeap(test.initialSize, test.compareKey, test.compareValue)
 
 		// Heap initially should be empty
 		peekKey, peekValue := heap.Peek()
