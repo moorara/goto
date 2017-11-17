@@ -43,17 +43,3 @@ func TestInsertionSortString(t *testing.T) {
 		assert.True(t, util.IsSorted(test.items, test.compare))
 	}
 }
-
-func BenchmarkInsertionSortInt(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntSlice(1000, -1000, 1000)
-		InsertionSort(items, CompareInt)
-	}
-}
-
-func BenchmarkInsertionSortString(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringSlice(1000, 10, 50)
-		InsertionSort(items, CompareString)
-	}
-}

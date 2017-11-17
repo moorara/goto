@@ -1,10 +1,10 @@
 package heap
 
 import (
-	"strconv"
 	"testing"
 
 	. "github.com/moorara/go-box/dt"
+	"github.com/moorara/go-box/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -122,13 +122,31 @@ func TestMinHeap(t *testing.T) {
 }
 
 func BenchmarkMinHeap(b *testing.B) {
-	heap := NewMinHeap(1024, CompareInt, CompareString)
+	heapSize := 1024
+	minInt := 0
+	maxInt := 1000000
+	util.SeedWithNow()
 
-	for n := 0; n < b.N; n++ {
-		heap.Insert(n, strconv.Itoa(n))
-	}
+	b.Run("Insert", func(b *testing.B) {
+		heap := NewMinHeap(heapSize, CompareInt, CompareString)
+		items := util.GenerateIntSlice(b.N, minInt, maxInt)
+		b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		heap.Delete()
-	}
+		for n := 0; n < b.N; n++ {
+			heap.Insert(items[n], "")
+		}
+	})
+
+	b.Run("Delete", func(b *testing.B) {
+		heap := NewMinHeap(heapSize, CompareInt, CompareString)
+		items := util.GenerateIntSlice(b.N, minInt, maxInt)
+		for n := 0; n < b.N; n++ {
+			heap.Insert(items[n], "")
+		}
+		b.ResetTimer()
+
+		for n := 0; n < b.N; n++ {
+			heap.Delete()
+		}
+	})
 }

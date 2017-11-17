@@ -43,17 +43,3 @@ func TestHeapSortString(t *testing.T) {
 		assert.True(t, util.IsSorted(test.items, test.compare))
 	}
 }
-
-func BenchmarkHeapSortInt(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntSlice(1000, -1000, 1000)
-		HeapSort(items, CompareInt)
-	}
-}
-
-func BenchmarkHeapSortString(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringSlice(1000, 10, 50)
-		HeapSort(items, CompareString)
-	}
-}

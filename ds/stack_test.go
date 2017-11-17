@@ -97,13 +97,27 @@ func TestStack(t *testing.T) {
 }
 
 func BenchmarkStack(b *testing.B) {
-	stack := NewStack(1024, CompareInt)
+	nodeSize := 1024
+	item := 27
 
-	for n := 0; n < b.N; n++ {
-		stack.Push(n)
-	}
+	b.Run("Push", func(b *testing.B) {
+		stack := NewStack(nodeSize, CompareInt)
+		b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		stack.Pop()
-	}
+		for n := 0; n < b.N; n++ {
+			stack.Push(item)
+		}
+	})
+
+	b.Run("Pop", func(b *testing.B) {
+		stack := NewStack(nodeSize, CompareInt)
+		for n := 0; n < b.N; n++ {
+			stack.Push(item)
+		}
+		b.ResetTimer()
+
+		for n := 0; n < b.N; n++ {
+			stack.Pop()
+		}
+	})
 }

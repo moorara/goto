@@ -100,31 +100,3 @@ func TestQuickSort3WayString(t *testing.T) {
 		assert.True(t, util.IsSorted(test.items, test.compare))
 	}
 }
-
-func BenchmarkQuickSortInt(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntSlice(1000, -1000, 1000)
-		QuickSort(items, CompareInt)
-	}
-}
-
-func BenchmarkQuick3WaySortInt(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateIntSlice(1000, -1000, 1000)
-		QuickSort3Way(items, CompareInt)
-	}
-}
-
-func BenchmarkQuickSortString(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringSlice(1000, 10, 50)
-		QuickSort(items, CompareString)
-	}
-}
-
-func BenchmarkQuickSort3WayString(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		items := util.GenerateStringSlice(1000, 10, 50)
-		QuickSort3Way(items, CompareString)
-	}
-}

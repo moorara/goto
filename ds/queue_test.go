@@ -97,13 +97,27 @@ func TestQueue(t *testing.T) {
 }
 
 func BenchmarkQueue(b *testing.B) {
-	queue := NewQueue(1024, CompareInt)
+	nodeSize := 1024
+	item := 27
 
-	for n := 0; n < b.N; n++ {
-		queue.Enqueue(n)
-	}
+	b.Run("Enqueue", func(b *testing.B) {
+		queue := NewQueue(nodeSize, CompareInt)
+		b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		queue.Dequeue()
-	}
+		for n := 0; n < b.N; n++ {
+			queue.Enqueue(item)
+		}
+	})
+
+	b.Run("Dequeue", func(b *testing.B) {
+		queue := NewQueue(nodeSize, CompareInt)
+		for n := 0; n < b.N; n++ {
+			queue.Enqueue(item)
+		}
+		b.ResetTimer()
+
+		for n := 0; n < b.N; n++ {
+			queue.Dequeue()
+		}
+	})
 }
