@@ -15,12 +15,54 @@ func TestShuffle(t *testing.T) {
 		{[]Generic{"Alice", "Bob", "Dan", "Edgar", "Helen", "Karen", "Milad", "Peter", "Sam", "Wesley"}},
 	}
 
+	SeedWithNow()
+
 	for _, test := range tests {
 		orig := make([]Generic, len(test.items))
 		copy(orig, test.items)
 		Shuffle(test.items)
 
 		assert.NotEqual(t, orig, test.items)
+	}
+}
+
+func TestGenerateInt(t *testing.T) {
+	tests := []struct {
+		min int
+		max int
+	}{
+		{0, 0},
+		{1, 1},
+		{0, 1000},
+		{100, 100000},
+	}
+
+	SeedWithNow()
+
+	for _, test := range tests {
+		n := GenerateInt(test.min, test.max)
+
+		assert.True(t, test.min <= n && n <= test.max)
+	}
+}
+
+func TestGenerateString(t *testing.T) {
+	tests := []struct {
+		minLen int
+		maxLen int
+	}{
+		{0, 0},
+		{1, 1},
+		{10, 100},
+		{100, 1000},
+	}
+
+	SeedWithNow()
+
+	for _, test := range tests {
+		str := GenerateString(test.minLen, test.maxLen)
+
+		assert.True(t, test.minLen <= len(str) && len(str) <= test.maxLen)
 	}
 }
 
@@ -35,6 +77,8 @@ func TestGenerateIntArray(t *testing.T) {
 		{10, 0, 100},
 		{100, 100, 1000},
 	}
+
+	SeedWithNow()
 
 	for _, test := range tests {
 		items := GenerateIntArray(test.size, test.min, test.max)
@@ -57,6 +101,8 @@ func TestGenerateStringArray(t *testing.T) {
 		{10, 1, 10},
 		{100, 10, 100},
 	}
+
+	SeedWithNow()
 
 	for _, test := range tests {
 		items := GenerateStringArray(test.size, test.minLen, test.maxLen)
