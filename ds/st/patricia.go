@@ -9,7 +9,7 @@ type patriciaNode struct {
 	value Generic
 	left  *rbNode
 	right *rbNode
-	b     int
+	bp    int
 }
 
 type patricia struct {
@@ -18,11 +18,11 @@ type patricia struct {
 	bitStringKey BitString
 }
 
-func newPatriciaNode(key, value Generic, b int) *patriciaNode {
+func newPatriciaNode(key, value Generic, bp int) *patriciaNode {
 	return &patriciaNode{
 		key:   key,
 		value: value,
-		b:     b,
+		bp:    bp,
 	}
 }
 
