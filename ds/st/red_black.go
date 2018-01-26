@@ -12,9 +12,9 @@ package st
 import (
 	"fmt"
 
-	. "github.com/moorara/go-box/dt"
-	"github.com/moorara/go-box/graphviz"
-	"github.com/moorara/go-box/util"
+	. "github.com/moorara/goto/dt"
+	"github.com/moorara/goto/graphviz"
+	"github.com/moorara/goto/util"
 )
 
 const (

@@ -1,7 +1,7 @@
 package sort
 
 import (
-	. "github.com/moorara/go-box/dt"
+	. "github.com/moorara/goto/dt"
 )
 
 func min(a, b int) int {

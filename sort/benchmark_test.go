@@ -5,8 +5,8 @@ import (
 	"sort"
 	"testing"
 
-	. "github.com/moorara/go-box/dt"
-	"github.com/moorara/go-box/util"
+	. "github.com/moorara/goto/dt"
+	"github.com/moorara/goto/util"
 )
 
 const (

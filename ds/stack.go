@@ -1,7 +1,7 @@
 package ds
 
 import (
-	. "github.com/moorara/go-box/dt"
+	. "github.com/moorara/goto/dt"
 )
 
 // Stack represents a stack data structure

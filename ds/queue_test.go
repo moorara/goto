@@ -3,7 +3,7 @@ package ds
 import (
 	"testing"
 
-	. "github.com/moorara/go-box/dt"
+	. "github.com/moorara/goto/dt"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,8 +1,8 @@
 package sort
 
 import (
-	. "github.com/moorara/go-box/dt"
-	"github.com/moorara/go-box/util"
+	. "github.com/moorara/goto/dt"
+	"github.com/moorara/goto/util"
 )
 
 func partition(a []Generic, lo, hi int, compare Compare) int {

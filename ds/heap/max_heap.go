@@ -1,7 +1,7 @@
 package heap
 
 import (
-	. "github.com/moorara/go-box/dt"
+	. "github.com/moorara/goto/dt"
 )
 
 type maxHeap struct {
