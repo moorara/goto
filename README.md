@@ -1,3 +1,5 @@
+[![Build Status][travisci-image]][travisci-url]
+
 # goto
 A collection of handy data structures, algorithms, tool, etc. for [go](https://golang.org) applications.
 
@@ -18,3 +20,7 @@ A collection of handy data structures, algorithms, tool, etc. for [go](https://g
 | `make test`      | Running unit tests                                |
 | `make benchmark` | Running benchmarks                                |
 | `make coverage`  | Running unit tests and generating coverage report |
+
+
+[travisci-url]: https://travis-ci.org/moorara/goto
+[travisci-image]: https://travis-ci.org/moorara/goto.svg?branch=master

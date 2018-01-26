@@ -1,0 +1,14 @@
+dist: trusty
+sudo: false
+
+language: go
+
+go:
+  - 1.9.3
+
+install:
+  - go get -u github.com/golang/dep/cmd/dep
+  - dep ensure
+
+script:
+  - make test
