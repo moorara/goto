@@ -9,6 +9,7 @@ import (
 func TestSubgraph(t *testing.T) {
 	tests := []struct {
 		name            string
+		subgraphName    string
 		label           string
 		color           string
 		style           string
@@ -23,6 +24,7 @@ func TestSubgraph(t *testing.T) {
 		expectedDotCode string
 	}{
 		{
+			"EmptySubgraph",
 			"parent",
 			"", "", "",
 			"", "",
@@ -45,6 +47,7 @@ func TestSubgraph(t *testing.T) {
 }`,
 		},
 		{
+			"SubgraphWithNodes",
 			"child",
 			"Child", "", "",
 			"", "",
@@ -72,6 +75,7 @@ func TestSubgraph(t *testing.T) {
 }`,
 		},
 		{
+			"SubgraphWithNodesAndEdges",
 			"cluster0",
 			"Left", ColorPink, "",
 			"", RankdirLR,
@@ -112,6 +116,7 @@ func TestSubgraph(t *testing.T) {
 }`,
 		},
 		{
+			"SubgraphWithSubgraph",
 			"cluster1",
 			"Right", ColorGreen, StyleDotted,
 			RankSame, "",
@@ -190,12 +195,14 @@ func TestSubgraph(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		sg := NewSubgraph(test.name, test.label, test.color, test.style, test.rank, test.rankdir, test.nodeColor, test.nodeStyle, test.nodeShape)
-		sg.AddNode(test.nodes...)
-		sg.AddEdge(test.edges...)
-		sg.AddSubgraph(test.subgraphs...)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			sg := NewSubgraph(tc.subgraphName, tc.label, tc.color, tc.style, tc.rank, tc.rankdir, tc.nodeColor, tc.nodeStyle, tc.nodeShape)
+			sg.AddNode(tc.nodes...)
+			sg.AddEdge(tc.edges...)
+			sg.AddSubgraph(tc.subgraphs...)
 
-		assert.Equal(t, test.expectedDotCode, sg.DotCode(0))
+			assert.Equal(t, tc.expectedDotCode, sg.DotCode(0))
+		})
 	}
 }

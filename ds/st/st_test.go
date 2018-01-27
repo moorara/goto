@@ -7,68 +7,70 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type symbolTableTest struct {
-	Name        string
-	SymbolTable string
+type (
+	symbolTableTest struct {
+		name        string
+		symbolTable string
 
-	compareKey Compare
+		compareKey Compare
 
-	keyValues []KeyValue
+		keyValues []KeyValue
 
-	expectedSize    int
-	expectedIsEmpty bool
-}
+		expectedSize    int
+		expectedIsEmpty bool
+	}
 
-type orderedSymbolTableTest struct {
-	Name        string
-	SymbolTable string
+	orderedSymbolTableTest struct {
+		name        string
+		symbolTable string
 
-	compareKey Compare
+		compareKey Compare
 
-	keyValues []KeyValue
+		keyValues []KeyValue
 
-	expectedSize    int
-	expectedHeight  int
-	expectedIsEmpty bool
+		expectedSize    int
+		expectedHeight  int
+		expectedIsEmpty bool
 
-	expectedMinKey   Generic
-	expectedMinValue Generic
+		expectedMinKey   Generic
+		expectedMinValue Generic
 
-	expectedMaxKey   Generic
-	expectedMaxValue Generic
+		expectedMaxKey   Generic
+		expectedMaxValue Generic
 
-	floorKey           string
-	expectedFloorKey   Generic
-	expectedFloorValue Generic
+		floorKey           string
+		expectedFloorKey   Generic
+		expectedFloorValue Generic
 
-	ceilingKey           string
-	expectedCeilingKey   Generic
-	expectedCeilingValue Generic
+		ceilingKey           string
+		expectedCeilingKey   Generic
+		expectedCeilingValue Generic
 
-	rankKey      string
-	expectedRank int
+		rankKey      string
+		expectedRank int
 
-	selectRank          int
-	expectedSelectKey   Generic
-	expectedSelectValue Generic
+		selectRank          int
+		expectedSelectKey   Generic
+		expectedSelectValue Generic
 
-	rangeKeyLo        string
-	rangeKeyHi        string
-	expectedRangeSize int
-	expectedRange     []KeyValue
+		rangeKeyLo        string
+		rangeKeyHi        string
+		expectedRangeSize int
+		expectedRange     []KeyValue
 
-	expectedPreOrderTraverse  []KeyValue
-	expectedInOrderTraverse   []KeyValue
-	expectedPostOrderTraverse []KeyValue
+		expectedPreOrderTraverse  []KeyValue
+		expectedInOrderTraverse   []KeyValue
+		expectedPostOrderTraverse []KeyValue
 
-	expectedDotCode string
-}
+		expectedDotCode string
+	}
+)
 
 func getSymbolTableTests() []symbolTableTest {
 	return []symbolTableTest{
 		{
-			Name:            "",
-			SymbolTable:     "",
+			name:            "",
+			symbolTable:     "",
 			compareKey:      CompareString,
 			keyValues:       []KeyValue{},
 			expectedSize:    0,
@@ -80,7 +82,7 @@ func getSymbolTableTests() []symbolTableTest {
 func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 	return []orderedSymbolTableTest{
 		{
-			Name:                 "Empty",
+			name:                 "Empty",
 			compareKey:           CompareString,
 			keyValues:            []KeyValue{},
 			expectedSize:         0,
@@ -106,7 +108,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 			expectedRange:        nil,
 		},
 		{
-			Name:       "ABC",
+			name:       "ABC",
 			compareKey: CompareString,
 			keyValues: []KeyValue{
 				{"B", 2},
@@ -140,7 +142,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 			},
 		},
 		{
-			Name:       "ABCDE",
+			name:       "ABCDE",
 			compareKey: CompareString,
 			keyValues: []KeyValue{
 				{"B", 2},
@@ -176,7 +178,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 			},
 		},
 		{
-			Name:       "ADGJMPS",
+			name:       "ADGJMPS",
 			compareKey: CompareString,
 			keyValues: []KeyValue{
 				{"J", 10},
@@ -224,8 +226,8 @@ func runSymbolTableTest(t *testing.T, st SymbolTable, test symbolTableTest) {
 	assert.Zero(t, st.Size())
 
 	// Tree should be empty at the end
-	// assert.Zero(t, st.Size())
-	// assert.True(t, st.IsEmpty())
+	assert.Zero(t, st.Size())
+	assert.True(t, st.IsEmpty())
 }
 
 func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test orderedSymbolTableTest) {

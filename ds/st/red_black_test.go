@@ -7,7 +7,7 @@ import (
 func getRedBlackTests() []orderedSymbolTableTest {
 	tests := getOrderedSymbolTableTests()
 
-	tests[0].SymbolTable = "LLRB Tree"
+	tests[0].symbolTable = "LLRB Tree"
 	tests[0].expectedHeight = 0
 	tests[0].expectedPreOrderTraverse = nil
 	tests[0].expectedInOrderTraverse = nil
@@ -16,7 +16,7 @@ func getRedBlackTests() []orderedSymbolTableTest {
   node [style=filled, shape=oval];
 }`
 
-	tests[1].SymbolTable = "LLRB Tree"
+	tests[1].symbolTable = "LLRB Tree"
 	tests[1].expectedHeight = 2
 	tests[1].expectedPreOrderTraverse = []KeyValue{{"B", 2}, {"A", 1}, {"C", 3}}
 	tests[1].expectedInOrderTraverse = []KeyValue{{"A", 1}, {"B", 2}, {"C", 3}}
@@ -32,7 +32,7 @@ func getRedBlackTests() []orderedSymbolTableTest {
   B -> C [];
 }`
 
-	tests[2].SymbolTable = "LLRB Tree"
+	tests[2].symbolTable = "LLRB Tree"
 	tests[2].expectedHeight = 3
 	tests[2].expectedPreOrderTraverse = []KeyValue{{"D", 4}, {"B", 2}, {"A", 1}, {"C", 3}, {"E", 5}}
 	tests[2].expectedInOrderTraverse = []KeyValue{{"A", 1}, {"B", 2}, {"C", 3}, {"D", 4}, {"E", 5}}
@@ -52,7 +52,7 @@ func getRedBlackTests() []orderedSymbolTableTest {
   B -> C [];
 }`
 
-	tests[3].SymbolTable = "LLRB Tree"
+	tests[3].symbolTable = "LLRB Tree"
 	tests[3].expectedHeight = 3
 	tests[3].expectedPreOrderTraverse = []KeyValue{{"J", 10}, {"D", 4}, {"A", 1}, {"G", 7}, {"P", 16}, {"M", 13}, {"S", 19}}
 	tests[3].expectedInOrderTraverse = []KeyValue{{"A", 1}, {"D", 4}, {"G", 7}, {"J", 10}, {"M", 13}, {"P", 16}, {"S", 19}}
@@ -82,8 +82,8 @@ func getRedBlackTests() []orderedSymbolTableTest {
 func TestRedBlack(t *testing.T) {
 	tests := getRedBlackTests()
 
-	for _, test := range tests {
-		rbt := NewRedBlack(test.compareKey)
-		runOrderedSymbolTableTest(t, rbt, test)
+	for _, tc := range tests {
+		rbt := NewRedBlack(tc.compareKey)
+		runOrderedSymbolTableTest(t, rbt, tc)
 	}
 }

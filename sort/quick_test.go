@@ -20,11 +20,10 @@ func TestSelect(t *testing.T) {
 		{CompareInt, []Generic{20, 10, 30, 40, 50, 80, 60, 70, 90}, []Generic{10, 20, 30, 40, 50, 60, 70, 80, 90}},
 	}
 
-	for _, test := range tests {
-		for k := 0; k < len(test.items); k++ {
-			item := Select(test.items, k, test.compare)
-
-			assert.Equal(t, test.expectedItems[k], item)
+	for _, tc := range tests {
+		for k := 0; k < len(tc.items); k++ {
+			item := Select(tc.items, k, tc.compare)
+			assert.Equal(t, tc.expectedItems[k], item)
 		}
 	}
 }
@@ -40,10 +39,9 @@ func TestQuickSortInt(t *testing.T) {
 		{CompareInt, []Generic{90, 80, 70, 60, 50, 40, 30, 20, 10}},
 	}
 
-	for _, test := range tests {
-		QuickSort(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		QuickSort(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -58,10 +56,9 @@ func TestQuickSort3WayInt(t *testing.T) {
 		{CompareInt, []Generic{90, 10, 80, 20, 70, 30, 60, 40, 50, 50, 40, 60, 30, 70, 20, 80, 10, 90}},
 	}
 
-	for _, test := range tests {
-		QuickSort3Way(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		QuickSort3Way(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -76,10 +73,9 @@ func TestQuickSortString(t *testing.T) {
 		{CompareString, []Generic{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
 	}
 
-	for _, test := range tests {
-		QuickSort(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		QuickSort(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -94,9 +90,8 @@ func TestQuickSort3WayString(t *testing.T) {
 		{CompareString, []Generic{"Docker", "Kubernetes", "Docker", "Go", "JavaScript", "Go", "React", "Redux", "Vue", "Redux", "React"}},
 	}
 
-	for _, test := range tests {
-		QuickSort3Way(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		QuickSort3Way(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }

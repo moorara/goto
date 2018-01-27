@@ -17,8 +17,8 @@ func TestMinInt(t *testing.T) {
 		{[]int{40, 50, 20, 30, 10}, 10},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedMin, MinInt(test.nums...))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedMin, MinInt(tc.nums...))
 	}
 }
 
@@ -33,8 +33,8 @@ func TestMinFloat64(t *testing.T) {
 		{[]float64{.40, .50, .20, .30, .10}, .10},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedMin, MinFloat64(test.nums...))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedMin, MinFloat64(tc.nums...))
 	}
 }
 
@@ -49,8 +49,8 @@ func TestMaxInt(t *testing.T) {
 		{[]int{40, 50, 20, 30, 10}, 50},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedMax, MaxInt(test.nums...))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedMax, MaxInt(tc.nums...))
 	}
 }
 
@@ -65,8 +65,8 @@ func TestMaxFloat64(t *testing.T) {
 		{[]float64{.40, .50, .20, .30, .10}, .50},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedMax, MaxFloat64(test.nums...))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedMax, MaxFloat64(tc.nums...))
 	}
 }
 
@@ -82,7 +82,7 @@ func TestIsIntIn(t *testing.T) {
 		{10, []int{10, 20}, true},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedResult, IsIntIn(test.num, test.list...))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedResult, IsIntIn(tc.num, tc.list...))
 	}
 }

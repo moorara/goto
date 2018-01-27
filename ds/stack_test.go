@@ -9,6 +9,7 @@ import (
 
 func TestStack(t *testing.T) {
 	tests := []struct {
+		name             string
 		nodeSize         int
 		compare          Compare
 		pushItems        []string
@@ -19,6 +20,7 @@ func TestStack(t *testing.T) {
 		expectedPopItems []string
 	}{
 		{
+			"Empty",
 			2,
 			CompareString,
 			[]string{},
@@ -28,6 +30,7 @@ func TestStack(t *testing.T) {
 			[]string{},
 		},
 		{
+			"OneNode",
 			2,
 			CompareString,
 			[]string{"a", "b"},
@@ -37,6 +40,7 @@ func TestStack(t *testing.T) {
 			[]string{"b", "a"},
 		},
 		{
+			"TwoNodes",
 			2,
 			CompareString,
 			[]string{"a", "b", "c"},
@@ -46,6 +50,7 @@ func TestStack(t *testing.T) {
 			[]string{"c", "b", "a"},
 		},
 		{
+			"MoreNodes",
 			2,
 			CompareString,
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
@@ -56,43 +61,45 @@ func TestStack(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		stack := NewStack(test.nodeSize, test.compare)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			stack := NewStack(tc.nodeSize, tc.compare)
 
-		// Stack initially should be empty
-		assert.Zero(t, stack.Size())
-		assert.True(t, stack.IsEmpty())
-		assert.Nil(t, stack.Pop())
-		assert.Nil(t, stack.Peek())
-		assert.False(t, stack.Contains(nil))
-
-		for _, item := range test.pushItems {
-			stack.Push(item)
-		}
-
-		assert.Equal(t, test.expectedSize, stack.Size())
-		assert.Equal(t, test.expectedIsEmpty, stack.IsEmpty())
-
-		if test.expectedSize == 0 {
+			// Stack initially should be empty
+			assert.Zero(t, stack.Size())
+			assert.True(t, stack.IsEmpty())
+			assert.Nil(t, stack.Pop())
 			assert.Nil(t, stack.Peek())
-		} else {
-			assert.Equal(t, test.expectedPeek, stack.Peek())
-		}
+			assert.False(t, stack.Contains(nil))
 
-		for _, item := range test.expectedContains {
-			assert.True(t, stack.Contains(item))
-		}
+			for _, item := range tc.pushItems {
+				stack.Push(item)
+			}
 
-		for _, item := range test.expectedPopItems {
-			assert.Equal(t, item, stack.Pop())
-		}
+			assert.Equal(t, tc.expectedSize, stack.Size())
+			assert.Equal(t, tc.expectedIsEmpty, stack.IsEmpty())
 
-		// Stack should be empty at the end
-		assert.Zero(t, stack.Size())
-		assert.True(t, stack.IsEmpty())
-		assert.Nil(t, stack.Pop())
-		assert.Nil(t, stack.Peek())
-		assert.False(t, stack.Contains(nil))
+			if tc.expectedSize == 0 {
+				assert.Nil(t, stack.Peek())
+			} else {
+				assert.Equal(t, tc.expectedPeek, stack.Peek())
+			}
+
+			for _, item := range tc.expectedContains {
+				assert.True(t, stack.Contains(item))
+			}
+
+			for _, item := range tc.expectedPopItems {
+				assert.Equal(t, item, stack.Pop())
+			}
+
+			// Stack should be empty at the end
+			assert.Zero(t, stack.Size())
+			assert.True(t, stack.IsEmpty())
+			assert.Nil(t, stack.Pop())
+			assert.Nil(t, stack.Peek())
+			assert.False(t, stack.Contains(nil))
+		})
 	}
 }
 

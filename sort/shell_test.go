@@ -19,10 +19,9 @@ func TestShellSortInt(t *testing.T) {
 		{CompareInt, []Generic{90, 80, 70, 60, 50, 40, 30, 20, 10}},
 	}
 
-	for _, test := range tests {
-		ShellSort(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		ShellSort(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -37,9 +36,8 @@ func TestShellSortString(t *testing.T) {
 		{CompareString, []Generic{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
 	}
 
-	for _, test := range tests {
-		ShellSort(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		ShellSort(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }

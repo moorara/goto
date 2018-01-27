@@ -10,6 +10,7 @@ import (
 
 func TestMinHeap(t *testing.T) {
 	tests := []struct {
+		name                  string
 		initialSize           int
 		compareKey            Compare
 		compareValue          Compare
@@ -25,6 +26,7 @@ func TestMinHeap(t *testing.T) {
 		expectedDeleteValues  []string
 	}{
 		{
+			"Empty",
 			2,
 			CompareInt, CompareString,
 			[]int{}, []string{},
@@ -34,6 +36,7 @@ func TestMinHeap(t *testing.T) {
 			[]int{}, []string{},
 		},
 		{
+			"FewPairs",
 			2,
 			CompareInt, CompareString,
 			[]int{30, 10, 20}, []string{"thirty", "ten", "twenty"},
@@ -43,6 +46,7 @@ func TestMinHeap(t *testing.T) {
 			[]int{10, 20, 30}, []string{"ten", "twenty", "thirty"},
 		},
 		{
+			"SomePairs",
 			4,
 			CompareInt, CompareString,
 			[]int{50, 30, 40, 10, 20}, []string{"fifty", "thirty", "forty", "ten", "twenty"},
@@ -52,6 +56,7 @@ func TestMinHeap(t *testing.T) {
 			[]int{10, 20, 30, 40, 50}, []string{"ten", "twenty", "thirty", "forty", "fifty"},
 		},
 		{
+			"MorePairs",
 			4,
 			CompareInt, CompareString,
 			[]int{90, 80, 70, 40, 50, 60, 30, 10, 20}, []string{"ninety", "eighty", "seventy", "forty", "fifty", "sixty", "thirty", "ten", "twenty"},
@@ -62,62 +67,64 @@ func TestMinHeap(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		heap := NewMinHeap(test.initialSize, test.compareKey, test.compareValue)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			heap := NewMinHeap(tc.initialSize, tc.compareKey, tc.compareValue)
 
-		// Heap initially should be empty
-		peekKey, peekValue := heap.Peek()
-		deleteKey, deleteValue := heap.Delete()
-		assert.Nil(t, peekKey)
-		assert.Nil(t, peekValue)
-		assert.Nil(t, deleteKey)
-		assert.Nil(t, deleteValue)
-		assert.Zero(t, heap.Size())
-		assert.True(t, heap.IsEmpty())
-		assert.False(t, heap.ContainsKey(nil))
-		assert.False(t, heap.ContainsValue(nil))
-
-		for i := 0; i < len(test.insertKeys); i++ {
-			heap.Insert(test.insertKeys[i], test.insertValues[i])
-		}
-
-		assert.Equal(t, test.expectedSize, heap.Size())
-		assert.Equal(t, test.expectedIsEmpty, heap.IsEmpty())
-
-		peekKey, peekValue = heap.Peek()
-		if test.expectedSize == 0 {
+			// Heap initially should be empty
+			peekKey, peekValue := heap.Peek()
+			deleteKey, deleteValue := heap.Delete()
 			assert.Nil(t, peekKey)
 			assert.Nil(t, peekValue)
-		} else {
-			assert.Equal(t, test.expectedPeekKey, peekKey)
-			assert.Equal(t, test.expectedPeekValue, peekValue)
-		}
+			assert.Nil(t, deleteKey)
+			assert.Nil(t, deleteValue)
+			assert.Zero(t, heap.Size())
+			assert.True(t, heap.IsEmpty())
+			assert.False(t, heap.ContainsKey(nil))
+			assert.False(t, heap.ContainsValue(nil))
 
-		for _, key := range test.expectedContainsKey {
-			assert.True(t, heap.ContainsKey(key))
-		}
+			for i := 0; i < len(tc.insertKeys); i++ {
+				heap.Insert(tc.insertKeys[i], tc.insertValues[i])
+			}
 
-		for _, value := range test.expectedContainsValue {
-			assert.True(t, heap.ContainsValue(value))
-		}
+			assert.Equal(t, tc.expectedSize, heap.Size())
+			assert.Equal(t, tc.expectedIsEmpty, heap.IsEmpty())
 
-		for i := 0; i < len(test.expectedDeleteKeys); i++ {
+			peekKey, peekValue = heap.Peek()
+			if tc.expectedSize == 0 {
+				assert.Nil(t, peekKey)
+				assert.Nil(t, peekValue)
+			} else {
+				assert.Equal(t, tc.expectedPeekKey, peekKey)
+				assert.Equal(t, tc.expectedPeekValue, peekValue)
+			}
+
+			for _, key := range tc.expectedContainsKey {
+				assert.True(t, heap.ContainsKey(key))
+			}
+
+			for _, value := range tc.expectedContainsValue {
+				assert.True(t, heap.ContainsValue(value))
+			}
+
+			for i := 0; i < len(tc.expectedDeleteKeys); i++ {
+				deleteKey, deleteValue = heap.Delete()
+				assert.Equal(t, tc.expectedDeleteKeys[i], deleteKey)
+				assert.Equal(t, tc.expectedDeleteValues[i], deleteValue)
+			}
+
+			// Heap should be empty at the end
+			peekKey, peekValue = heap.Peek()
 			deleteKey, deleteValue = heap.Delete()
-			assert.Equal(t, test.expectedDeleteKeys[i], deleteKey)
-			assert.Equal(t, test.expectedDeleteValues[i], deleteValue)
-		}
-
-		// Heap should be empty at the end
-		peekKey, peekValue = heap.Peek()
-		deleteKey, deleteValue = heap.Delete()
-		assert.Nil(t, peekKey)
-		assert.Nil(t, peekValue)
-		assert.Nil(t, deleteKey)
-		assert.Nil(t, deleteValue)
-		assert.Zero(t, heap.Size())
-		assert.True(t, heap.IsEmpty())
-		assert.False(t, heap.ContainsKey(nil))
-		assert.False(t, heap.ContainsValue(nil))
+			assert.Nil(t, peekKey)
+			assert.Nil(t, peekValue)
+			assert.Nil(t, deleteKey)
+			assert.Nil(t, deleteValue)
+			assert.Zero(t, heap.Size())
+			assert.True(t, heap.IsEmpty())
+			assert.False(t, heap.ContainsKey(nil))
+			assert.False(t, heap.ContainsValue(nil))
+		})
 	}
 }
 

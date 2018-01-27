@@ -8,9 +8,10 @@ import (
 
 func TestGraph(t *testing.T) {
 	tests := []struct {
+		name            string
 		strict          bool
 		diagraph        bool
-		name            string
+		graphName       string
 		rankdir         string
 		nodeColor       string
 		nodeStyle       string
@@ -21,6 +22,7 @@ func TestGraph(t *testing.T) {
 		expectedDotCode string
 	}{
 		{
+			"SimpleGraph",
 			false, false, "",
 			"",
 			"", "", "",
@@ -42,6 +44,7 @@ func TestGraph(t *testing.T) {
 }`,
 		},
 		{
+			"GraphWithLabels",
 			true, false, "G",
 			"",
 			"", "", "",
@@ -67,6 +70,7 @@ func TestGraph(t *testing.T) {
 }`,
 		},
 		{
+			"GraphWithSubgraph",
 			false, true, "",
 			"",
 			ColorLimeGreen, "", "",
@@ -104,6 +108,7 @@ func TestGraph(t *testing.T) {
 }`,
 		},
 		{
+			"ComplexGraph",
 			true, true, "DG",
 			RankdirLR,
 			ColorSteelBlue, StyleFilled, ShapeMrecord,
@@ -178,12 +183,14 @@ func TestGraph(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		g := NewGraph(test.strict, test.diagraph, test.name, test.rankdir, test.nodeColor, test.nodeStyle, test.nodeShape)
-		g.AddNode(test.nodes...)
-		g.AddEdge(test.edges...)
-		g.AddSubgraph(test.subgraphs...)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewGraph(tc.strict, tc.diagraph, tc.graphName, tc.rankdir, tc.nodeColor, tc.nodeStyle, tc.nodeShape)
+			g.AddNode(tc.nodes...)
+			g.AddEdge(tc.edges...)
+			g.AddSubgraph(tc.subgraphs...)
 
-		assert.Equal(t, test.expectedDotCode, g.DotCode())
+			assert.Equal(t, tc.expectedDotCode, g.DotCode())
+		})
 	}
 }

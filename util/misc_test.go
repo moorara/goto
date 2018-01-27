@@ -19,8 +19,8 @@ func TestIsSorted(t *testing.T) {
 		{CompareString, []Generic{"Alice", "Bob", "Dan", "Edgar", "Helen", "Karen", "Milad", "Peter", "Sam", "Wesley"}, true},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedSorted, IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedSorted, IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -36,7 +36,7 @@ func TestIsStringIn(t *testing.T) {
 		{"Jackie", []string{"Bob", "Jackie"}, true},
 	}
 
-	for _, test := range tests {
-		assert.Equal(t, test.expectedResult, IsStringIn(test.str, test.list...))
+	for _, tc := range tests {
+		assert.Equal(t, tc.expectedResult, IsStringIn(tc.str, tc.list...))
 	}
 }

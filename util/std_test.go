@@ -22,9 +22,9 @@ func TestReplaceOSArgs(t *testing.T) {
 	origArgs := make([]string, len(os.Args))
 	copy(origArgs, os.Args)
 
-	for _, test := range tests {
-		restore := ReplaceOSArgs(test.args)
-		assert.Equal(t, test.args, os.Args)
+	for _, tc := range tests {
+		restore := ReplaceOSArgs(tc.args)
+		assert.Equal(t, tc.args, os.Args)
 		restore()
 	}
 
@@ -39,13 +39,13 @@ func TestPipeStdin(t *testing.T) {
 		{"milad"},
 	}
 
-	for _, test := range tests {
+	for _, tc := range tests {
 		inR, inW, restore, err := PipeStdin()
 		assert.NoError(t, err)
 
-		in, err := WriteToStdinPipe(inR, inW, test.in)
+		in, err := WriteToStdinPipe(inR, inW, tc.in)
 		assert.NoError(t, err)
-		assert.Equal(t, test.in, in)
+		assert.Equal(t, tc.in, in)
 
 		restore()
 	}
@@ -59,13 +59,13 @@ func TestPipeStdout(t *testing.T) {
 		{"moorara"},
 	}
 
-	for _, test := range tests {
+	for _, tc := range tests {
 		outR, outW, restore, err := PipeStdout()
 		assert.NoError(t, err)
 
-		out, err := ReadFromStdoutPipe(outR, outW, test.out)
+		out, err := ReadFromStdoutPipe(outR, outW, tc.out)
 		assert.NoError(t, err)
-		assert.Equal(t, test.out, out)
+		assert.Equal(t, tc.out, out)
 
 		restore()
 	}
@@ -79,13 +79,13 @@ func TestPipeStderr(t *testing.T) {
 		{"bad descriptor"},
 	}
 
-	for _, test := range tests {
+	for _, tc := range tests {
 		errR, errW, restore, err := PipeStderr()
 		assert.NoError(t, err)
 
-		er, err := ReadFromStderrPipe(errR, errW, test.err)
+		er, err := ReadFromStderrPipe(errR, errW, tc.err)
 		assert.NoError(t, err)
-		assert.Equal(t, test.err, er)
+		assert.Equal(t, tc.err, er)
 
 		restore()
 	}
@@ -101,18 +101,18 @@ func TestPipeStdoutAndStderr(t *testing.T) {
 		{"output", "error", "outputerror"},
 	}
 
-	for _, test := range tests {
+	for _, tc := range tests {
 		r, w, restore, err := PipeStdoutAndStderr()
 		assert.NoError(t, err)
 
-		fmt.Fprint(os.Stdout, test.out)
-		fmt.Fprint(os.Stderr, test.err)
+		fmt.Fprint(os.Stdout, tc.out)
+		fmt.Fprint(os.Stderr, tc.err)
 
 		err = w.Close()
 		assert.NoError(t, err)
 		data, err := ioutil.ReadAll(r)
 		assert.NoError(t, err)
-		assert.Equal(t, test.expected, string(data))
+		assert.Equal(t, tc.expected, string(data))
 
 		restore()
 	}
@@ -126,21 +126,21 @@ func TestPipeStdAll(t *testing.T) {
 		{"milad", "moorara", "bad descriptor"},
 	}
 
-	for _, test := range tests {
+	for _, tc := range tests {
 		inR, inW, outR, outW, errR, errW, restore, err := PipeStdAll()
 		assert.NoError(t, err)
 
-		in, err := WriteToStdinPipe(inR, inW, test.in)
+		in, err := WriteToStdinPipe(inR, inW, tc.in)
 		assert.NoError(t, err)
-		assert.Equal(t, test.in, in)
+		assert.Equal(t, tc.in, in)
 
-		out, err := ReadFromStdoutPipe(outR, outW, test.out)
+		out, err := ReadFromStdoutPipe(outR, outW, tc.out)
 		assert.NoError(t, err)
-		assert.Equal(t, test.out, out)
+		assert.Equal(t, tc.out, out)
 
-		er, err := ReadFromStderrPipe(errR, errW, test.err)
+		er, err := ReadFromStderrPipe(errR, errW, tc.err)
 		assert.NoError(t, err)
-		assert.Equal(t, test.err, er)
+		assert.Equal(t, tc.err, er)
 
 		restore()
 	}

@@ -9,6 +9,7 @@ import (
 
 func TestQueue(t *testing.T) {
 	tests := []struct {
+		name                 string
 		nodeSize             int
 		compare              Compare
 		enqueueItems         []string
@@ -19,6 +20,7 @@ func TestQueue(t *testing.T) {
 		expectedDequeueItems []string
 	}{
 		{
+			"Empty",
 			2,
 			CompareString,
 			[]string{},
@@ -28,6 +30,7 @@ func TestQueue(t *testing.T) {
 			[]string{},
 		},
 		{
+			"OneNode",
 			2,
 			CompareString,
 			[]string{"a", "b"},
@@ -37,6 +40,7 @@ func TestQueue(t *testing.T) {
 			[]string{"a", "b"},
 		},
 		{
+			"TwoNodes",
 			2,
 			CompareString,
 			[]string{"a", "b", "c"},
@@ -46,6 +50,7 @@ func TestQueue(t *testing.T) {
 			[]string{"a", "b", "c"},
 		},
 		{
+			"MoreNodes",
 			2,
 			CompareString,
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
@@ -56,43 +61,45 @@ func TestQueue(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		queue := NewQueue(test.nodeSize, test.compare)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			queue := NewQueue(tc.nodeSize, tc.compare)
 
-		// Queue initially should be empty
-		assert.Zero(t, queue.Size())
-		assert.True(t, queue.IsEmpty())
-		assert.Nil(t, queue.Peek())
-		queue.Contains(nil)
-		assert.Nil(t, queue.Dequeue())
-
-		for _, item := range test.enqueueItems {
-			queue.Enqueue(item)
-		}
-
-		assert.Equal(t, test.expectedSize, queue.Size())
-		assert.Equal(t, test.expectedIsEmpty, queue.IsEmpty())
-
-		if test.expectedSize == 0 {
+			// Queue initially should be empty
+			assert.Zero(t, queue.Size())
+			assert.True(t, queue.IsEmpty())
 			assert.Nil(t, queue.Peek())
-		} else {
-			assert.Equal(t, test.expectedPeek, queue.Peek())
-		}
+			queue.Contains(nil)
+			assert.Nil(t, queue.Dequeue())
 
-		for _, item := range test.expectedContains {
-			assert.True(t, queue.Contains(item))
-		}
+			for _, item := range tc.enqueueItems {
+				queue.Enqueue(item)
+			}
 
-		for _, item := range test.expectedDequeueItems {
-			assert.Equal(t, item, queue.Dequeue())
-		}
+			assert.Equal(t, tc.expectedSize, queue.Size())
+			assert.Equal(t, tc.expectedIsEmpty, queue.IsEmpty())
 
-		// Queue should be empty at the end
-		assert.Zero(t, queue.Size())
-		assert.True(t, queue.IsEmpty())
-		assert.Nil(t, queue.Peek())
-		queue.Contains(nil)
-		assert.Nil(t, queue.Dequeue())
+			if tc.expectedSize == 0 {
+				assert.Nil(t, queue.Peek())
+			} else {
+				assert.Equal(t, tc.expectedPeek, queue.Peek())
+			}
+
+			for _, item := range tc.expectedContains {
+				assert.True(t, queue.Contains(item))
+			}
+
+			for _, item := range tc.expectedDequeueItems {
+				assert.Equal(t, item, queue.Dequeue())
+			}
+
+			// Queue should be empty at the end
+			assert.Zero(t, queue.Size())
+			assert.True(t, queue.IsEmpty())
+			assert.Nil(t, queue.Peek())
+			queue.Contains(nil)
+			assert.Nil(t, queue.Dequeue())
+		})
 	}
 }
 

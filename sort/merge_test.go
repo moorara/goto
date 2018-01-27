@@ -19,10 +19,9 @@ func TestMergeSortInt(t *testing.T) {
 		{CompareInt, []Generic{90, 80, 70, 60, 50, 40, 30, 20, 10}},
 	}
 
-	for _, test := range tests {
-		MergeSort(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		MergeSort(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -37,10 +36,9 @@ func TestMergeSortString(t *testing.T) {
 		{CompareString, []Generic{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
 	}
 
-	for _, test := range tests {
-		MergeSort(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		MergeSort(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -55,10 +53,9 @@ func TestMergeSortRecInt(t *testing.T) {
 		{CompareInt, []Generic{90, 80, 70, 60, 50, 40, 30, 20, 10}},
 	}
 
-	for _, test := range tests {
-		MergeSortRec(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		MergeSortRec(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }
 
@@ -73,9 +70,8 @@ func TestMergeSortRecString(t *testing.T) {
 		{CompareString, []Generic{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
 	}
 
-	for _, test := range tests {
-		MergeSortRec(test.items, test.compare)
-
-		assert.True(t, util.IsSorted(test.items, test.compare))
+	for _, tc := range tests {
+		MergeSortRec(tc.items, tc.compare)
+		assert.True(t, util.IsSorted(tc.items, tc.compare))
 	}
 }

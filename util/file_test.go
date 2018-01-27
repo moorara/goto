@@ -40,11 +40,11 @@ func TestAbsPath(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		restore := ReplaceOSArgs([]string{test.execPath})
-		elem := append(test.subDirs, test.fileName)
-		absPath := AbsPath(test.fromExec, elem...)
-		assert.Equal(t, test.expectedAbsPath, absPath)
+	for _, tc := range tests {
+		restore := ReplaceOSArgs([]string{tc.execPath})
+		elem := append(tc.subDirs, tc.fileName)
+		absPath := AbsPath(tc.fromExec, elem...)
+		assert.Equal(t, tc.expectedAbsPath, absPath)
 
 		restore()
 	}
@@ -98,9 +98,9 @@ func TestMkDirs(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		delete, err := MkDirs(test.basePath, test.dirs...)
-		if test.expectError {
+	for _, tc := range tests {
+		delete, err := MkDirs(tc.basePath, tc.dirs...)
+		if tc.expectError {
 			assert.Error(t, err)
 		} else {
 			assert.NoError(t, err)
@@ -129,14 +129,14 @@ func TestCreateTempFile(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		path, delete, err := CreateTempFile(test.content)
+	for _, tc := range tests {
+		path, delete, err := CreateTempFile(tc.content)
 		defer delete()
 		assert.NoError(t, err)
 
 		content, err := ioutil.ReadFile(path)
 		assert.NoError(t, err)
-		assert.Equal(t, test.content, string(content))
+		assert.Equal(t, tc.content, string(content))
 	}
 }
 
@@ -201,28 +201,28 @@ func TestConcatFiles(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		ioutil.WriteFile(test.dest, []byte(test.destContent), 0644)
+	for _, tc := range tests {
+		ioutil.WriteFile(tc.dest, []byte(tc.destContent), 0644)
 
 		files := make([]string, 0)
-		for file, content := range test.fileContents {
+		for file, content := range tc.fileContents {
 			ioutil.WriteFile(file, []byte(content), 0644)
 			files = append(files, file)
 		}
 
-		err := ConcatFiles(test.dest, test.append, files...)
+		err := ConcatFiles(tc.dest, tc.append, files...)
 
-		if test.expectError {
+		if tc.expectError {
 			assert.Error(t, err)
 		} else {
 			assert.NoError(t, err)
-			content, err := ioutil.ReadFile(test.dest)
+			content, err := ioutil.ReadFile(tc.dest)
 			assert.NoError(t, err)
-			assert.Equal(t, test.expectedContent, string(content))
+			assert.Equal(t, tc.expectedContent, string(content))
 		}
 
 		// Cleanup temporary files
-		files = append(files, test.dest)
+		files = append(files, tc.dest)
 		DeleteAll("", files...)
 	}
 }
@@ -266,19 +266,19 @@ func TestDeleteAll(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		_, err := MkDirs(test.basePath, test.dirs...)
+	for _, tc := range tests {
+		_, err := MkDirs(tc.basePath, tc.dirs...)
 		assert.NoError(t, err)
 
-		for _, file := range test.files {
+		for _, file := range tc.files {
 			err = ioutil.WriteFile(file, []byte(""), 0644)
 			assert.NoError(t, err)
 		}
 
-		paths := append(test.files, test.dirs...)
-		err = DeleteAll(test.basePath, paths...)
+		paths := append(tc.files, tc.dirs...)
+		err = DeleteAll(tc.basePath, paths...)
 
-		if test.expectError {
+		if tc.expectError {
 			assert.Error(t, err)
 		} else {
 			assert.NoError(t, err)

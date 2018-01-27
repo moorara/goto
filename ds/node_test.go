@@ -17,10 +17,10 @@ func TestNewArrayNodeWithSizeAndNext(t *testing.T) {
 		{4096, &arrayNode{}},
 	}
 
-	for _, test := range tests {
-		n := newArrayNode(test.size, test.next)
+	for _, tc := range tests {
+		n := newArrayNode(tc.size, tc.next)
 
-		assert.Equal(t, test.next, n.next)
-		assert.Equal(t, test.size, len(n.block))
+		assert.Equal(t, tc.next, n.next)
+		assert.Equal(t, tc.size, len(n.block))
 	}
 }

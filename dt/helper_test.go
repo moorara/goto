@@ -18,10 +18,10 @@ func TestIntComparator(t *testing.T) {
 		{77, 99, CompareInt, -1},
 	}
 
-	for _, test := range tests {
-		cmp := test.compare(test.a, test.b)
+	for _, tc := range tests {
+		cmp := tc.compare(tc.a, tc.b)
 
-		assert.Equal(t, test.expectedComparison, cmp)
+		assert.Equal(t, tc.expectedComparison, cmp)
 	}
 }
 
@@ -36,10 +36,10 @@ func TestIntBitStringer(t *testing.T) {
 		{88, BitStringInt, []byte{0x38, 0x38}},
 	}
 
-	for _, test := range tests {
-		bitString := test.bitString(test.a)
+	for _, tc := range tests {
+		bitString := tc.bitString(tc.a)
 
-		assert.Equal(t, test.expectedBitString, bitString)
+		assert.Equal(t, tc.expectedBitString, bitString)
 	}
 }
 
@@ -55,10 +55,10 @@ func TestStringComparator(t *testing.T) {
 		{"Alice", "Bob", CompareString, -1},
 	}
 
-	for _, test := range tests {
-		cmp := test.compare(test.a, test.b)
+	for _, tc := range tests {
+		cmp := tc.compare(tc.a, tc.b)
 
-		assert.Equal(t, test.expectedComparison, cmp)
+		assert.Equal(t, tc.expectedComparison, cmp)
 	}
 }
 
@@ -73,9 +73,9 @@ func TestStringBitStringer(t *testing.T) {
 		{"Milad", BitStringString, []byte{0x4d, 0x69, 0x6c, 0x61, 0x64}},
 	}
 
-	for _, test := range tests {
-		bitString := test.bitString(test.a)
+	for _, tc := range tests {
+		bitString := tc.bitString(tc.a)
 
-		assert.Equal(t, test.expectedBitString, bitString)
+		assert.Equal(t, tc.expectedBitString, bitString)
 	}
 }

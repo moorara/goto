@@ -17,12 +17,12 @@ func TestShuffle(t *testing.T) {
 
 	SeedWithNow()
 
-	for _, test := range tests {
-		orig := make([]Generic, len(test.items))
-		copy(orig, test.items)
-		Shuffle(test.items)
+	for _, tc := range tests {
+		orig := make([]Generic, len(tc.items))
+		copy(orig, tc.items)
+		Shuffle(tc.items)
 
-		assert.NotEqual(t, orig, test.items)
+		assert.NotEqual(t, orig, tc.items)
 	}
 }
 
@@ -39,10 +39,10 @@ func TestGenerateInt(t *testing.T) {
 
 	SeedWithNow()
 
-	for _, test := range tests {
-		n := GenerateInt(test.min, test.max)
+	for _, tc := range tests {
+		n := GenerateInt(tc.min, tc.max)
 
-		assert.True(t, test.min <= n && n <= test.max)
+		assert.True(t, tc.min <= n && n <= tc.max)
 	}
 }
 
@@ -59,10 +59,10 @@ func TestGenerateString(t *testing.T) {
 
 	SeedWithNow()
 
-	for _, test := range tests {
-		str := GenerateString(test.minLen, test.maxLen)
+	for _, tc := range tests {
+		str := GenerateString(tc.minLen, tc.maxLen)
 
-		assert.True(t, test.minLen <= len(str) && len(str) <= test.maxLen)
+		assert.True(t, tc.minLen <= len(str) && len(str) <= tc.maxLen)
 	}
 }
 
@@ -80,11 +80,11 @@ func TestGenerateIntSlice(t *testing.T) {
 
 	SeedWithNow()
 
-	for _, test := range tests {
-		items := GenerateIntSlice(test.size, test.min, test.max)
+	for _, tc := range tests {
+		items := GenerateIntSlice(tc.size, tc.min, tc.max)
 		for _, item := range items {
-			if CompareInt(item, test.min) < 0 || CompareInt(item, test.max) > 0 {
-				t.Errorf("%d is not between %d and %d.", item, test.min, test.max)
+			if CompareInt(item, tc.min) < 0 || CompareInt(item, tc.max) > 0 {
+				t.Errorf("%d is not between %d and %d.", item, tc.min, tc.max)
 			}
 		}
 	}
@@ -104,11 +104,11 @@ func TestGenerateStringSlice(t *testing.T) {
 
 	SeedWithNow()
 
-	for _, test := range tests {
-		items := GenerateStringSlice(test.size, test.minLen, test.maxLen)
+	for _, tc := range tests {
+		items := GenerateStringSlice(tc.size, tc.minLen, tc.maxLen)
 		for _, item := range items {
-			if len(item.(string)) < test.minLen || len(item.(string)) > test.maxLen {
-				t.Errorf("%s length is not between %d and %d.", item, test.minLen, test.maxLen)
+			if len(item.(string)) < tc.minLen || len(item.(string)) > tc.maxLen {
+				t.Errorf("%s length is not between %d and %d.", item, tc.minLen, tc.maxLen)
 			}
 		}
 	}
