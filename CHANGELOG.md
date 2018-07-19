@@ -1,5 +1,23 @@
 # Change Log
 
+## [v0.1.1](https://github.com/moorara/goto/tree/v0.1.1) (2018-07-18)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.0...v0.1.1)
+
+**Implemented enhancements:**
+
+- Add versioning and release [\#3](https://github.com/moorara/goto/issues/3)
+
+**Closed issues:**
+
+- Add Continuous Integration [\#1](https://github.com/moorara/goto/issues/1)
+
+**Merged pull requests:**
+
+- Add config package [\#9](https://github.com/moorara/goto/pull/9) ([moorara](https://github.com/moorara))
+- Update dependencies [\#8](https://github.com/moorara/goto/pull/8) ([moorara](https://github.com/moorara))
+- Refactor tests [\#7](https://github.com/moorara/goto/pull/7) ([moorara](https://github.com/moorara))
+- Add Continuous Integration [\#6](https://github.com/moorara/goto/pull/6) ([moorara](https://github.com/moorara))
+
 ## [v0.1.0](https://github.com/moorara/goto/tree/v0.1.0) (2018-01-26)
 **Merged pull requests:**
 
