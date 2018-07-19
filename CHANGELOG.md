@@ -1,6 +1,13 @@
 # Change Log
 
-## [v0.1.1](https://github.com/moorara/goto/tree/v0.1.1) (2018-07-18)
+## [v0.1.2](https://github.com/moorara/goto/tree/v0.1.2) (2018-07-19)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.1...v0.1.2)
+
+**Merged pull requests:**
+
+- Fix config package bug [\#10](https://github.com/moorara/goto/pull/10) ([moorara](https://github.com/moorara))
+
+## [v0.1.1](https://github.com/moorara/goto/tree/v0.1.1) (2018-07-19)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.1.0...v0.1.1)
 
 **Implemented enhancements:**
