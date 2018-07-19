@@ -3,7 +3,7 @@
 This is a very minimal utility for reading configuration values from either
 **command-line flags**, **environment variables**, or **configuration files**.
 
-This library does not use `flag` package for parsing flags
+This library does not use `flag` package for parsing flags, so you can still parse your flags separately.
 
 ## Quick Start
 

@@ -1,17 +1,20 @@
 [![Build Status][travisci-image]][travisci-url]
 
 # goto
-A collection of handy data structures, algorithms, tool, etc. for [go](https://golang.org) applications.
+A collection of handy data structures, algorithms, tools, etc. for [go](https://golang.org) applications.
 
 ## Packages
 
-| Package                                                          | Description                              |
-|------------------------------------------------------------------|------------------------------------------|
-| [dt](https://github.com/moorara/goto/tree/master/dt)             | Data type definitions                    |
-| [ds](https://github.com/moorara/goto/tree/master/ds)             | Miscellaneous data structures            |
-| [sort](https://github.com/moorara/goto/tree/master/sort)         | Common sorting algorithms                |
-| [graphviz](https://github.com/moorara/goto/tree/master/graphviz) | Drawing graphs in Graphviz DOT language  |
-| [util](https://github.com/moorara/goto/tree/master/util)         | Miscellaneous tools and helper functions |
+| Package                | Description                                    |
+|------------------------|------------------------------------------------|
+| [dt](./dt)             | Data type definitions                          |
+| [ds](./ds)             | Miscellaneous data structures                  |
+| [sort](./sort)         | Common sorting algorithms                      |
+| [graphviz](./graphviz) | Generating graphs in **Graphviz DOT** language |
+| [config](./config)     | Zero-configuration config management!          |
+| [io](./io)             | I/O helper functions                           |
+| [math](./math)         | Math helper functions                          |
+| [util](./util)         | Miscellaneous helper functions                 |
 
 ## Running Tests
 
