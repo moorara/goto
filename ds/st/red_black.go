@@ -14,7 +14,7 @@ import (
 
 	. "github.com/moorara/goto/dt"
 	"github.com/moorara/goto/graphviz"
-	"github.com/moorara/goto/util"
+	"github.com/moorara/goto/math"
 )
 
 const (
@@ -128,7 +128,7 @@ func (t *redBlack) height(n *rbNode) int {
 		return 0
 	}
 
-	return 1 + util.MaxInt(t.height(n.left), t.height(n.right))
+	return 1 + math.MaxInt(t.height(n.left), t.height(n.right))
 }
 
 func (t *redBlack) isRed(n *rbNode) bool {
@@ -633,7 +633,7 @@ func (t *redBlack) _traverse(n *rbNode, order int, visit func(*rbNode) bool) boo
 }
 
 func (t *redBlack) Traverse(order int, visit VisitFunc) {
-	if !util.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
+	if !math.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
 		return
 	}
 

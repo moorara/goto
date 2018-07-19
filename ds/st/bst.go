@@ -12,7 +12,7 @@ import (
 
 	. "github.com/moorara/goto/dt"
 	"github.com/moorara/goto/graphviz"
-	"github.com/moorara/goto/util"
+	"github.com/moorara/goto/math"
 )
 
 type bstNode struct {
@@ -79,7 +79,7 @@ func (t *bst) height(n *bstNode) int {
 		return 0
 	}
 
-	return 1 + util.MaxInt(t.height(n.left), t.height(n.right))
+	return 1 + math.MaxInt(t.height(n.left), t.height(n.right))
 }
 
 func (t *bst) Size() int {
@@ -443,7 +443,7 @@ func (t *bst) _traverse(n *bstNode, order int, visit func(*bstNode) bool) bool {
 }
 
 func (t *bst) Traverse(order int, visit VisitFunc) {
-	if !util.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
+	if !math.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
 		return
 	}
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/util"
+	"github.com/moorara/goto/math"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -132,11 +132,11 @@ func BenchmarkMinHeap(b *testing.B) {
 	heapSize := 1024
 	minInt := 0
 	maxInt := 1000000
-	util.SeedWithNow()
+	math.SeedWithNow()
 
 	b.Run("Insert", func(b *testing.B) {
 		heap := NewMinHeap(heapSize, CompareInt, CompareString)
-		items := util.GenerateIntSlice(b.N, minInt, maxInt)
+		items := math.GenerateIntSlice(b.N, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
@@ -146,7 +146,7 @@ func BenchmarkMinHeap(b *testing.B) {
 
 	b.Run("Delete", func(b *testing.B) {
 		heap := NewMinHeap(heapSize, CompareInt, CompareString)
-		items := util.GenerateIntSlice(b.N, minInt, maxInt)
+		items := math.GenerateIntSlice(b.N, minInt, maxInt)
 		for n := 0; n < b.N; n++ {
 			heap.Insert(items[n], "")
 		}

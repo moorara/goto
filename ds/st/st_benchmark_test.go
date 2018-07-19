@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/util"
+	"github.com/moorara/goto/math"
 )
 
 const (
@@ -17,7 +17,7 @@ func getIntSlice(size int) []Generic {
 	for i := 0; i < len(items); i++ {
 		items[i] = i
 	}
-	util.Shuffle(items)
+	math.Shuffle(items)
 
 	return items
 }
@@ -25,7 +25,7 @@ func getIntSlice(size int) []Generic {
 func runPutBenchmark(b *testing.B, ost OrderedSymbolTable) {
 	items := getIntSlice(b.N)
 	rand.Seed(seed)
-	util.Shuffle(items)
+	math.Shuffle(items)
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
@@ -36,7 +36,7 @@ func runPutBenchmark(b *testing.B, ost OrderedSymbolTable) {
 func runGetBenchmark(b *testing.B, ost OrderedSymbolTable) {
 	items := getIntSlice(b.N)
 	rand.Seed(seed)
-	util.Shuffle(items)
+	math.Shuffle(items)
 	for n := 0; n < b.N; n++ {
 		ost.Put(items[n], "")
 	}

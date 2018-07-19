@@ -2,7 +2,7 @@ package sort
 
 import (
 	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/util"
+	"github.com/moorara/goto/math"
 )
 
 func partition(a []Generic, lo, hi int, compare Compare) int {
@@ -26,7 +26,7 @@ func partition(a []Generic, lo, hi int, compare Compare) int {
 
 // Select finds the kth smallest item of an array in O(n) time on average
 func Select(a []Generic, k int, compare Compare) Generic {
-	util.Shuffle(a)
+	math.Shuffle(a)
 	var lo, hi int = 0, len(a) - 1
 	for lo < hi {
 		j := partition(a, lo, hi, compare)
@@ -56,7 +56,7 @@ func quickSort(a []Generic, lo, hi int, compare Compare) {
 
 // QuickSort implements quick sort algorithm
 func QuickSort(a []Generic, compare Compare) {
-	util.Shuffle(a)
+	math.Shuffle(a)
 	quickSort(a, 0, len(a)-1, compare)
 }
 

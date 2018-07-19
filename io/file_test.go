@@ -1,4 +1,4 @@
-package util
+package io
 
 import (
 	"io/ioutil"
@@ -36,7 +36,7 @@ func TestAbsPath(t *testing.T) {
 			false,
 			[]string{"test"},
 			"file_test.go",
-			path.Join(os.Getenv("GOPATH"), "src/github.com/moorara/goto/util", "test/file_test.go"),
+			path.Join(os.Getenv("GOPATH"), "src/github.com/moorara/goto/io", "test/file_test.go"),
 		},
 	}
 

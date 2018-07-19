@@ -3,9 +3,7 @@ packages := $(shell go list ./...)
 
 
 dep:
-	@ dep ensure && \
-	  dep ensure -update && \
-	  dep prune
+	@ dep ensure -update
 
 test:
 	@ go test -v -race ./...

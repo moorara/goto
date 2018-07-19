@@ -10,7 +10,7 @@ import (
 
 	. "github.com/moorara/goto/dt"
 	"github.com/moorara/goto/graphviz"
-	"github.com/moorara/goto/util"
+	"github.com/moorara/goto/math"
 )
 
 type avlNode struct {
@@ -106,8 +106,8 @@ func (t *avl) rotateLeft(n *avlNode) *avlNode {
 
 	r.size = n.size
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + util.MaxInt(t.height(n.left), t.height(n.right))
-	r.height = 1 + util.MaxInt(t.height(r.left), t.height(r.right))
+	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	r.height = 1 + math.MaxInt(t.height(r.left), t.height(r.right))
 
 	return r
 }
@@ -119,8 +119,8 @@ func (t *avl) rotateRight(n *avlNode) *avlNode {
 
 	l.size = n.size
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + util.MaxInt(t.height(n.left), t.height(n.right))
-	l.height = 1 + util.MaxInt(t.height(l.left), t.height(l.right))
+	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	l.height = 1 + math.MaxInt(t.height(l.left), t.height(l.right))
 
 	return l
 }
@@ -175,7 +175,7 @@ func (t *avl) _put(n *avlNode, key, value Generic) *avlNode {
 	}
 
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + util.MaxInt(t.height(n.left), t.height(n.right))
+	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
 	return t.balance(n)
 }
 
@@ -237,7 +237,7 @@ func (t *avl) _delete(n *avlNode, key Generic) (*avlNode, Generic, bool) {
 	}
 
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + util.MaxInt(t.height(n.left), t.height(n.right))
+	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
 	return t.balance(n), value, ok
 }
 
@@ -401,7 +401,7 @@ func (t *avl) _deleteMin(n *avlNode) (*avlNode, *avlNode) {
 	var min *avlNode
 	n.left, min = t._deleteMin(n.left)
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + util.MaxInt(t.height(n.left), t.height(n.right))
+	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
 	return t.balance(n), min
 }
 
@@ -507,7 +507,7 @@ func (t *avl) _traverse(n *avlNode, order int, visit func(*avlNode) bool) bool {
 }
 
 func (t *avl) Traverse(order int, visit VisitFunc) {
-	if !util.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
+	if !math.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
 		return
 	}
 
