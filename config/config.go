@@ -18,38 +18,50 @@ const (
 	fileTagName = "file"
 )
 
-func getFlagName(fieldName string) string {
-	i := 0
+func getFlagName(name string) string {
 	subs := []string{}
-	str := []rune(fieldName)
+	current := string(name[0])
+	lastLower := unicode.IsLower(rune(name[0]))
 
-	for j := 1; j < len(str); j++ {
-		if unicode.IsUpper(str[j]) {
-			subs = append(subs, string(str[i:j]))
-			i = j
+	for i := 1; i < len(name); i++ {
+		r := rune(name[i])
+		s := string(name[i])
+
+		if unicode.IsUpper(r) && lastLower {
+			subs = append(subs, string(current))
+			current = ""
 		}
-	}
-	subs = append(subs, string(str[i:]))
 
+		current += s
+		lastLower = unicode.IsLower(r)
+	}
+
+	subs = append(subs, string(current))
 	result := strings.Join(subs, ".")
 	result = strings.ToLower(result)
 
 	return result
 }
 
-func getEnvVarName(fieldName string) string {
-	i := 0
+func getEnvVarName(name string) string {
 	subs := []string{}
-	str := []rune(fieldName)
+	current := string(name[0])
+	lastLower := unicode.IsLower(rune(name[0]))
 
-	for j := 1; j < len(str); j++ {
-		if unicode.IsUpper(str[j]) {
-			subs = append(subs, string(str[i:j]))
-			i = j
+	for i := 1; i < len(name); i++ {
+		r := rune(name[i])
+		s := string(name[i])
+
+		if unicode.IsUpper(r) && lastLower {
+			subs = append(subs, string(current))
+			current = ""
 		}
-	}
-	subs = append(subs, string(str[i:]))
 
+		current += s
+		lastLower = unicode.IsLower(r)
+	}
+
+	subs = append(subs, string(current))
 	result := strings.Join(subs, "_")
 	result = strings.ToUpper(result)
 

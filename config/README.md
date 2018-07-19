@@ -17,9 +17,8 @@ import (
 
 type Spec struct {
   Enabled bool
-  ServiceName string
   ServicePort int
-  LogLevel string
+  DatabaseURL string
 }
 
 func main() {
@@ -39,19 +38,18 @@ The precendence of sources for values is as follows:
 You can pass the configuration values using **flags** using any of the syntaxes below:
 
 ```bash
-main -enabled  -service.name=users -service.port=8080 -log.level=info
-main --enabled  --service.name=users --service.port=8080 --log.level=info
-main -enabled  -service.name users -service.port 8080 -log.level info
-main --enabled  --service.name users --service.port 8080 --log.level info
+main -enabled -service.port=8080 -database.url=root@localhost
+main --enabled --service.port=8080 --database.url=root@localhost
+main -enabled -service.port 8080 -database.url root@localhost
+main --enabled --service.port 8080 --database.url root@localhost
 ```
 
 You can pass the configuration values using **environment variables** as follows:
 
 ```bash
 export ENABLED=true
-export SERVICE_NAME=users
 export SERVICE_PORT=8080
-export LOG_LEVEL=info
+export DATABASE_URL=root@localhost
 ```
 
 You can also write the configuration values in **files**
@@ -59,9 +57,8 @@ and set the paths to the files using environment variables:
 
 ```bash
 export ENABLED_FILE=...
-export SERVICE_NAME_FILE=...
 export SERVICE_PORT_FILE=...
-export LOG_LEVEL_FILE=...
+export DATABASE_URL_FILE=...
 ```
 
 ## Complete Example

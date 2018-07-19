@@ -37,6 +37,7 @@ func TestGetFlagName(t *testing.T) {
 		{"camelCase", "camel.case"},
 		{"CamelCase", "camel.case"},
 		{"MoreCamelCase", "more.camel.case"},
+		{"DatabaseURL", "database.url"},
 	}
 
 	for _, tc := range tests {
@@ -57,6 +58,7 @@ func TestGetEnvVarName(t *testing.T) {
 		{"camelCase", "CAMEL_CASE"},
 		{"CamelCase", "CAMEL_CASE"},
 		{"MoreCamelCase", "MORE_CAMEL_CASE"},
+		{"DatabaseURL", "DATABASE_URL"},
 	}
 
 	for _, tc := range tests {
