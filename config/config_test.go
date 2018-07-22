@@ -92,6 +92,11 @@ func TestGetFlagValue(t *testing.T) {
 
 		{[]string{"exe", "-enabled", "-text", "content"}, "enabled", "true"},
 		{[]string{"exe", "--enabled", "--text", "content"}, "enabled", "true"},
+
+		{[]string{"exec", "-service.name=go-service"}, "service.name", "go-service"},
+		{[]string{"exec", "--service.name=go-service"}, "service.name", "go-service"},
+		{[]string{"exec", "-service.name", "go-service"}, "service.name", "go-service"},
+		{[]string{"exec", "--service.name", "go-service"}, "service.name", "go-service"},
 	}
 
 	origArgs := os.Args
