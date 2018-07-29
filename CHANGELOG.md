@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.1.3](https://github.com/moorara/goto/tree/v0.1.3) (2018-07-28)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.2...v0.1.3)
+
+**Merged pull requests:**
+
+- Refactor config package README [\#14](https://github.com/moorara/goto/pull/14) ([moorara](https://github.com/moorara))
+- config: add array support [\#13](https://github.com/moorara/goto/pull/13) ([moorara](https://github.com/moorara))
+- config: add more tests [\#12](https://github.com/moorara/goto/pull/12) ([moorara](https://github.com/moorara))
+- Update README [\#11](https://github.com/moorara/goto/pull/11) ([moorara](https://github.com/moorara))
+
 ## [v0.1.2](https://github.com/moorara/goto/tree/v0.1.2) (2018-07-19)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.1.1...v0.1.2)
 
