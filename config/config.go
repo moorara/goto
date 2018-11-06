@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"flag"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -17,6 +18,18 @@ const (
 	fileTagName = "file"
 	sepTagName  = "sep"
 )
+
+type stringFlagValue struct {
+	value string
+}
+
+func (f *stringFlagValue) String() string {
+	return f.value
+}
+
+func (f *stringFlagValue) Set(string) error {
+	return nil
+}
 
 func parseFieldName(name string) []string {
 	tokens := []string{}
@@ -285,6 +298,11 @@ func Pick(spec interface{}) error {
 		str := getFieldValue(flagTag, envTag, fileTag)
 		if str == "" {
 			continue
+		}
+
+		// Define a flag variable for the field so flag.Parse is callable
+		if flag.Lookup(flagTag) == nil {
+			flag.Var(&stringFlagValue{str}, flagTag, flagTag)
 		}
 
 		switch vField.Kind() {

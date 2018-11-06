@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -1153,4 +1154,6 @@ func TestPick(t *testing.T) {
 			assert.Equal(t, tc.expectedSpec, tc.spec)
 		})
 	}
+
+	flag.Parse()
 }
