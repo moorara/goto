@@ -1,6 +1,13 @@
 # Change Log
 
-## [v0.1.3](https://github.com/moorara/goto/tree/v0.1.3) (2018-07-28)
+## [v0.1.4](https://github.com/moorara/goto/tree/v0.1.4) (2018-11-06)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.3...v0.1.4)
+
+**Merged pull requests:**
+
+- Making flag.Parse\(\) Callable [\#17](https://github.com/moorara/goto/pull/17) ([EtienneDufresne](https://github.com/EtienneDufresne))
+
+## [v0.1.3](https://github.com/moorara/goto/tree/v0.1.3) (2018-07-29)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.1.2...v0.1.3)
 
 **Merged pull requests:**
