@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -11,38 +10,39 @@ import (
 )
 
 type testSpec struct {
-	FieldString       string    `flag:"field.string" env:"FIELD_STRING" file:"FIELD_STRING_FILE"`
-	FieldBool         bool      `flag:"field.bool" env:"FIELD_BOOL" file:"FIELD_BOOL_FILE"`
-	FieldFloat32      float32   `flag:"field.float32" env:"FIELD_FLOAT32" file:"FIELD_FLOAT32_FILE"`
-	FieldFloat64      float64   `flag:"field.float64" env:"FIELD_FLOAT64" file:"FIELD_FLOAT64_FILE"`
-	FieldInt          int       `flag:"field.int" env:"FIELD_INT" file:"FIELD_INT_FILE"`
-	FieldInt8         int8      `flag:"field.int8" env:"FIELD_INT8" file:"FIELD_INT8_FILE"`
-	FieldInt16        int16     `flag:"field.int16" env:"FIELD_INT16" file:"FIELD_INT16_FILE"`
-	FieldInt32        int32     `flag:"field.int32" env:"FIELD_INT32" file:"FIELD_INT32_FILE"`
-	FieldInt64        int64     `flag:"field.int64" env:"FIELD_INT64" file:"FIELD_INT64_FILE"`
-	FieldUint         uint      `flag:"field.uint" env:"FIELD_UINT" file:"FIELD_UINT_FILE"`
-	FieldUint8        uint8     `flag:"field.uint8" env:"FIELD_UINT8" file:"FIELD_UINT8_FILE"`
-	FieldUint16       uint16    `flag:"field.uint16" env:"FIELD_UINT16" file:"FIELD_UINT16_FILE"`
-	FieldUint32       uint32    `flag:"field.uint32" env:"FIELD_UINT32" file:"FIELD_UINT32_FILE"`
-	FieldUint64       uint64    `flag:"field.uint64" env:"FIELD_UINT64" file:"FIELD_UINT64_FILE"`
-	FieldStringArray  []string  `flag:"field.string.array" env:"FIELD_STRING_ARRAY" file:"FIELD_STRING_ARRAY_FILE" sep:","`
-	FieldFloat32Array []float32 `flag:"field.float32.array" env:"FIELD_FLOAT32_ARRAY" file:"FIELD_FLOAT32_ARRAY_FILE" sep:","`
-	FieldFloat64Array []float64 `flag:"field.float64.array" env:"FIELD_FLOAT64_ARRAY" file:"FIELD_FLOAT64_ARRAY_FILE" sep:","`
-	FieldIntArray     []int     `flag:"field.int.array" env:"FIELD_INT_ARRAY" file:"FIELD_INT_ARRAY_FILE" sep:","`
-	FieldInt8Array    []int8    `flag:"field.int8.array" env:"FIELD_INT8_ARRAY" file:"FIELD_INT8_ARRAY_FILE" sep:","`
-	FieldInt16Array   []int16   `flag:"field.int16.array" env:"FIELD_INT16_ARRAY" file:"FIELD_INT16_ARRAY_FILE" sep:","`
-	FieldInt32Array   []int32   `flag:"field.int32.array" env:"FIELD_INT32_ARRAY" file:"FIELD_INT32_ARRAY_FILE" sep:","`
-	FieldInt64Array   []int64   `flag:"field.int64.array" env:"FIELD_INT64_ARRAY" file:"FIELD_INT64_ARRAY_FILE" sep:","`
-	FieldUintArray    []uint    `flag:"field.uint.array" env:"FIELD_UINT_ARRAY" file:"FIELD_UINT_ARRAY_FILE" sep:","`
-	FieldUint8Array   []uint8   `flag:"field.uint8.array" env:"FIELD_UINT8_ARRAY" file:"FIELD_UINT8_ARRAY_FILE" sep:","`
-	FieldUint16Array  []uint16  `flag:"field.uint16.array" env:"FIELD_UINT16_ARRAY" file:"FIELD_UINT16_ARRAY_FILE" sep:","`
-	FieldUint32Array  []uint32  `flag:"field.uint32.array" env:"FIELD_UINT32_ARRAY" file:"FIELD_UINT32_ARRAY_FILE" sep:","`
-	FieldUint64Array  []uint64  `flag:"field.uint64.array" env:"FIELD_UINT64_ARRAY" file:"FIELD_UINT64_ARRAY_FILE" sep:","`
+	unexported        string
+	FieldString       string    // `flag:"field.string" env:"FIELD_STRING" file:"FIELD_STRING_FILE"`
+	FieldBool         bool      // `flag:"field.bool" env:"FIELD_BOOL" file:"FIELD_BOOL_FILE"`
+	FieldFloat32      float32   // `flag:"field.float32" env:"FIELD_FLOAT32" file:"FIELD_FLOAT32_FILE"`
+	FieldFloat64      float64   // `flag:"field.float64" env:"FIELD_FLOAT64" file:"FIELD_FLOAT64_FILE"`
+	FieldInt          int       // `flag:"field.int" env:"FIELD_INT" file:"FIELD_INT_FILE"`
+	FieldInt8         int8      // `flag:"field.int8" env:"FIELD_INT8" file:"FIELD_INT8_FILE"`
+	FieldInt16        int16     // `flag:"field.int16" env:"FIELD_INT16" file:"FIELD_INT16_FILE"`
+	FieldInt32        int32     // `flag:"field.int32" env:"FIELD_INT32" file:"FIELD_INT32_FILE"`
+	FieldInt64        int64     // `flag:"field.int64" env:"FIELD_INT64" file:"FIELD_INT64_FILE"`
+	FieldUint         uint      // `flag:"field.uint" env:"FIELD_UINT" file:"FIELD_UINT_FILE"`
+	FieldUint8        uint8     // `flag:"field.uint8" env:"FIELD_UINT8" file:"FIELD_UINT8_FILE"`
+	FieldUint16       uint16    // `flag:"field.uint16" env:"FIELD_UINT16" file:"FIELD_UINT16_FILE"`
+	FieldUint32       uint32    // `flag:"field.uint32" env:"FIELD_UINT32" file:"FIELD_UINT32_FILE"`
+	FieldUint64       uint64    // `flag:"field.uint64" env:"FIELD_UINT64" file:"FIELD_UINT64_FILE"`
+	FieldStringArray  []string  // `flag:"field.string.array" env:"FIELD_STRING_ARRAY" file:"FIELD_STRING_ARRAY_FILE" sep:","`
+	FieldFloat32Array []float32 // `flag:"field.float32.array" env:"FIELD_FLOAT32_ARRAY" file:"FIELD_FLOAT32_ARRAY_FILE" sep:","`
+	FieldFloat64Array []float64 // `flag:"field.float64.array" env:"FIELD_FLOAT64_ARRAY" file:"FIELD_FLOAT64_ARRAY_FILE" sep:","`
+	FieldIntArray     []int     // `flag:"field.int.array" env:"FIELD_INT_ARRAY" file:"FIELD_INT_ARRAY_FILE" sep:","`
+	FieldInt8Array    []int8    // `flag:"field.int8.array" env:"FIELD_INT8_ARRAY" file:"FIELD_INT8_ARRAY_FILE" sep:","`
+	FieldInt16Array   []int16   // `flag:"field.int16.array" env:"FIELD_INT16_ARRAY" file:"FIELD_INT16_ARRAY_FILE" sep:","`
+	FieldInt32Array   []int32   // `flag:"field.int32.array" env:"FIELD_INT32_ARRAY" file:"FIELD_INT32_ARRAY_FILE" sep:","`
+	FieldInt64Array   []int64   // `flag:"field.int64.array" env:"FIELD_INT64_ARRAY" file:"FIELD_INT64_ARRAY_FILE" sep:","`
+	FieldUintArray    []uint    // `flag:"field.uint.array" env:"FIELD_UINT_ARRAY" file:"FIELD_UINT_ARRAY_FILE" sep:","`
+	FieldUint8Array   []uint8   // `flag:"field.uint8.array" env:"FIELD_UINT8_ARRAY" file:"FIELD_UINT8_ARRAY_FILE" sep:","`
+	FieldUint16Array  []uint16  // `flag:"field.uint16.array" env:"FIELD_UINT16_ARRAY" file:"FIELD_UINT16_ARRAY_FILE" sep:","`
+	FieldUint32Array  []uint32  // `flag:"field.uint32.array" env:"FIELD_UINT32_ARRAY" file:"FIELD_UINT32_ARRAY_FILE" sep:","`
+	FieldUint64Array  []uint64  // `flag:"field.uint64.array" env:"FIELD_UINT64_ARRAY" file:"FIELD_UINT64_ARRAY_FILE" sep:","`
 }
 
-func TestParseFieldName(t *testing.T) {
+func TestTokenize(t *testing.T) {
 	tests := []struct {
-		fieldName      string
+		name           string
 		expectedTokens []string
 	}{
 		{"c", []string{"c"}},
@@ -57,8 +57,7 @@ func TestParseFieldName(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tokens := parseFieldName(tc.fieldName)
-		fmt.Println(tokens)
+		tokens := tokenize(tc.name)
 		assert.Equal(t, tc.expectedTokens, tokens)
 	}
 }
@@ -584,14 +583,40 @@ func TestUint64Slice(t *testing.T) {
 	}
 }
 
+func TestPickError(t *testing.T) {
+	tests := []struct {
+		name          string
+		config        interface{}
+		expectedError string
+	}{
+		{
+			"NonPointer",
+			testSpec{},
+			"non-pointer type is passed",
+		},
+		{
+			"NonStruct",
+			new(string),
+			"non-struct type is passed",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Pick(tc.config)
+			assert.Equal(t, tc.expectedError, err.Error())
+		})
+	}
+}
+
 func TestPick(t *testing.T) {
 	tests := []struct {
-		name         string
-		args         []string
-		envs         [][2]string
-		files        [][2]string
-		spec         testSpec
-		expectedSpec testSpec
+		name           string
+		args           []string
+		envs           [][2]string
+		files          [][2]string
+		config         testSpec
+		expectedConfig testSpec
 	}{
 		{
 			"Empty",
@@ -1050,7 +1075,7 @@ func TestPick(t *testing.T) {
 			},
 		},
 		{
-			"Combinatorial",
+			"Mixed",
 			[]string{
 				"-field.bool",
 				"-field.float32=3.1415",
@@ -1149,11 +1174,12 @@ func TestPick(t *testing.T) {
 				defer os.Unsetenv(file[0])
 			}
 
-			err := Pick(&tc.spec)
+			err := Pick(&tc.config)
 			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedSpec, tc.spec)
+			assert.Equal(t, tc.expectedConfig, tc.config)
 		})
 	}
 
+	// flag.Parse() can be called only once
 	flag.Parse()
 }

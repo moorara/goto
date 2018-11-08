@@ -11,5 +11,5 @@
 *.test
 reports/
 
-# This repo is a set of packages
+# Libraries should not vendor their dependencies
 vendor/

@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -13,25 +14,28 @@ import (
 )
 
 const (
-	flagTagName = "flag"
-	envTagName  = "env"
-	fileTagName = "file"
-	sepTagName  = "sep"
+	flagTag = "flag"
+	envTag  = "env"
+	fileTag = "file"
+	sepTag  = "sep"
 )
 
-type stringFlagValue struct {
-	value string
+type flagValue struct{}
+
+func (v *flagValue) String() string {
+	return ""
 }
 
-func (f *stringFlagValue) String() string {
-	return f.value
-}
-
-func (f *stringFlagValue) Set(string) error {
+func (v *flagValue) Set(string) error {
 	return nil
 }
 
-func parseFieldName(name string) []string {
+/*
+ * tokenize breaks a field name into its tokens (generally words).
+ *   UserID       -->  User, ID
+ *   DatabaseURL  -->  Database, URL
+ */
+func tokenize(name string) []string {
 	tokens := []string{}
 	current := string(name[0])
 	lastLower := unicode.IsLower(rune(name[0]))
@@ -68,35 +72,63 @@ func parseFieldName(name string) []string {
 	return tokens
 }
 
+/*
+ * getFlagName returns a canonical flag name for a field.
+ *   UserID       -->  user.id
+ *   DatabaseURL  -->  database.url
+ */
 func getFlagName(name string) string {
-	parts := parseFieldName(name)
+	parts := tokenize(name)
 	result := strings.Join(parts, ".")
 	result = strings.ToLower(result)
 
 	return result
 }
 
+/*
+ * getFlagName returns a canonical environment variable name for a field.
+ *   UserID       -->  USER_id
+ *   DatabaseURL  -->  DATABASE_URL
+ */
 func getEnvVarName(name string) string {
-	parts := parseFieldName(name)
+	parts := tokenize(name)
 	result := strings.Join(parts, "_")
 	result = strings.ToUpper(result)
 
 	return result
 }
 
+func defineFlag(flagName, defaultValue, envName, fileName string) {
+	usage := fmt.Sprintf(
+		"%s:\t\t\t\t%s\n%s:\t\t\t%s\n%s:\t%s",
+		"default value", defaultValue,
+		"environment variable", envName,
+		"config file environment variable", fileName,
+	)
+
+	if flag.Lookup(flagName) == nil {
+		flag.Var(&flagValue{}, flagName, usage)
+	}
+}
+
+/*
+ * getFlagValue returns the value set for a flag.
+ *   - The flag name can start with - or --
+ *   - The flag value can be separated by space or =
+ */
 func getFlagValue(flagName string) string {
-	flagNameRegex := regexp.MustCompile("-{1,2}" + flagName)
-	flagGeneralRegex := regexp.MustCompile("^-{1,2}[A-Za-z].*")
+	flagRegex := regexp.MustCompile("-{1,2}" + flagName)
+	genericRegex := regexp.MustCompile("^-{1,2}[A-Za-z].*")
 
 	for i, arg := range os.Args {
-		if flagNameRegex.MatchString(arg) {
+		if flagRegex.MatchString(arg) {
 			if s := strings.Index(arg, "="); s > 0 {
 				return arg[s+1:]
 			}
 
 			if i+1 < len(os.Args) {
 				val := os.Args[i+1]
-				if !flagGeneralRegex.MatchString(val) {
+				if !genericRegex.MatchString(val) {
 					return val
 				}
 			}
@@ -108,6 +140,12 @@ func getFlagValue(flagName string) string {
 	return ""
 }
 
+/*
+ * getFieldValue reads and returns the string value for a field from either
+ *   - command-line flags,
+ *   - environment variables,
+ *   - or configuration files
+ */
 func getFieldValue(flag, env, file string) string {
 	var value string
 
@@ -250,13 +288,22 @@ func uint64Slice(strs []string) []uint64 {
 	return uints
 }
 
-// Pick reads values for a struct of specifications
-func Pick(spec interface{}) error {
-	v := reflect.ValueOf(spec).Elem() // reflect.Value --> v.Type(), v.Kind(), v.NumField()
-	t := reflect.TypeOf(spec).Elem()  // reflect.Type --> t.Name(), t.Kind(), t.NumField()
+// Pick reads values for exported fields of a struct from command-line flags, environment variables, and/or configuration files.
+func Pick(config interface{}) error {
+	v := reflect.ValueOf(config) // reflect.Value --> v.Type(), v.Kind(), v.NumField()
+	t := reflect.TypeOf(config)  // reflect.Type --> t.Name(), t.Kind(), t.NumField()
+
+	// If a pointer is passed, navigate to the value
+	if t.Kind() != reflect.Ptr {
+		return errors.New("non-pointer type is passed")
+	}
+
+	// Navigate to the pointer value
+	v = v.Elem()
+	t = t.Elem()
 
 	if t.Kind() != reflect.Struct {
-		return errors.New("spec should be a struct type")
+		return errors.New("non-struct type is passed")
 	}
 
 	// Iterate over struct fields
@@ -272,37 +319,36 @@ func Pick(spec interface{}) error {
 		name := tField.Name
 
 		// `flag:""`
-		flagTag := tField.Tag.Get(flagTagName)
-		if flagTag == "" {
-			flagTag = getFlagName(name)
+		flagName := tField.Tag.Get(flagTag)
+		if flagName == "" {
+			flagName = getFlagName(name)
 		}
 
 		// `env:""`
-		envTag := tField.Tag.Get(envTagName)
-		if envTag == "" {
-			envTag = getEnvVarName(name)
+		envName := tField.Tag.Get(envTag)
+		if envName == "" {
+			envName = getEnvVarName(name)
 		}
 
 		// `file:""`
-		fileTag := tField.Tag.Get(fileTagName)
-		if fileTag == "" {
-			fileTag = envTag + "_FILE"
+		fileName := tField.Tag.Get(fileTag)
+		if fileName == "" {
+			fileName = envName + "_FILE"
 		}
 
 		// `sep:""`
-		sepTag := tField.Tag.Get(sepTagName)
-		if sepTag == "" {
-			sepTag = ","
+		sep := tField.Tag.Get(sepTag)
+		if sep == "" {
+			sep = ","
 		}
 
-		str := getFieldValue(flagTag, envTag, fileTag)
+		// Define a flag for the field so flag.Parse() can be called
+		defaultValue := fmt.Sprintf("%v", vField.Interface())
+		defineFlag(flagName, defaultValue, envName, fileName)
+
+		str := getFieldValue(flagName, envName, fileName)
 		if str == "" {
 			continue
-		}
-
-		// Define a flag variable for the field so flag.Parse is callable
-		if flag.Lookup(flagTag) == nil {
-			flag.Var(&stringFlagValue{str}, flagTag, flagTag)
 		}
 
 		switch vField.Kind() {
@@ -332,7 +378,7 @@ func Pick(spec interface{}) error {
 		case reflect.Slice:
 			iSlice := vField.Interface()
 			tSlice := reflect.TypeOf(iSlice).Elem()
-			strs := strings.Split(str, sepTag)
+			strs := strings.Split(str, sep)
 
 			switch tSlice.Kind() {
 			case reflect.String:
