@@ -5,11 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -98,6 +100,9 @@ func getEnvVarName(name string) string {
 	return result
 }
 
+/*
+ * defineFlag registers a flag name, so it will show up in the help description.
+ */
 func defineFlag(flagName, defaultValue, envName, fileName string) {
 	usage := fmt.Sprintf(
 		"%s:\t\t\t\t%s\n%s:\t\t\t%s\n%s:\t%s",
@@ -288,6 +293,26 @@ func uint64Slice(strs []string) []uint64 {
 	return uints
 }
 
+func durationSlice(strs []string) []time.Duration {
+	durations := []time.Duration{}
+	for _, str := range strs {
+		if d, err := time.ParseDuration(str); err == nil {
+			durations = append(durations, d)
+		}
+	}
+	return durations
+}
+
+func urlSlice(strs []string) []url.URL {
+	urls := []url.URL{}
+	for _, str := range strs {
+		if u, err := url.Parse(str); err == nil {
+			urls = append(urls, *u)
+		}
+	}
+	return urls
+}
+
 // Pick reads values for exported fields of a struct from command-line flags, environment variables, and/or configuration files.
 func Pick(config interface{}) error {
 	v := reflect.ValueOf(config) // reflect.Value --> v.Type(), v.Kind(), v.NumField()
@@ -318,25 +343,25 @@ func Pick(config interface{}) error {
 
 		name := tField.Name
 
-		// `flag:""`
+		// `flag:"..."`
 		flagName := tField.Tag.Get(flagTag)
 		if flagName == "" {
 			flagName = getFlagName(name)
 		}
 
-		// `env:""`
+		// `env:"..."`
 		envName := tField.Tag.Get(envTag)
 		if envName == "" {
 			envName = getEnvVarName(name)
 		}
 
-		// `file:""`
+		// `file:"..."`
 		fileName := tField.Tag.Get(fileTag)
 		if fileName == "" {
 			fileName = envName + "_FILE"
 		}
 
-		// `sep:""`
+		// `sep:"..."`
 		sep := tField.Tag.Get(sepTag)
 		if sep == "" {
 			sep = ","
@@ -366,13 +391,27 @@ func Pick(config interface{}) error {
 			}
 
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			if i, err := strconv.ParseInt(str, 10, 64); err == nil {
+			if t := vField.Type(); t.PkgPath() == "time" && t.Name() == "Duration" {
+				// time.Duration
+				if d, err := time.ParseDuration(str); err == nil {
+					vField.Set(reflect.ValueOf(d))
+				}
+			} else if i, err := strconv.ParseInt(str, 10, 64); err == nil {
 				vField.SetInt(i)
 			}
 
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			if u, err := strconv.ParseUint(str, 10, 64); err == nil {
 				vField.SetUint(u)
+			}
+
+		case reflect.Struct:
+			if t := vField.Type(); t.PkgPath() == "net/url" && t.Name() == "URL" {
+				// url.URL
+				if u, err := url.Parse(str); err == nil {
+					// u is a pointer
+					vField.Set(reflect.ValueOf(u).Elem())
+				}
 			}
 
 		case reflect.Slice:
@@ -409,8 +448,14 @@ func Pick(config interface{}) error {
 				vField.Set(reflect.ValueOf(ints))
 
 			case reflect.Int64:
-				ints := int64Slice(strs)
-				vField.Set(reflect.ValueOf(ints))
+				if tSlice.PkgPath() == "time" && tSlice.Name() == "Duration" {
+					// []time.Duration
+					durations := durationSlice(strs)
+					vField.Set(reflect.ValueOf(durations))
+				} else {
+					ints := int64Slice(strs)
+					vField.Set(reflect.ValueOf(ints))
+				}
 
 			case reflect.Uint:
 				uints := uintSlice(strs)
@@ -431,6 +476,13 @@ func Pick(config interface{}) error {
 			case reflect.Uint64:
 				uints := uint64Slice(strs)
 				vField.Set(reflect.ValueOf(uints))
+
+			case reflect.Struct:
+				if tSlice.PkgPath() == "net/url" && tSlice.Name() == "URL" {
+					// []url.URL
+					urls := urlSlice(strs)
+					vField.Set(reflect.ValueOf(urls))
+				}
 			}
 		}
 	}

@@ -12,22 +12,30 @@ package main
 
 import (
   "fmt"
+  "net/url"
+  "time"
+
   "github.com/moorara/goto/config"
 )
 
-type Spec struct {
-  Enabled     bool
-  ServicePort int
-  LogLevel    string
-  DBEndpoints []string
+Config := struct {
+  Enabled   bool
+  LogLevel  string
+  Timeout   time.Duration
+  Address   url.URL
+  Endpoints []string
+} {
+  Enabled:  true,   // default
+  LogLevel: "info", //default
 }
 
 func main() {
-  spec := Spec{}
-  config.Pick(&spec)
-  fmt.Printf("%+v\n", spec)
+  config.Pick(&Config)
+  fmt.Printf("%+v\n", Config)
 }
 ```
+
+You can run your application with `-help` or `--help` flag to see all options for passing the configuration values.
 
 The precendence of sources for values is as follows:
 
@@ -39,19 +47,20 @@ The precendence of sources for values is as follows:
 You can pass the configuration values using **flags** using any of the syntaxes below:
 
 ```bash
-main -enabled -service.port=8080 -log.level=info -db.endpoints=arango1,arango2,arango3
-main --enabled --service.port=8080 --log.level=info --db.endpoints=arango1,arango2,arango3
-main -enabled -service.port 8080 -log.level info -db.endpoints arango1,arango2,arango3
-main --enabled --service.port 8080 --log.level info --db.endpoints arango1,arango2,arango3
+main  -enabled  -log.level info  -timeout 30s  -address http://localhost:8080  -endpoints url1,url2,url3
+main  -enabled  -log.level=info  -timeout=30s  -address=http://localhost:8080  -endpoints=url1,url2,url3
+main --enabled --log.level info --timeout 30s --address http://localhost:8080 --endpoints url1,url2,url3
+main --enabled --log.level=info --timeout=30s --address=http://localhost:8080 --endpoints=url1,url2,url3
 ```
 
 You can pass the configuration values using **environment variables** as follows:
 
 ```bash
 export ENABLED=true
-export SERVICE_PORT=8080
 export LOG_LEVEL=info
-export DB_ENDPOINTS=arango1,arango2,arango3
+export TIMEOUT=30s
+export ADDRESS=http://localhost:8080
+export ENDPOINTS=url1,url2,url3
 ```
 
 You can also write the configuration values in **files**
@@ -59,9 +68,10 @@ and set the paths to the files using environment variables:
 
 ```bash
 export ENABLED_FILE=...
-export SERVICE_PORT_FILE=...
 export LOG_LEVEL_FILE=...
-export DB_ENDPOINTS_FILE=...
+export TIMEOUT_FILE=...
+export ADDRESS_FILE=...
+export ENDPOINTS_FILE=...
 ```
 
 ## Complete Example
@@ -71,45 +81,52 @@ package main
 
 import (
   "fmt"
+  "net/url"
+  "time"
+
   "github.com/moorara/goto/config"
 )
 
-type Spec struct {
-  field             string     // Unexported, will be skipped
-  FieldString       string    `flag:"fieldString" env:"CONFIG_FIELD_STRING" file:"CONFIG_FILE_FIELD_STRING"`
-  FieldBool         bool      `flag:"fieldBool" env:"CONFIG_FIELD_BOOL" file:"CONFIG_FILE_FIELD_BOOL"`
-  FieldFloat32      float32   `flag:"fieldFloat32" env:"CONFIG_FIELD_FLOAT32" file:"CONFIG_FILE_FIELD_FLOAT32"`
-  FieldFloat64      float64   `flag:"fieldFloat64" env:"CONFIG_FIELD_FLOAT64" file:"CONFIG_FILE_FIELD_FLOAT64"`
-  FieldInt          int       `flag:"fieldInt" env:"CONFIG_FIELD_INT" file:"CONFIG_FILE_FIELD_INT"`
-  FieldInt8         int8      `flag:"fieldInt8" env:"CONFIG_FIELD_INT8" file:"CONFIG_FILE_FIELD_INT8"`
-  FieldInt16        int16     `flag:"fieldInt16" env:"CONFIG_FIELD_INT16" file:"CONFIG_FILE_FIELD_INT16"`
-  FieldInt32        int32     `flag:"fieldInt32" env:"CONFIG_FIELD_INT32" file:"CONFIG_FILE_FIELD_INT32"`
-  FieldInt64        int64     `flag:"fieldInt64" env:"CONFIG_FIELD_INT64" file:"CONFIG_FILE_FIELD_INT64"`
-  FieldUint         uint      `flag:"fieldUint" env:"CONFIG_FIELD_UINT" file:"CONFIG_FILE_FIELD_UINT"`
-  FieldUint8        uint8     `flag:"fieldUint8" env:"CONFIG_FIELD_UINT8" file:"CONFIG_FILE_FIELD_UINT8"`
-  FieldUint16       uint16    `flag:"fieldUint16" env:"CONFIG_FIELD_UINT16" file:"CONFIG_FILE_FIELD_UINT16"`
-  FieldUint32       uint32    `flag:"fieldUint32" env:"CONFIG_FIELD_UINT32" file:"CONFIG_FILE_FIELD_UINT32"`
-  FieldUint64       uint64    `flag:"fieldUint64" env:"CONFIG_FIELD_UINT64" file:"CONFIG_FILE_FIELD_UINT64"`
-  FieldStringArray  []string  `flag:"field.string.array" env:"FIELD_STRING_ARRAY" file:"FIELD_STRING_ARRAY_FILE" sep:","`
-  FieldFloat32Array []float32 `flag:"field.float32.array" env:"FIELD_FLOAT32_ARRAY" file:"FIELD_FLOAT32_ARRAY_FILE" sep:","`
-  FieldFloat64Array []float64 `flag:"field.float64.array" env:"FIELD_FLOAT64_ARRAY" file:"FIELD_FLOAT64_ARRAY_FILE" sep:","`
-  FieldIntArray     []int     `flag:"field.int.array" env:"FIELD_INT_ARRAY" file:"FIELD_INT_ARRAY_FILE" sep:","`
-  FieldInt8Array    []int8    `flag:"field.int8.array" env:"FIELD_INT8_ARRAY" file:"FIELD_INT8_ARRAY_FILE" sep:","`
-  FieldInt16Array   []int16   `flag:"field.int16.array" env:"FIELD_INT16_ARRAY" file:"FIELD_INT16_ARRAY_FILE" sep:","`
-  FieldInt32Array   []int32   `flag:"field.int32.array" env:"FIELD_INT32_ARRAY" file:"FIELD_INT32_ARRAY_FILE" sep:","`
-  FieldInt64Array   []int64   `flag:"field.int64.array" env:"FIELD_INT64_ARRAY" file:"FIELD_INT64_ARRAY_FILE" sep:","`
-  FieldUintArray    []uint    `flag:"field.uint.array" env:"FIELD_UINT_ARRAY" file:"FIELD_UINT_ARRAY_FILE" sep:","`
-  FieldUint8Array   []uint8   `flag:"field.uint8.array" env:"FIELD_UINT8_ARRAY" file:"FIELD_UINT8_ARRAY_FILE" sep:","`
-  FieldUint16Array  []uint16  `flag:"field.uint16.array" env:"FIELD_UINT16_ARRAY" file:"FIELD_UINT16_ARRAY_FILE" sep:","`
-  FieldUint32Array  []uint32  `flag:"field.uint32.array" env:"FIELD_UINT32_ARRAY" file:"FIELD_UINT32_ARRAY_FILE" sep:","`
-  FieldUint64Array  []uint64  `flag:"field.uint64.array" env:"FIELD_UINT64_ARRAY" file:"FIELD_UINT64_ARRAY_FILE" sep:","`
+type Config struct {
+  unexported         string          // Unexported, will be skipped
+  FieldString        string          `flag:"f.string" env:"F_STRING" file:"F_STRING_FILE"`
+  FieldBool          bool            `flag:"f.bool" env:"F_BOOL" file:"F_BOOL_FILE"`
+  FieldFloat32       float32         `flag:"f.float32" env:"F_FLOAT32" file:"F_FLOAT32_FILE"`
+  FieldFloat64       float64         `flag:"f.float64" env:"F_FLOAT64" file:"F_FLOAT64_FILE"`
+  FieldInt           int             `flag:"f.int" env:"F_INT" file:"F_INT_FILE"`
+  FieldInt8          int8            `flag:"f.int8" env:"F_INT8" file:"F_INT8_FILE"`
+  FieldInt16         int16           `flag:"f.int16" env:"F_INT16" file:"F_INT16_FILE"`
+  FieldInt32         int32           `flag:"f.int32" env:"F_INT32" file:"F_INT32_FILE"`
+  FieldInt64         int64           `flag:"f.int64" env:"F_INT64" file:"F_INT64_FILE"`
+  FieldUint          uint            `flag:"f.uint" env:"F_UINT" file:"F_UINT_FILE"`
+  FieldUint8         uint8           `flag:"f.uint8" env:"F_UINT8" file:"F_UINT8_FILE"`
+  FieldUint16        uint16          `flag:"f.uint16" env:"F_UINT16" file:"F_UINT16_FILE"`
+  FieldUint32        uint32          `flag:"f.uint32" env:"F_UINT32" file:"F_UINT32_FILE"`
+  FieldUint64        uint64          `flag:"f.uint64" env:"F_UINT64" file:"F_UINT64_FILE"`
+  FieldDuration      time.Duration   `flag:"f.duration" env:"F_DURATION" file:"F_DURATION_FILE"`
+  FieldURL           url.URL         `flag:"f.url" env:"F_URL" file:"F_URL_FILE"`
+  FieldStringArray   []string        `flag:"f.string.array" env:"F_STRING_ARRAY" file:"F_STRING_ARRAY_FILE" sep:","`
+  FieldFloat32Array  []float32       `flag:"f.float32.array" env:"F_FLOAT32_ARRAY" file:"F_FLOAT32_ARRAY_FILE" sep:","`
+  FieldFloat64Array  []float64       `flag:"f.float64.array" env:"F_FLOAT64_ARRAY" file:"F_FLOAT64_ARRAY_FILE" sep:","`
+  FieldIntArray      []int           `flag:"f.int.array" env:"F_INT_ARRAY" file:"F_INT_ARRAY_FILE" sep:","`
+  FieldInt8Array     []int8          `flag:"f.int8.array" env:"F_INT8_ARRAY" file:"F_INT8_ARRAY_FILE" sep:","`
+  FieldInt16Array    []int16         `flag:"f.int16.array" env:"F_INT16_ARRAY" file:"F_INT16_ARRAY_FILE" sep:","`
+  FieldInt32Array    []int32         `flag:"f.int32.array" env:"F_INT32_ARRAY" file:"F_INT32_ARRAY_FILE" sep:","`
+  FieldInt64Array    []int64         `flag:"f.int64.array" env:"F_INT64_ARRAY" file:"F_INT64_ARRAY_FILE" sep:","`
+  FieldUintArray     []uint          `flag:"f.uint.array" env:"F_UINT_ARRAY" file:"F_UINT_ARRAY_FILE" sep:","`
+  FieldUint8Array    []uint8         `flag:"f.uint8.array" env:"F_UINT8_ARRAY" file:"F_UINT8_ARRAY_FILE" sep:","`
+  FieldUint16Array   []uint16        `flag:"f.uint16.array" env:"F_UINT16_ARRAY" file:"F_UINT16_ARRAY_FILE" sep:","`
+  FieldUint32Array   []uint32        `flag:"f.uint32.array" env:"F_UINT32_ARRAY" file:"F_UINT32_ARRAY_FILE" sep:","`
+  FieldUint64Array   []uint64        `flag:"f.uint64.array" env:"F_UINT64_ARRAY" file:"F_UINT64_ARRAY_FILE" sep:","`
+  FieldDurationArray []time.Duration `flag:"f.duration.array" env:"F_DURATION_ARRAY" file:"F_DURATION_ARRAY_FILE" sep:","`
+  FieldURLArray      []url.URL       `flag:"f.url.array" env:"F_URL_ARRAY" file:"F_URL_ARRAY_FILE" sep:","`
 }
 
 func main() {
-  spec := Spec{
+  c := Config{
     FieldString: "default value",
   }
-  config.Pick(&spec)
-  fmt.Printf("%+v\n", spec)
+  config.Pick(&c)
+  fmt.Printf("%+v\n", c)
 }
 ```
