@@ -1,6 +1,17 @@
 # Change Log
 
-## [v0.1.5](https://github.com/moorara/goto/tree/v0.1.5) (2018-11-07)
+## [v0.1.6](https://github.com/moorara/goto/tree/v0.1.6) (2018-11-15)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.5...v0.1.6)
+
+**Implemented enhancements:**
+
+- config: support time.Duration and url.URL types [\#21](https://github.com/moorara/goto/issues/21)
+
+**Merged pull requests:**
+
+- config: support time.Duration and url.URL [\#22](https://github.com/moorara/goto/pull/22) ([moorara](https://github.com/moorara))
+
+## [v0.1.5](https://github.com/moorara/goto/tree/v0.1.5) (2018-11-08)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.1.4...v0.1.5)
 
 **Merged pull requests:**
