@@ -26,7 +26,7 @@ Config := struct {
   Endpoints []string
 } {
   Enabled:  true,   // default
-  LogLevel: "info", //default
+  LogLevel: "info", // default
 }
 
 func main() {
