@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	flagTag = "flag"
-	envTag  = "env"
-	fileTag = "file"
-	sepTag  = "sep"
+	flagTag   = "flag"
+	envTag    = "env"
+	fileTag   = "file"
+	sepTag    = "sep"
+	skipValue = "-"
 )
 
 type flagValue struct{}
@@ -89,7 +90,7 @@ func getFlagName(name string) string {
 
 /*
  * getFlagName returns a canonical environment variable name for a field.
- *   UserID       -->  USER_id
+ *   UserID       -->  USER_ID
  *   DatabaseURL  -->  DATABASE_URL
  */
 func getEnvVarName(name string) string {
@@ -101,9 +102,25 @@ func getEnvVarName(name string) string {
 }
 
 /*
- * defineFlag registers a flag name, so it will show up in the help description.
+ * getFileVarName returns a canonical environment variable name for value file of a field.
+ *   UserID       -->  USER_ID_FILE
+ *   DatabaseURL  -->  DATABASE_URL_FILE
  */
+func getFileVarName(name string) string {
+	parts := tokenize(name)
+	result := strings.Join(parts, "_")
+	result = strings.ToUpper(result)
+	result = result + "_FILE"
+
+	return result
+}
+
+// defineFlag registers a flag name, so it will show up in the help description.
 func defineFlag(flagName, defaultValue, envName, fileName string) {
+	if flagName == skipValue {
+		return
+	}
+
 	usage := fmt.Sprintf(
 		"%s:\t\t\t\t%s\n%s:\t\t\t%s\n%s:\t%s",
 		"default value", defaultValue,
@@ -155,15 +172,17 @@ func getFieldValue(flag, env, file string) string {
 	var value string
 
 	// First, try reading from flag
-	value = getFlagValue(flag)
+	if value == "" && flag != skipValue {
+		value = getFlagValue(flag)
+	}
 
 	// Second, try reading from environment variable
-	if value == "" {
+	if value == "" && env != skipValue {
 		value = os.Getenv(env)
 	}
 
 	// Third, try reading from file
-	if value == "" {
+	if value == "" && file != skipValue {
 		filepath := os.Getenv(file)
 		if content, err := ioutil.ReadFile(filepath); err == nil {
 			value = string(content)
@@ -358,7 +377,7 @@ func Pick(config interface{}) error {
 		// `file:"..."`
 		fileName := tField.Tag.Get(fileTag)
 		if fileName == "" {
-			fileName = envName + "_FILE"
+			fileName = getFileVarName(name)
 		}
 
 		// `sep:"..."`

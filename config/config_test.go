@@ -13,6 +13,9 @@ import (
 
 type Config struct {
 	unexported         string
+	SkipFlag           string          `flag:"-"`
+	SkipFlagEnv        string          `flag:"-" env:"-"`
+	SkipFlagEnvFile    string          `flag:"-" env:"-" file:"-"`
 	FieldString        string          // `flag:"field.string" env:"FIELD_STRING" file:"FIELD_STRING_FILE"`
 	FieldBool          bool            // `flag:"field.bool" env:"FIELD_BOOL" file:"FIELD_BOOL_FILE"`
 	FieldFloat32       float32         // `flag:"field.float32" env:"FIELD_FLOAT32" file:"FIELD_FLOAT32_FILE"`
@@ -112,6 +115,51 @@ func TestGetEnvVarName(t *testing.T) {
 	}
 }
 
+func TestGetFileVarName(t *testing.T) {
+	tests := []struct {
+		fieldName           string
+		expectedFileVarName string
+	}{
+		{"c", "C_FILE"},
+		{"C", "C_FILE"},
+		{"camel", "CAMEL_FILE"},
+		{"Camel", "CAMEL_FILE"},
+		{"camelCase", "CAMEL_CASE_FILE"},
+		{"CamelCase", "CAMEL_CASE_FILE"},
+		{"OneTwoThree", "ONE_TWO_THREE_FILE"},
+		{"DatabaseURL", "DATABASE_URL_FILE"},
+		{"DBEndpoints", "DB_ENDPOINTS_FILE"},
+	}
+
+	for _, tc := range tests {
+		fileVarName := getFileVarName(tc.fieldName)
+		assert.Equal(t, tc.expectedFileVarName, fileVarName)
+	}
+}
+
+func TestDefineFlag(t *testing.T) {
+	tests := []struct {
+		name             string
+		flagName         string
+		defaultValue     string
+		envName          string
+		fileName         string
+		expectedFlagName string
+	}{
+		{"SkipFlag", "-", "default", "SKIP_FLAG", "SKIP_FLAG_FILE", ""},
+		{"ExampleFlag", "example.flag", "default", "EXAMPLE_FLAG", "EXAMPLE_FLAG_FILE", "example.flag"},
+	}
+
+	for _, tc := range tests {
+		defineFlag(tc.flagName, tc.defaultValue, tc.envName, tc.fileName)
+
+		if tc.expectedFlagName != "" {
+			fl := flag.Lookup(tc.expectedFlagName)
+			assert.NotEmpty(t, fl)
+		}
+	}
+}
+
 func TestGetFlagValue(t *testing.T) {
 	tests := []struct {
 		args              []string
@@ -159,54 +207,84 @@ func TestGetFlagValue(t *testing.T) {
 
 func TestGetFieldValue(t *testing.T) {
 	tests := []struct {
-		name              string
-		args              []string
-		env, envValue     string
-		file, fileContent string
-		flag              string
-		expectedValue     string
+		name            string
+		args            []string
+		envConfig       [2]string
+		fileConfig      [2]string
+		flag, env, file string
+		expectedValue   string
 	}{
 		{
-			"FromFlag#01",
+			"SkipFlag",
 			[]string{"/path/to/executable", "-log.level=debug"},
-			"LOG_LEVEL", "info",
-			"LOG_LEVEL_FILE", "error",
-			"log.level", "debug",
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"-", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"info",
 		},
 		{
-			"FromFlag#02",
+			"SkipFlagAndEnv",
+			[]string{"/path/to/executable", "-log.level=debug"},
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"-", "-", "LOG_LEVEL_FILE",
+			"error",
+		},
+		{
+			"SkipFlagAndEnvAndFile",
+			[]string{"/path/to/executable", "-log.level=debug"},
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"-", "-", "-",
+			"",
+		},
+		{
+			"FromFlag",
+			[]string{"/path/to/executable", "-log.level=debug"},
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"log.level", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"debug",
+		},
+		{
+			"FromFlag",
 			[]string{"/path/to/executable", "--log.level=debug"},
-			"LOG_LEVEL", "info",
-			"LOG_LEVEL_FILE", "error",
-			"log.level", "debug",
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"log.level", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"debug",
 		},
 		{
-			"FromFlag#03",
+			"FromFlag",
 			[]string{"/path/to/executable", "-log.level", "debug"},
-			"LOG_LEVEL", "info",
-			"LOG_LEVEL_FILE", "error",
-			"log.level", "debug",
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"log.level", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"debug",
 		},
 		{
-			"FromFlag#04",
+			"FromFlag",
 			[]string{"/path/to/executable", "--log.level", "debug"},
-			"LOG_LEVEL", "info",
-			"LOG_LEVEL_FILE", "error",
-			"log.level", "debug",
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"log.level", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"debug",
 		},
 		{
 			"FromEnvironmentVariable",
 			[]string{"/path/to/executable"},
-			"LOG_LEVEL", "info",
-			"LOG_LEVEL_FILE", "error",
-			"log.level", "info",
+			[2]string{"LOG_LEVEL", "info"},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"log.level", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"info",
 		},
 		{
 			"FromFileContent",
 			[]string{"/path/to/executable"},
-			"LOG_LEVEL", "",
-			"LOG_LEVEL_FILE", "error",
-			"log.level", "error",
+			[2]string{"LOG_LEVEL", ""},
+			[2]string{"LOG_LEVEL_FILE", "error"},
+			"log.level", "LOG_LEVEL", "LOG_LEVEL_FILE",
+			"error",
 		},
 	}
 
@@ -221,18 +299,18 @@ func TestGetFieldValue(t *testing.T) {
 			os.Args = tc.args
 
 			// Set value in an environment variable
-			err := os.Setenv(tc.env, tc.envValue)
+			err := os.Setenv(tc.envConfig[0], tc.envConfig[1])
 			assert.NoError(t, err)
 
 			// Write value in a temporary file
 			tmpfile, err := ioutil.TempFile("", "gotest_")
 			assert.NoError(t, err)
 			defer os.Remove(tmpfile.Name())
-			_, err = tmpfile.WriteString(tc.fileContent)
+			_, err = tmpfile.WriteString(tc.fileConfig[1])
 			assert.NoError(t, err)
 			err = tmpfile.Close()
 			assert.NoError(t, err)
-			err = os.Setenv(tc.file, tmpfile.Name())
+			err = os.Setenv(tc.fileConfig[0], tmpfile.Name())
 			assert.NoError(t, err)
 
 			value := getFieldValue(tc.flag, tc.env, tc.file)
@@ -643,6 +721,9 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			[][2]string{},
 			Config{
+				SkipFlag:           "default",
+				SkipFlagEnv:        "default",
+				SkipFlagEnvFile:    "default",
 				FieldString:        "default",
 				FieldBool:          false,
 				FieldFloat32:       3.1415,
@@ -676,6 +757,9 @@ func TestPick(t *testing.T) {
 				FieldURLArray:      []url.URL{*exampleURL, *localhostURL},
 			},
 			Config{
+				SkipFlag:           "default",
+				SkipFlagEnv:        "default",
+				SkipFlagEnvFile:    "default",
 				FieldString:        "default",
 				FieldBool:          false,
 				FieldFloat32:       3.1415,
@@ -710,8 +794,9 @@ func TestPick(t *testing.T) {
 			},
 		},
 		{
-			"AllFromFlagsWithSingleDash",
+			"AllFromFlags",
 			[]string{
+				"path/to/binary",
 				"-field.string", "content",
 				"-field.bool",
 				"-field.float32", "3.1415",
@@ -748,6 +833,9 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				SkipFlag:           "",
+				SkipFlagEnv:        "",
+				SkipFlagEnvFile:    "",
 				FieldString:        "content",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,
@@ -782,8 +870,9 @@ func TestPick(t *testing.T) {
 			},
 		},
 		{
-			"AllFromFlagsWithDoubleDash",
+			"AllFromFlags",
 			[]string{
+				"path/to/binary",
 				"--field.string", "content",
 				"--field.bool",
 				"--field.float32", "3.1415",
@@ -820,6 +909,9 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				SkipFlag:           "",
+				SkipFlagEnv:        "",
+				SkipFlagEnvFile:    "",
 				FieldString:        "content",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,
@@ -854,8 +946,9 @@ func TestPick(t *testing.T) {
 			},
 		},
 		{
-			"AllFromFlagsWithSingleDashAndAssignment",
+			"AllFromFlags",
 			[]string{
+				"path/to/binary",
 				"-field.string=content",
 				"-field.bool",
 				"-field.float32=3.1415",
@@ -892,6 +985,9 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				SkipFlag:           "",
+				SkipFlagEnv:        "",
+				SkipFlagEnvFile:    "",
 				FieldString:        "content",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,
@@ -926,8 +1022,9 @@ func TestPick(t *testing.T) {
 			},
 		},
 		{
-			"AllFromFlagsWithDoubleDashAndAssignment",
+			"AllFromFlags",
 			[]string{
+				"path/to/binary",
 				"--field.string=content",
 				"--field.bool",
 				"--field.float32=3.1415",
@@ -964,6 +1061,9 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				SkipFlag:           "",
+				SkipFlagEnv:        "",
+				SkipFlagEnvFile:    "",
 				FieldString:        "content",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,
@@ -1001,6 +1101,9 @@ func TestPick(t *testing.T) {
 			"AllFromEnvironmentVariables",
 			[]string{},
 			[][2]string{
+				[2]string{"SKIP_FLAG", "fromEnv"},
+				[2]string{"SKIP_FLAG_ENV", "fromEnv"},
+				[2]string{"SKIP_FLAG_ENV_FILE", "fromEnv"},
 				[2]string{"FIELD_STRING", "content"},
 				[2]string{"FIELD_BOOL", "true"},
 				[2]string{"FIELD_FLOAT32", "3.1415"},
@@ -1036,6 +1139,9 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				SkipFlag:           "fromEnv",
+				SkipFlagEnv:        "",
+				SkipFlagEnvFile:    "",
 				FieldString:        "content",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,
@@ -1074,6 +1180,9 @@ func TestPick(t *testing.T) {
 			[]string{},
 			[][2]string{},
 			[][2]string{
+				[2]string{"SKIP_FLAG_FILE", "fromFile"},
+				[2]string{"SKIP_FLAG_ENV_FILE", "fromFile"},
+				[2]string{"SKIP_FLAG_ENV_FILE_FILE", "fromFile"},
 				[2]string{"FIELD_STRING_FILE", "content"},
 				[2]string{"FIELD_BOOL_FILE", "true"},
 				[2]string{"FIELD_FLOAT32_FILE", "3.1415"},
@@ -1108,6 +1217,9 @@ func TestPick(t *testing.T) {
 			},
 			Config{},
 			Config{
+				SkipFlag:           "fromFile",
+				SkipFlagEnv:        "fromFile",
+				SkipFlagEnvFile:    "",
 				FieldString:        "content",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,
@@ -1144,6 +1256,7 @@ func TestPick(t *testing.T) {
 		{
 			"Mixed",
 			[]string{
+				"path/to/binary",
 				"-field.bool",
 				"-field.float32=3.1415",
 				"--field.float64=3.14159265359",
@@ -1153,6 +1266,9 @@ func TestPick(t *testing.T) {
 				"--field.float64.array", "3.14159265359,2.71828182845",
 			},
 			[][2]string{
+				[2]string{"SKIP_FLAG", "fromEnv"},
+				[2]string{"SKIP_FLAG_ENV", "fromEnv"},
+				[2]string{"SKIP_FLAG_ENV_FILE", "fromEnv"},
 				[2]string{"FIELD_INT", "-2147483648"},
 				[2]string{"FIELD_INT8", "-128"},
 				[2]string{"FIELD_INT16", "-32768"},
@@ -1166,6 +1282,9 @@ func TestPick(t *testing.T) {
 				[2]string{"FIELD_DURATION_ARRAY", "90m,120m"},
 			},
 			[][2]string{
+				[2]string{"SKIP_FLAG_FILE", "fromFile"},
+				[2]string{"SKIP_FLAG_ENV_FILE", "fromFile"},
+				[2]string{"SKIP_FLAG_ENV_FILE_FILE", "fromFile"},
 				[2]string{"FIELD_UINT_FILE", "4294967295"},
 				[2]string{"FIELD_UINT8_FILE", "255"},
 				[2]string{"FIELD_UINT16_FILE", "65535"},
@@ -1183,6 +1302,9 @@ func TestPick(t *testing.T) {
 				FieldStringArray: []string{"url1", "url2"},
 			},
 			Config{
+				SkipFlag:           "fromEnv",
+				SkipFlagEnv:        "fromFile",
+				SkipFlagEnvFile:    "",
 				FieldString:        "default",
 				FieldBool:          true,
 				FieldFloat32:       3.1415,

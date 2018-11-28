@@ -74,6 +74,16 @@ export ADDRESS_FILE=...
 export ENDPOINTS_FILE=...
 ```
 
+If you want to skip a source for reading values, use `-` as follows:
+
+```go
+Config := struct {
+  GithubToken string `env:"-" file:"-"`
+}{}
+```
+
+In the example above, `GithubToken` can only be set using `github.token` command-line flag.
+
 ## Complete Example
 
 ```go
