@@ -1,5 +1,17 @@
 # Change Log
 
+## [v0.1.7](https://github.com/moorara/goto/tree/v0.1.7) (2018-11-28)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.6...v0.1.7)
+
+**Implemented enhancements:**
+
+- config: support excluding an option from sources of values [\#24](https://github.com/moorara/goto/issues/24)
+
+**Merged pull requests:**
+
+- Issue \#24: config supports skip [\#25](https://github.com/moorara/goto/pull/25) ([moorara](https://github.com/moorara))
+- Small change to README [\#23](https://github.com/moorara/goto/pull/23) ([moorara](https://github.com/moorara))
+
 ## [v0.1.6](https://github.com/moorara/goto/tree/v0.1.6) (2018-11-15)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.1.5...v0.1.6)
 
