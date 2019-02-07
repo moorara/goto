@@ -10,6 +10,9 @@ import (
 )
 
 func TestAbsPath(t *testing.T) {
+	basePath, err := os.Getwd()
+	assert.NoError(t, err)
+
 	tests := []struct {
 		execPath        string
 		fromExec        bool
@@ -18,29 +21,29 @@ func TestAbsPath(t *testing.T) {
 		expectedAbsPath string
 	}{
 		{
-			"/usr/local/bin/godo",
+			"/usr/local/bin/goto",
 			true,
 			[]string{"more"},
 			"cert.pem",
 			"/usr/local/bin/more/cert.pem",
 		},
 		{
-			"/home/milad/go/bin/gotest",
+			"/home/project/go/bin/gotest",
 			true,
 			[]string{".src", ".bin"},
 			"gobench",
-			"/home/milad/go/bin/.src/.bin/gobench",
+			"/home/project/go/bin/.src/.bin/gobench",
 		},
 		{
 			"",
 			false,
 			[]string{"test"},
 			"file_test.go",
-			path.Join(os.Getenv("GOPATH"), "src/github.com/moorara/goto/io", "test/file_test.go"),
+			path.Join(basePath, "test/file_test.go"),
 		},
 	}
-
 	for _, tc := range tests {
+
 		restore := ReplaceOSArgs([]string{tc.execPath})
 		elem := append(tc.subDirs, tc.fileName)
 		absPath := AbsPath(tc.fromExec, elem...)
