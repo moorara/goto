@@ -1,31 +1,27 @@
 package heap
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 type maxHeap struct {
 	last         int
-	keys         []Generic
-	values       []Generic
-	compareKey   Compare
-	compareValue Compare
+	keys         []interface{}
+	values       []interface{}
+	compareKey   func(a, b interface{}) int
+	compareValue func(a, b interface{}) int
 }
 
 // NewMaxHeap creates a new max-heap (priority queue)
-func NewMaxHeap(initialSize int, compareKey, compareValue Compare) Heap {
+func NewMaxHeap(initialSize int, compareKey, compareValue func(a, b interface{}) int) Heap {
 	return &maxHeap{
 		last:         0,
-		keys:         make([]Generic, initialSize),
-		values:       make([]Generic, initialSize),
+		keys:         make([]interface{}, initialSize),
+		values:       make([]interface{}, initialSize),
 		compareKey:   compareKey,
 		compareValue: compareValue,
 	}
 }
 
 func (h *maxHeap) resize(newSize int) {
-	newKeys := make([]Generic, newSize)
-	newValues := make([]Generic, newSize)
+	newKeys := make([]interface{}, newSize)
+	newValues := make([]interface{}, newSize)
 
 	copy(newKeys, h.keys)
 	copy(newValues, h.values)
@@ -42,7 +38,7 @@ func (h *maxHeap) IsEmpty() bool {
 	return h.last == 0
 }
 
-func (h *maxHeap) Insert(key Generic, value Generic) {
+func (h *maxHeap) Insert(key, value interface{}) {
 	if h.last == len(h.keys)-1 {
 		h.resize(len(h.keys) * 2)
 	}
@@ -62,7 +58,7 @@ func (h *maxHeap) Insert(key Generic, value Generic) {
 	h.values[i] = value
 }
 
-func (h *maxHeap) Delete() (Generic, Generic) {
+func (h *maxHeap) Delete() (interface{}, interface{}) {
 	if h.last == 0 {
 		return nil, nil
 	}
@@ -96,7 +92,7 @@ func (h *maxHeap) Delete() (Generic, Generic) {
 	return maxKey, maxValue
 }
 
-func (h *maxHeap) Peek() (Generic, Generic) {
+func (h *maxHeap) Peek() (interface{}, interface{}) {
 	if h.last == 0 {
 		return nil, nil
 	}
@@ -104,7 +100,7 @@ func (h *maxHeap) Peek() (Generic, Generic) {
 	return h.keys[1], h.values[1]
 }
 
-func (h *maxHeap) ContainsKey(key Generic) bool {
+func (h *maxHeap) ContainsKey(key interface{}) bool {
 	for i := 1; i <= h.last; i++ {
 		if h.compareKey(h.keys[i], key) == 0 {
 			return true
@@ -114,7 +110,7 @@ func (h *maxHeap) ContainsKey(key Generic) bool {
 	return false
 }
 
-func (h *maxHeap) ContainsValue(value Generic) bool {
+func (h *maxHeap) ContainsValue(value interface{}) bool {
 	for i := 1; i <= h.last; i++ {
 		if h.compareValue(h.values[i], value) == 0 {
 			return true

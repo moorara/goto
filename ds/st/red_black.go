@@ -12,9 +12,7 @@ package st
 import (
 	"fmt"
 
-	. "github.com/moorara/goto/dt"
 	"github.com/moorara/goto/graphviz"
-	"github.com/moorara/goto/math"
 )
 
 const (
@@ -23,8 +21,8 @@ const (
 )
 
 type rbNode struct {
-	key   Generic
-	value Generic
+	key   interface{}
+	value interface{}
 	left  *rbNode
 	right *rbNode
 	size  int
@@ -34,18 +32,18 @@ type rbNode struct {
 // Left-Leaning Red-Black Tree
 type redBlack struct {
 	root       *rbNode
-	compareKey Compare
+	compareKey func(a, b interface{}) int
 }
 
 // NewRedBlack creates a new Red-Black Tree
-func NewRedBlack(compareKey Compare) OrderedSymbolTable {
+func NewRedBlack(compareKey func(a, b interface{}) int) OrderedSymbolTable {
 	return &redBlack{
 		root:       nil,
 		compareKey: compareKey,
 	}
 }
 
-func (t *redBlack) isBST(n *rbNode, min, max Generic) bool {
+func (t *redBlack) isBST(n *rbNode, min, max interface{}) bool {
 	if n == nil {
 		return true
 	}
@@ -128,7 +126,7 @@ func (t *redBlack) height(n *rbNode) int {
 		return 0
 	}
 
-	return 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	return 1 + max(t.height(n.left), t.height(n.right))
 }
 
 func (t *redBlack) isRed(n *rbNode) bool {
@@ -234,7 +232,7 @@ func (t *redBlack) IsEmpty() bool {
 	return t.root == nil
 }
 
-func (t *redBlack) _put(n *rbNode, key, value Generic) *rbNode {
+func (t *redBlack) _put(n *rbNode, key, value interface{}) *rbNode {
 	if n == nil {
 		return &rbNode{
 			key:   key,
@@ -269,7 +267,7 @@ func (t *redBlack) _put(n *rbNode, key, value Generic) *rbNode {
 	return n
 }
 
-func (t *redBlack) Put(key, value Generic) {
+func (t *redBlack) Put(key, value interface{}) {
 	if key == nil {
 		return
 	}
@@ -278,7 +276,7 @@ func (t *redBlack) Put(key, value Generic) {
 	t.root.color = black
 }
 
-func (t *redBlack) _get(n *rbNode, key Generic) (Generic, bool) {
+func (t *redBlack) _get(n *rbNode, key interface{}) (interface{}, bool) {
 	if n == nil || key == nil {
 		return nil, false
 	}
@@ -294,13 +292,13 @@ func (t *redBlack) _get(n *rbNode, key Generic) (Generic, bool) {
 	}
 }
 
-func (t *redBlack) Get(key Generic) (Generic, bool) {
+func (t *redBlack) Get(key interface{}) (interface{}, bool) {
 	return t._get(t.root, key)
 }
 
-func (t *redBlack) _delete(n *rbNode, key Generic) (*rbNode, Generic, bool) {
+func (t *redBlack) _delete(n *rbNode, key interface{}) (*rbNode, interface{}, bool) {
 	var ok bool
-	var value Generic
+	var value interface{}
 
 	if t.compareKey(key, n.key) < 0 {
 		if !t.isRed(n.left) && !t.isRed(n.left.left) {
@@ -333,7 +331,7 @@ func (t *redBlack) _delete(n *rbNode, key Generic) (*rbNode, Generic, bool) {
 	return t.balance(n), value, ok
 }
 
-func (t *redBlack) Delete(key Generic) (value Generic, ok bool) {
+func (t *redBlack) Delete(key interface{}) (value interface{}, ok bool) {
 	if t.root == nil || key == nil {
 		return nil, false
 	}
@@ -368,7 +366,7 @@ func (t *redBlack) _min(n *rbNode) *rbNode {
 	return t._min(n.left)
 }
 
-func (t *redBlack) Min() (Generic, Generic) {
+func (t *redBlack) Min() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -384,7 +382,7 @@ func (t *redBlack) _max(n *rbNode) *rbNode {
 	return t._max(n.right)
 }
 
-func (t *redBlack) Max() (Generic, Generic) {
+func (t *redBlack) Max() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -393,7 +391,7 @@ func (t *redBlack) Max() (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *redBlack) _floor(n *rbNode, key Generic) *rbNode {
+func (t *redBlack) _floor(n *rbNode, key interface{}) *rbNode {
 	if n == nil || key == nil {
 		return nil
 	}
@@ -412,7 +410,7 @@ func (t *redBlack) _floor(n *rbNode, key Generic) *rbNode {
 	return n
 }
 
-func (t *redBlack) Floor(key Generic) (Generic, Generic) {
+func (t *redBlack) Floor(key interface{}) (interface{}, interface{}) {
 	n := t._floor(t.root, key)
 	if n == nil {
 		return nil, nil
@@ -420,7 +418,7 @@ func (t *redBlack) Floor(key Generic) (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *redBlack) _ceiling(n *rbNode, key Generic) *rbNode {
+func (t *redBlack) _ceiling(n *rbNode, key interface{}) *rbNode {
 	if n == nil || key == nil {
 		return nil
 	}
@@ -439,7 +437,7 @@ func (t *redBlack) _ceiling(n *rbNode, key Generic) *rbNode {
 	return n
 }
 
-func (t *redBlack) Ceiling(key Generic) (Generic, Generic) {
+func (t *redBlack) Ceiling(key interface{}) (interface{}, interface{}) {
 	n := t._ceiling(t.root, key)
 	if n == nil {
 		return nil, nil
@@ -447,7 +445,7 @@ func (t *redBlack) Ceiling(key Generic) (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *redBlack) _rank(n *rbNode, key Generic) int {
+func (t *redBlack) _rank(n *rbNode, key interface{}) int {
 	if n == nil {
 		return 0
 	}
@@ -463,7 +461,7 @@ func (t *redBlack) _rank(n *rbNode, key Generic) int {
 	}
 }
 
-func (t *redBlack) Rank(key Generic) int {
+func (t *redBlack) Rank(key interface{}) int {
 	if key == nil {
 		return -1
 	}
@@ -487,7 +485,7 @@ func (t *redBlack) _select(n *rbNode, rank int) *rbNode {
 	}
 }
 
-func (t *redBlack) Select(rank int) (Generic, Generic) {
+func (t *redBlack) Select(rank int) (interface{}, interface{}) {
 	if rank < 0 || rank >= t.Size() {
 		return nil, nil
 	}
@@ -510,7 +508,7 @@ func (t *redBlack) _deleteMin(n *rbNode) (*rbNode, *rbNode) {
 	return t.balance(n), min
 }
 
-func (t *redBlack) DeleteMin() (Generic, Generic) {
+func (t *redBlack) DeleteMin() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -545,7 +543,7 @@ func (t *redBlack) _deleteMax(n *rbNode) (*rbNode, *rbNode) {
 	return t.balance(n), max
 }
 
-func (t *redBlack) DeleteMax() (Generic, Generic) {
+func (t *redBlack) DeleteMax() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -562,7 +560,7 @@ func (t *redBlack) DeleteMax() (Generic, Generic) {
 	return max.key, max.value
 }
 
-func (t *redBlack) RangeSize(lo, hi Generic) int {
+func (t *redBlack) RangeSize(lo, hi interface{}) int {
 	if lo == nil || hi == nil {
 		return -1
 	}
@@ -576,7 +574,7 @@ func (t *redBlack) RangeSize(lo, hi Generic) int {
 	}
 }
 
-func (t *redBlack) _range(n *rbNode, kvs *[]KeyValue, lo, hi Generic) int {
+func (t *redBlack) _range(n *rbNode, kvs *[]KeyValue, lo, hi interface{}) int {
 	if n == nil {
 		return 0
 	}
@@ -599,7 +597,7 @@ func (t *redBlack) _range(n *rbNode, kvs *[]KeyValue, lo, hi Generic) int {
 	return len
 }
 
-func (t *redBlack) Range(lo, hi Generic) []KeyValue {
+func (t *redBlack) Range(lo, hi interface{}) []KeyValue {
 	if lo == nil || hi == nil {
 		return nil
 	}
@@ -633,7 +631,7 @@ func (t *redBlack) _traverse(n *rbNode, order int, visit func(*rbNode) bool) boo
 }
 
 func (t *redBlack) Traverse(order int, visit VisitFunc) {
-	if !math.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
+	if order != TraversePreOrder && order != TraverseInOrder && order != TraversePostOrder {
 		return
 	}
 

@@ -1,11 +1,6 @@
 package sort
 
-import (
-	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/math"
-)
-
-func partition(a []Generic, lo, hi int, compare Compare) int {
+func partition(a []interface{}, lo, hi int, compare func(a, b interface{}) int) int {
 	v := a[lo]
 	var i, j int = lo, hi + 1
 
@@ -25,8 +20,8 @@ func partition(a []Generic, lo, hi int, compare Compare) int {
 }
 
 // Select finds the kth smallest item of an array in O(n) time on average
-func Select(a []Generic, k int, compare Compare) Generic {
-	math.Shuffle(a)
+func Select(a []interface{}, k int, compare func(a, b interface{}) int) interface{} {
+	Shuffle(a)
 	var lo, hi int = 0, len(a) - 1
 	for lo < hi {
 		j := partition(a, lo, hi, compare)
@@ -44,7 +39,7 @@ func Select(a []Generic, k int, compare Compare) Generic {
 }
 
 // QuickSort implements quick sort algorithm
-func quickSort(a []Generic, lo, hi int, compare Compare) {
+func quickSort(a []interface{}, lo, hi int, compare func(a, b interface{}) int) {
 	if lo >= hi {
 		return
 	}
@@ -55,12 +50,12 @@ func quickSort(a []Generic, lo, hi int, compare Compare) {
 }
 
 // QuickSort implements quick sort algorithm
-func QuickSort(a []Generic, compare Compare) {
-	math.Shuffle(a)
+func QuickSort(a []interface{}, compare func(a, b interface{}) int) {
+	Shuffle(a)
 	quickSort(a, 0, len(a)-1, compare)
 }
 
-func quickSort3Way(a []Generic, lo, hi int, compare Compare) {
+func quickSort3Way(a []interface{}, lo, hi int, compare func(a, b interface{}) int) {
 	if lo >= hi {
 		return
 	}
@@ -88,6 +83,6 @@ func quickSort3Way(a []Generic, lo, hi int, compare Compare) {
 }
 
 // QuickSort3Way implements 3-way quick sort algorithm
-func QuickSort3Way(a []Generic, compare Compare) {
+func QuickSort3Way(a []interface{}, compare func(a, b interface{}) int) {
 	quickSort3Way(a, 0, len(a)-1, compare)
 }

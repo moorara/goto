@@ -1,9 +1,5 @@
 package st
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 const (
 	// TraversePreOrder represents pre-order traversal order
 	TraversePreOrder = 0
@@ -15,12 +11,12 @@ const (
 
 type (
 	// VisitFunc represents the function for visting a key-value
-	VisitFunc func(Generic, Generic) bool
+	VisitFunc func(interface{}, interface{}) bool
 
 	// KeyValue represents a key-value pair
 	KeyValue struct {
-		key   Generic
-		value Generic
+		key   interface{}
+		value interface{}
 	}
 
 	// SymbolTable represents an unordered symbol table (key-value collection)
@@ -29,25 +25,25 @@ type (
 		Size() int
 		Height() int
 		IsEmpty() bool
-		Put(Generic, Generic)
-		Get(Generic) (Generic, bool)
-		Delete(Generic) (Generic, bool)
+		Put(interface{}, interface{})
+		Get(interface{}) (interface{}, bool)
+		Delete(interface{}) (interface{}, bool)
 		KeyValues() []KeyValue
 	}
 
 	// OrderedSymbolTable represents an ordered symbol table (key-value collection)
 	OrderedSymbolTable interface {
 		SymbolTable
-		Min() (Generic, Generic)
-		Max() (Generic, Generic)
-		Floor(Generic) (Generic, Generic)
-		Ceiling(Generic) (Generic, Generic)
-		Rank(Generic) int
-		Select(int) (Generic, Generic)
-		DeleteMin() (Generic, Generic)
-		DeleteMax() (Generic, Generic)
-		RangeSize(Generic, Generic) int
-		Range(Generic, Generic) []KeyValue
+		Min() (interface{}, interface{})
+		Max() (interface{}, interface{})
+		Floor(interface{}) (interface{}, interface{})
+		Ceiling(interface{}) (interface{}, interface{})
+		Rank(interface{}) int
+		Select(int) (interface{}, interface{})
+		DeleteMin() (interface{}, interface{})
+		DeleteMax() (interface{}, interface{})
+		RangeSize(interface{}, interface{}) int
+		Range(interface{}, interface{}) []KeyValue
 		Traverse(int, VisitFunc)
 		Graphviz() string
 	}

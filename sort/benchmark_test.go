@@ -4,9 +4,6 @@ import (
 	"math/rand"
 	"sort"
 	"testing"
-
-	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/math"
 )
 
 const (
@@ -16,7 +13,7 @@ const (
 	maxInt = 1000000
 )
 
-type GenricSlice []Generic
+type GenricSlice []interface{}
 
 func (s GenricSlice) Len() int {
 	return len(s)
@@ -27,95 +24,95 @@ func (s GenricSlice) Swap(i, j int) {
 }
 
 func (s GenricSlice) Less(i, j int) bool {
-	return CompareInt(s[i], s[j]) < 0
+	return compareInt(s[i], s[j]) < 0
 }
 
 func BenchmarkSort(b *testing.B) {
 	b.Run("sort.Sort", func(b *testing.B) {
 		rand.Seed(seed)
-		items := GenricSlice(math.GenerateIntSlice(size, minInt, maxInt))
+		items := GenricSlice(genIntSlice(size, minInt, maxInt))
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
+			Shuffle(items)
 			sort.Sort(items)
 		}
 	})
 
 	b.Run("HeapSort", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			HeapSort(items, CompareInt)
+			Shuffle(items)
+			HeapSort(items, compareInt)
 		}
 	})
 
 	b.Run("InsertionSort", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			InsertionSort(items, CompareInt)
+			Shuffle(items)
+			InsertionSort(items, compareInt)
 		}
 	})
 
 	b.Run("MergeSort", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			MergeSort(items, CompareInt)
+			Shuffle(items)
+			MergeSort(items, compareInt)
 		}
 	})
 
 	b.Run("MergeSortRec", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			MergeSortRec(items, CompareInt)
+			Shuffle(items)
+			MergeSortRec(items, compareInt)
 		}
 	})
 
 	b.Run("QuickSort", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			QuickSort(items, CompareInt)
+			Shuffle(items)
+			QuickSort(items, compareInt)
 		}
 	})
 
 	b.Run("QuickSort3Way", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			QuickSort3Way(items, CompareInt)
+			Shuffle(items)
+			QuickSort3Way(items, compareInt)
 		}
 	})
 
 	b.Run("ShellSort", func(b *testing.B) {
 		rand.Seed(seed)
-		items := math.GenerateIntSlice(size, minInt, maxInt)
+		items := genIntSlice(size, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
-			math.Shuffle(items)
-			ShellSort(items, CompareInt)
+			Shuffle(items)
+			ShellSort(items, compareInt)
 		}
 	})
 }

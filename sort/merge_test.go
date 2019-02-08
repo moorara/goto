@@ -3,75 +3,73 @@ package sort
 import (
 	"testing"
 
-	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/util"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMergeSortInt(t *testing.T) {
 	tests := []struct {
-		compare Compare
-		items   []Generic
+		compare func(a, b interface{}) int
+		items   []interface{}
 	}{
-		{CompareInt, []Generic{}},
-		{CompareInt, []Generic{20, 10, 30}},
-		{CompareInt, []Generic{30, 20, 10, 40, 50}},
-		{CompareInt, []Generic{90, 80, 70, 60, 50, 40, 30, 20, 10}},
+		{compareInt, []interface{}{}},
+		{compareInt, []interface{}{20, 10, 30}},
+		{compareInt, []interface{}{30, 20, 10, 40, 50}},
+		{compareInt, []interface{}{90, 80, 70, 60, 50, 40, 30, 20, 10}},
 	}
 
 	for _, tc := range tests {
 		MergeSort(tc.items, tc.compare)
-		assert.True(t, util.IsSorted(tc.items, tc.compare))
+		assert.True(t, sorted(tc.items, tc.compare))
 	}
 }
 
 func TestMergeSortString(t *testing.T) {
 	tests := []struct {
-		compare Compare
-		items   []Generic
+		compare func(a, b interface{}) int
+		items   []interface{}
 	}{
-		{CompareString, []Generic{}},
-		{CompareString, []Generic{"Milad", "Mona"}},
-		{CompareString, []Generic{"Alice", "Bob", "Alex", "Jackie"}},
-		{CompareString, []Generic{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
+		{compareString, []interface{}{}},
+		{compareString, []interface{}{"Milad", "Mona"}},
+		{compareString, []interface{}{"Alice", "Bob", "Alex", "Jackie"}},
+		{compareString, []interface{}{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
 	}
 
 	for _, tc := range tests {
 		MergeSort(tc.items, tc.compare)
-		assert.True(t, util.IsSorted(tc.items, tc.compare))
+		assert.True(t, sorted(tc.items, tc.compare))
 	}
 }
 
 func TestMergeSortRecInt(t *testing.T) {
 	tests := []struct {
-		compare Compare
-		items   []Generic
+		compare func(a, b interface{}) int
+		items   []interface{}
 	}{
-		{CompareInt, []Generic{}},
-		{CompareInt, []Generic{20, 10, 30}},
-		{CompareInt, []Generic{30, 20, 10, 40, 50}},
-		{CompareInt, []Generic{90, 80, 70, 60, 50, 40, 30, 20, 10}},
+		{compareInt, []interface{}{}},
+		{compareInt, []interface{}{20, 10, 30}},
+		{compareInt, []interface{}{30, 20, 10, 40, 50}},
+		{compareInt, []interface{}{90, 80, 70, 60, 50, 40, 30, 20, 10}},
 	}
 
 	for _, tc := range tests {
 		MergeSortRec(tc.items, tc.compare)
-		assert.True(t, util.IsSorted(tc.items, tc.compare))
+		assert.True(t, sorted(tc.items, tc.compare))
 	}
 }
 
 func TestMergeSortRecString(t *testing.T) {
 	tests := []struct {
-		compare Compare
-		items   []Generic
+		compare func(a, b interface{}) int
+		items   []interface{}
 	}{
-		{CompareString, []Generic{}},
-		{CompareString, []Generic{"Milad", "Mona"}},
-		{CompareString, []Generic{"Alice", "Bob", "Alex", "Jackie"}},
-		{CompareString, []Generic{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
+		{compareString, []interface{}{}},
+		{compareString, []interface{}{"Milad", "Mona"}},
+		{compareString, []interface{}{"Alice", "Bob", "Alex", "Jackie"}},
+		{compareString, []interface{}{"Docker", "Kubernetes", "Go", "JavaScript", "Elixir", "React", "Redux", "Vue"}},
 	}
 
 	for _, tc := range tests {
 		MergeSortRec(tc.items, tc.compare)
-		assert.True(t, util.IsSorted(tc.items, tc.compare))
+		assert.True(t, sorted(tc.items, tc.compare))
 	}
 }

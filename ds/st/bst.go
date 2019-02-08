@@ -10,14 +10,12 @@ package st
 import (
 	"fmt"
 
-	. "github.com/moorara/goto/dt"
 	"github.com/moorara/goto/graphviz"
-	"github.com/moorara/goto/math"
 )
 
 type bstNode struct {
-	key   Generic
-	value Generic
+	key   interface{}
+	value interface{}
 	left  *bstNode
 	right *bstNode
 	size  int
@@ -25,18 +23,18 @@ type bstNode struct {
 
 type bst struct {
 	root       *bstNode
-	compareKey Compare
+	compareKey func(a, b interface{}) int
 }
 
 // NewBST creates a new Binary Search Tree
-func NewBST(compareKey Compare) OrderedSymbolTable {
+func NewBST(compareKey func(a, b interface{}) int) OrderedSymbolTable {
 	return &bst{
 		root:       nil,
 		compareKey: compareKey,
 	}
 }
 
-func (t *bst) isBST(n *bstNode, min, max Generic) bool {
+func (t *bst) isBST(n *bstNode, min, max interface{}) bool {
 	if n == nil {
 		return true
 	}
@@ -79,7 +77,7 @@ func (t *bst) height(n *bstNode) int {
 		return 0
 	}
 
-	return 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	return 1 + max(t.height(n.left), t.height(n.right))
 }
 
 func (t *bst) Size() int {
@@ -94,7 +92,7 @@ func (t *bst) IsEmpty() bool {
 	return t.root == nil
 }
 
-func (t *bst) _put(n *bstNode, key, value Generic) *bstNode {
+func (t *bst) _put(n *bstNode, key, value interface{}) *bstNode {
 	if n == nil {
 		return &bstNode{
 			key:   key,
@@ -117,7 +115,7 @@ func (t *bst) _put(n *bstNode, key, value Generic) *bstNode {
 	return n
 }
 
-func (t *bst) Put(key, value Generic) {
+func (t *bst) Put(key, value interface{}) {
 	if key == nil {
 		return
 	}
@@ -125,7 +123,7 @@ func (t *bst) Put(key, value Generic) {
 	t.root = t._put(t.root, key, value)
 }
 
-func (t *bst) _get(n *bstNode, key Generic) (Generic, bool) {
+func (t *bst) _get(n *bstNode, key interface{}) (interface{}, bool) {
 	if n == nil || key == nil {
 		return nil, false
 	}
@@ -141,17 +139,17 @@ func (t *bst) _get(n *bstNode, key Generic) (Generic, bool) {
 	}
 }
 
-func (t *bst) Get(key Generic) (Generic, bool) {
+func (t *bst) Get(key interface{}) (interface{}, bool) {
 	return t._get(t.root, key)
 }
 
-func (t *bst) _delete(n *bstNode, key Generic) (*bstNode, Generic, bool) {
+func (t *bst) _delete(n *bstNode, key interface{}) (*bstNode, interface{}, bool) {
 	if n == nil || key == nil {
 		return n, nil, false
 	}
 
 	var ok bool
-	var value Generic
+	var value interface{}
 
 	cmp := t.compareKey(key, n.key)
 	if cmp < 0 {
@@ -178,7 +176,7 @@ func (t *bst) _delete(n *bstNode, key Generic) (*bstNode, Generic, bool) {
 	return n, value, ok
 }
 
-func (t *bst) Delete(key Generic) (value Generic, ok bool) {
+func (t *bst) Delete(key interface{}) (value interface{}, ok bool) {
 	t.root, value, ok = t._delete(t.root, key)
 	return value, ok
 }
@@ -202,7 +200,7 @@ func (t *bst) _min(n *bstNode) *bstNode {
 	return t._min(n.left)
 }
 
-func (t *bst) Min() (Generic, Generic) {
+func (t *bst) Min() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -218,7 +216,7 @@ func (t *bst) _max(n *bstNode) *bstNode {
 	return t._max(n.right)
 }
 
-func (t *bst) Max() (Generic, Generic) {
+func (t *bst) Max() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -227,7 +225,7 @@ func (t *bst) Max() (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *bst) _floor(n *bstNode, key Generic) *bstNode {
+func (t *bst) _floor(n *bstNode, key interface{}) *bstNode {
 	if n == nil || key == nil {
 		return nil
 	}
@@ -246,7 +244,7 @@ func (t *bst) _floor(n *bstNode, key Generic) *bstNode {
 	return n
 }
 
-func (t *bst) Floor(key Generic) (Generic, Generic) {
+func (t *bst) Floor(key interface{}) (interface{}, interface{}) {
 	n := t._floor(t.root, key)
 	if n == nil {
 		return nil, nil
@@ -254,7 +252,7 @@ func (t *bst) Floor(key Generic) (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *bst) _ceiling(n *bstNode, key Generic) *bstNode {
+func (t *bst) _ceiling(n *bstNode, key interface{}) *bstNode {
 	if n == nil || key == nil {
 		return nil
 	}
@@ -273,7 +271,7 @@ func (t *bst) _ceiling(n *bstNode, key Generic) *bstNode {
 	return n
 }
 
-func (t *bst) Ceiling(key Generic) (Generic, Generic) {
+func (t *bst) Ceiling(key interface{}) (interface{}, interface{}) {
 	n := t._ceiling(t.root, key)
 	if n == nil {
 		return nil, nil
@@ -281,7 +279,7 @@ func (t *bst) Ceiling(key Generic) (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *bst) _rank(n *bstNode, key Generic) int {
+func (t *bst) _rank(n *bstNode, key interface{}) int {
 	if n == nil {
 		return 0
 	}
@@ -297,7 +295,7 @@ func (t *bst) _rank(n *bstNode, key Generic) int {
 	}
 }
 
-func (t *bst) Rank(key Generic) int {
+func (t *bst) Rank(key interface{}) int {
 	if key == nil {
 		return -1
 	}
@@ -321,7 +319,7 @@ func (t *bst) _select(n *bstNode, rank int) *bstNode {
 	}
 }
 
-func (t *bst) Select(rank int) (Generic, Generic) {
+func (t *bst) Select(rank int) (interface{}, interface{}) {
 	if rank < 0 || rank >= t.Size() {
 		return nil, nil
 	}
@@ -341,7 +339,7 @@ func (t *bst) _deleteMin(n *bstNode) (*bstNode, *bstNode) {
 	return n, min
 }
 
-func (t *bst) DeleteMin() (Generic, Generic) {
+func (t *bst) DeleteMin() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -362,7 +360,7 @@ func (t *bst) _deleteMax(n *bstNode) (*bstNode, *bstNode) {
 	return n, max
 }
 
-func (t *bst) DeleteMax() (Generic, Generic) {
+func (t *bst) DeleteMax() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -372,7 +370,7 @@ func (t *bst) DeleteMax() (Generic, Generic) {
 	return max.key, max.value
 }
 
-func (t *bst) RangeSize(lo, hi Generic) int {
+func (t *bst) RangeSize(lo, hi interface{}) int {
 	if lo == nil || hi == nil {
 		return -1
 	}
@@ -386,7 +384,7 @@ func (t *bst) RangeSize(lo, hi Generic) int {
 	}
 }
 
-func (t *bst) _range(n *bstNode, kvs *[]KeyValue, lo, hi Generic) int {
+func (t *bst) _range(n *bstNode, kvs *[]KeyValue, lo, hi interface{}) int {
 	if n == nil {
 		return 0
 	}
@@ -409,7 +407,7 @@ func (t *bst) _range(n *bstNode, kvs *[]KeyValue, lo, hi Generic) int {
 	return len
 }
 
-func (t *bst) Range(lo, hi Generic) []KeyValue {
+func (t *bst) Range(lo, hi interface{}) []KeyValue {
 	if lo == nil || hi == nil {
 		return nil
 	}
@@ -443,7 +441,7 @@ func (t *bst) _traverse(n *bstNode, order int, visit func(*bstNode) bool) bool {
 }
 
 func (t *bst) Traverse(order int, visit VisitFunc) {
-	if !math.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
+	if order != TraversePreOrder && order != TraverseInOrder && order != TraversePostOrder {
 		return
 	}
 

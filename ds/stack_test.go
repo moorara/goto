@@ -3,7 +3,6 @@ package ds
 import (
 	"testing"
 
-	. "github.com/moorara/goto/dt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,7 +10,7 @@ func TestStack(t *testing.T) {
 	tests := []struct {
 		name             string
 		nodeSize         int
-		compare          Compare
+		compare          func(a, b interface{}) int
 		pushItems        []string
 		expectedSize     int
 		expectedIsEmpty  bool
@@ -22,7 +21,7 @@ func TestStack(t *testing.T) {
 		{
 			"Empty",
 			2,
-			CompareString,
+			compareString,
 			[]string{},
 			0, true,
 			"",
@@ -32,7 +31,7 @@ func TestStack(t *testing.T) {
 		{
 			"OneNode",
 			2,
-			CompareString,
+			compareString,
 			[]string{"a", "b"},
 			2, false,
 			"b",
@@ -42,7 +41,7 @@ func TestStack(t *testing.T) {
 		{
 			"TwoNodes",
 			2,
-			CompareString,
+			compareString,
 			[]string{"a", "b", "c"},
 			3, false,
 			"c",
@@ -52,7 +51,7 @@ func TestStack(t *testing.T) {
 		{
 			"MoreNodes",
 			2,
-			CompareString,
+			compareString,
 			[]string{"a", "b", "c", "d", "e", "f", "g"},
 			7, false,
 			"g",
@@ -108,7 +107,7 @@ func BenchmarkStack(b *testing.B) {
 	item := 27
 
 	b.Run("Push", func(b *testing.B) {
-		stack := NewStack(nodeSize, CompareInt)
+		stack := NewStack(nodeSize, compareInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
@@ -117,7 +116,7 @@ func BenchmarkStack(b *testing.B) {
 	})
 
 	b.Run("Pop", func(b *testing.B) {
-		stack := NewStack(nodeSize, CompareInt)
+		stack := NewStack(nodeSize, compareInt)
 		for n := 0; n < b.N; n++ {
 			stack.Push(item)
 		}

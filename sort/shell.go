@@ -1,11 +1,7 @@
 package sort
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 // ShellSort implements shell sort algorithm
-func ShellSort(a []Generic, compare Compare) {
+func ShellSort(a []interface{}, compare func(a, b interface{}) int) {
 	n := len(a)
 	h := 1
 	for h < n/3 {

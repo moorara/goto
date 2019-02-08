@@ -1,9 +1,5 @@
 package sort
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -11,7 +7,7 @@ func min(a, b int) int {
 	return b
 }
 
-func merge(a, aux []Generic, lo, mid, hi int, compare Compare) {
+func merge(a, aux []interface{}, lo, mid, hi int, compare func(a, b interface{}) int) {
 	var i, j int = lo, mid + 1
 	copy(aux[lo:hi+1], a[lo:hi+1])
 	for k := lo; k <= hi; k++ {
@@ -33,9 +29,9 @@ func merge(a, aux []Generic, lo, mid, hi int, compare Compare) {
 }
 
 // MergeSort implements merge sort algorithm in an iterative manner
-func MergeSort(a []Generic, compare Compare) {
+func MergeSort(a []interface{}, compare func(a, b interface{}) int) {
 	n := len(a)
-	aux := make([]Generic, n)
+	aux := make([]interface{}, n)
 	for sz := 1; sz < n; sz += sz {
 		for lo := 0; lo < n-sz; lo += sz + sz {
 			merge(a, aux, lo, lo+sz-1, min(lo+sz+sz-1, n-1), compare)
@@ -43,7 +39,7 @@ func MergeSort(a []Generic, compare Compare) {
 	}
 }
 
-func mergeSortRec(a, aux []Generic, lo, hi int, compare Compare) {
+func mergeSortRec(a, aux []interface{}, lo, hi int, compare func(a, b interface{}) int) {
 	if hi <= lo {
 		return
 	}
@@ -58,9 +54,9 @@ func mergeSortRec(a, aux []Generic, lo, hi int, compare Compare) {
 }
 
 // MergeSortRec implements merge sort algorithm in a recursive manner
-func MergeSortRec(a []Generic, compare Compare) {
+func MergeSortRec(a []interface{}, compare func(a, b interface{}) int) {
 	n := len(a)
-	aux := make([]Generic, n)
+	aux := make([]interface{}, n)
 
 	mergeSortRec(a, aux, 0, n-1, compare)
 }

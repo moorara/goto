@@ -8,14 +8,12 @@ package st
 import (
 	"fmt"
 
-	. "github.com/moorara/goto/dt"
 	"github.com/moorara/goto/graphviz"
-	"github.com/moorara/goto/math"
 )
 
 type avlNode struct {
-	key    Generic
-	value  Generic
+	key    interface{}
+	value  interface{}
 	left   *avlNode
 	right  *avlNode
 	size   int
@@ -24,18 +22,18 @@ type avlNode struct {
 
 type avl struct {
 	root       *avlNode
-	compareKey Compare
+	compareKey func(a, b interface{}) int
 }
 
 // NewAVL creates a new AVL Tree
-func NewAVL(compareKey Compare) OrderedSymbolTable {
+func NewAVL(compareKey func(a, b interface{}) int) OrderedSymbolTable {
 	return &avl{
 		root:       nil,
 		compareKey: compareKey,
 	}
 }
 
-func (t *avl) isBST(n *avlNode, min, max Generic) bool {
+func (t *avl) isBST(n *avlNode, min, max interface{}) bool {
 	if n == nil {
 		return true
 	}
@@ -106,8 +104,8 @@ func (t *avl) rotateLeft(n *avlNode) *avlNode {
 
 	r.size = n.size
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
-	r.height = 1 + math.MaxInt(t.height(r.left), t.height(r.right))
+	n.height = 1 + max(t.height(n.left), t.height(n.right))
+	r.height = 1 + max(t.height(r.left), t.height(r.right))
 
 	return r
 }
@@ -119,8 +117,8 @@ func (t *avl) rotateRight(n *avlNode) *avlNode {
 
 	l.size = n.size
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
-	l.height = 1 + math.MaxInt(t.height(l.left), t.height(l.right))
+	n.height = 1 + max(t.height(n.left), t.height(n.right))
+	l.height = 1 + max(t.height(l.left), t.height(l.right))
 
 	return l
 }
@@ -153,7 +151,7 @@ func (t *avl) IsEmpty() bool {
 	return t.root == nil
 }
 
-func (t *avl) _put(n *avlNode, key, value Generic) *avlNode {
+func (t *avl) _put(n *avlNode, key, value interface{}) *avlNode {
 	if n == nil {
 		return &avlNode{
 			key:    key,
@@ -175,11 +173,11 @@ func (t *avl) _put(n *avlNode, key, value Generic) *avlNode {
 	}
 
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	n.height = 1 + max(t.height(n.left), t.height(n.right))
 	return t.balance(n)
 }
 
-func (t *avl) Put(key, value Generic) {
+func (t *avl) Put(key, value interface{}) {
 	if key == nil {
 		return
 	}
@@ -187,7 +185,7 @@ func (t *avl) Put(key, value Generic) {
 	t.root = t._put(t.root, key, value)
 }
 
-func (t *avl) _get(n *avlNode, key Generic) (Generic, bool) {
+func (t *avl) _get(n *avlNode, key interface{}) (interface{}, bool) {
 	if n == nil || key == nil {
 		return nil, false
 	}
@@ -203,17 +201,17 @@ func (t *avl) _get(n *avlNode, key Generic) (Generic, bool) {
 	}
 }
 
-func (t *avl) Get(key Generic) (Generic, bool) {
+func (t *avl) Get(key interface{}) (interface{}, bool) {
 	return t._get(t.root, key)
 }
 
-func (t *avl) _delete(n *avlNode, key Generic) (*avlNode, Generic, bool) {
+func (t *avl) _delete(n *avlNode, key interface{}) (*avlNode, interface{}, bool) {
 	if n == nil || key == nil {
 		return n, nil, false
 	}
 
 	var ok bool
-	var value Generic
+	var value interface{}
 
 	cmp := t.compareKey(key, n.key)
 	if cmp < 0 {
@@ -237,11 +235,11 @@ func (t *avl) _delete(n *avlNode, key Generic) (*avlNode, Generic, bool) {
 	}
 
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	n.height = 1 + max(t.height(n.left), t.height(n.right))
 	return t.balance(n), value, ok
 }
 
-func (t *avl) Delete(key Generic) (value Generic, ok bool) {
+func (t *avl) Delete(key interface{}) (value interface{}, ok bool) {
 	t.root, value, ok = t._delete(t.root, key)
 	return value, ok
 }
@@ -265,7 +263,7 @@ func (t *avl) _min(n *avlNode) *avlNode {
 	return t._min(n.left)
 }
 
-func (t *avl) Min() (Generic, Generic) {
+func (t *avl) Min() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -281,7 +279,7 @@ func (t *avl) _max(n *avlNode) *avlNode {
 	return t._max(n.right)
 }
 
-func (t *avl) Max() (Generic, Generic) {
+func (t *avl) Max() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -290,7 +288,7 @@ func (t *avl) Max() (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *avl) _floor(n *avlNode, key Generic) *avlNode {
+func (t *avl) _floor(n *avlNode, key interface{}) *avlNode {
 	if n == nil || key == nil {
 		return nil
 	}
@@ -309,7 +307,7 @@ func (t *avl) _floor(n *avlNode, key Generic) *avlNode {
 	return n
 }
 
-func (t *avl) Floor(key Generic) (Generic, Generic) {
+func (t *avl) Floor(key interface{}) (interface{}, interface{}) {
 	n := t._floor(t.root, key)
 	if n == nil {
 		return nil, nil
@@ -317,7 +315,7 @@ func (t *avl) Floor(key Generic) (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *avl) _ceiling(n *avlNode, key Generic) *avlNode {
+func (t *avl) _ceiling(n *avlNode, key interface{}) *avlNode {
 	if n == nil || key == nil {
 		return nil
 	}
@@ -336,7 +334,7 @@ func (t *avl) _ceiling(n *avlNode, key Generic) *avlNode {
 	return n
 }
 
-func (t *avl) Ceiling(key Generic) (Generic, Generic) {
+func (t *avl) Ceiling(key interface{}) (interface{}, interface{}) {
 	n := t._ceiling(t.root, key)
 	if n == nil {
 		return nil, nil
@@ -344,7 +342,7 @@ func (t *avl) Ceiling(key Generic) (Generic, Generic) {
 	return n.key, n.value
 }
 
-func (t *avl) _rank(n *avlNode, key Generic) int {
+func (t *avl) _rank(n *avlNode, key interface{}) int {
 	if n == nil {
 		return 0
 	}
@@ -360,7 +358,7 @@ func (t *avl) _rank(n *avlNode, key Generic) int {
 	}
 }
 
-func (t *avl) Rank(key Generic) int {
+func (t *avl) Rank(key interface{}) int {
 	if key == nil {
 		return -1
 	}
@@ -384,7 +382,7 @@ func (t *avl) _select(n *avlNode, rank int) *avlNode {
 	}
 }
 
-func (t *avl) Select(rank int) (Generic, Generic) {
+func (t *avl) Select(rank int) (interface{}, interface{}) {
 	if rank < 0 || rank >= t.Size() {
 		return nil, nil
 	}
@@ -401,11 +399,11 @@ func (t *avl) _deleteMin(n *avlNode) (*avlNode, *avlNode) {
 	var min *avlNode
 	n.left, min = t._deleteMin(n.left)
 	n.size = 1 + t.size(n.left) + t.size(n.right)
-	n.height = 1 + math.MaxInt(t.height(n.left), t.height(n.right))
+	n.height = 1 + max(t.height(n.left), t.height(n.right))
 	return t.balance(n), min
 }
 
-func (t *avl) DeleteMin() (Generic, Generic) {
+func (t *avl) DeleteMin() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -426,7 +424,7 @@ func (t *avl) _deleteMax(n *avlNode) (*avlNode, *avlNode) {
 	return t.balance(n), max
 }
 
-func (t *avl) DeleteMax() (Generic, Generic) {
+func (t *avl) DeleteMax() (interface{}, interface{}) {
 	if t.root == nil {
 		return nil, nil
 	}
@@ -436,7 +434,7 @@ func (t *avl) DeleteMax() (Generic, Generic) {
 	return max.key, max.value
 }
 
-func (t *avl) RangeSize(lo, hi Generic) int {
+func (t *avl) RangeSize(lo, hi interface{}) int {
 	if lo == nil || hi == nil {
 		return -1
 	}
@@ -450,7 +448,7 @@ func (t *avl) RangeSize(lo, hi Generic) int {
 	}
 }
 
-func (t *avl) _range(n *avlNode, kvs *[]KeyValue, lo, hi Generic) int {
+func (t *avl) _range(n *avlNode, kvs *[]KeyValue, lo, hi interface{}) int {
 	if n == nil {
 		return 0
 	}
@@ -473,7 +471,7 @@ func (t *avl) _range(n *avlNode, kvs *[]KeyValue, lo, hi Generic) int {
 	return len
 }
 
-func (t *avl) Range(lo, hi Generic) []KeyValue {
+func (t *avl) Range(lo, hi interface{}) []KeyValue {
 	if lo == nil || hi == nil {
 		return nil
 	}
@@ -507,7 +505,7 @@ func (t *avl) _traverse(n *avlNode, order int, visit func(*avlNode) bool) bool {
 }
 
 func (t *avl) Traverse(order int, visit VisitFunc) {
-	if !math.IsIntIn(order, TraversePreOrder, TraverseInOrder, TraversePostOrder) {
+	if order != TraversePreOrder && order != TraverseInOrder && order != TraversePostOrder {
 		return
 	}
 

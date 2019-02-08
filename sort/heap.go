@@ -1,10 +1,6 @@
 package sort
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
-func sink(a []Generic, k, n int, compare Compare) {
+func sink(a []interface{}, k, n int, compare func(a, b interface{}) int) {
 	for 2*k <= n {
 		j := 2 * k
 		if j < n && compare(a[j], a[j+1]) < 0 {
@@ -18,7 +14,7 @@ func sink(a []Generic, k, n int, compare Compare) {
 	}
 }
 
-func heapSort(a []Generic, compare Compare) {
+func heapSort(a []interface{}, compare func(a, b interface{}) int) {
 	n := len(a) - 1
 
 	for k := n / 2; k >= 1; k-- { // build max-heap bottom-up
@@ -32,9 +28,9 @@ func heapSort(a []Generic, compare Compare) {
 }
 
 // HeapSort implements heap sort algorithm
-func HeapSort(a []Generic, compare Compare) {
+func HeapSort(a []interface{}, compare func(a, b interface{}) int) {
 	// Heap elements need to start from position 1
-	aux := append([]Generic{nil}, a...)
+	aux := append([]interface{}{nil}, a...)
 	heapSort(aux, compare)
 	copy(a, aux[1:])
 }

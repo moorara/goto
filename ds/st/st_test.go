@@ -3,7 +3,6 @@ package st
 import (
 	"testing"
 
-	. "github.com/moorara/goto/dt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +11,7 @@ type (
 		name        string
 		symbolTable string
 
-		compareKey Compare
+		compareKey func(a, b interface{}) int
 
 		keyValues []KeyValue
 
@@ -24,7 +23,7 @@ type (
 		name        string
 		symbolTable string
 
-		compareKey Compare
+		compareKey func(a, b interface{}) int
 
 		keyValues []KeyValue
 
@@ -32,26 +31,26 @@ type (
 		expectedHeight  int
 		expectedIsEmpty bool
 
-		expectedMinKey   Generic
-		expectedMinValue Generic
+		expectedMinKey   interface{}
+		expectedMinValue interface{}
 
-		expectedMaxKey   Generic
-		expectedMaxValue Generic
+		expectedMaxKey   interface{}
+		expectedMaxValue interface{}
 
 		floorKey           string
-		expectedFloorKey   Generic
-		expectedFloorValue Generic
+		expectedFloorKey   interface{}
+		expectedFloorValue interface{}
 
 		ceilingKey           string
-		expectedCeilingKey   Generic
-		expectedCeilingValue Generic
+		expectedCeilingKey   interface{}
+		expectedCeilingValue interface{}
 
 		rankKey      string
 		expectedRank int
 
 		selectRank          int
-		expectedSelectKey   Generic
-		expectedSelectValue Generic
+		expectedSelectKey   interface{}
+		expectedSelectValue interface{}
 
 		rangeKeyLo        string
 		rangeKeyHi        string
@@ -71,7 +70,7 @@ func getSymbolTableTests() []symbolTableTest {
 		{
 			name:            "",
 			symbolTable:     "",
-			compareKey:      CompareString,
+			compareKey:      compareString,
 			keyValues:       []KeyValue{},
 			expectedSize:    0,
 			expectedIsEmpty: true,
@@ -83,7 +82,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 	return []orderedSymbolTableTest{
 		{
 			name:                 "Empty",
-			compareKey:           CompareString,
+			compareKey:           compareString,
 			keyValues:            []KeyValue{},
 			expectedSize:         0,
 			expectedIsEmpty:      true,
@@ -109,7 +108,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 		},
 		{
 			name:       "ABC",
-			compareKey: CompareString,
+			compareKey: compareString,
 			keyValues: []KeyValue{
 				{"B", 2},
 				{"A", 1},
@@ -143,7 +142,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 		},
 		{
 			name:       "ABCDE",
-			compareKey: CompareString,
+			compareKey: compareString,
 			keyValues: []KeyValue{
 				{"B", 2},
 				{"A", 1},
@@ -179,7 +178,7 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 		},
 		{
 			name:       "ADGJMPS",
-			compareKey: CompareString,
+			compareKey: compareString,
 			keyValues: []KeyValue{
 				{"J", 10},
 				{"A", 1},
@@ -233,11 +232,11 @@ func runSymbolTableTest(t *testing.T, st SymbolTable, test symbolTableTest) {
 func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test orderedSymbolTableTest) {
 	var i int
 	var kvs []KeyValue
-	var minKey, minValue Generic
-	var maxKey, maxValue Generic
-	var floorKey, floorValue Generic
-	var ceilingKey, ceilingValue Generic
-	var selectKey, selectValue Generic
+	var minKey, minValue interface{}
+	var maxKey, maxValue interface{}
+	var floorKey, floorValue interface{}
+	var ceilingKey, ceilingValue interface{}
+	var selectKey, selectValue interface{}
 
 	// Tree initially should be empty
 	assert.True(t, ost.verify())
@@ -333,7 +332,7 @@ func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test ordere
 
 	// Invalid Traversal
 	i = 0
-	ost.Traverse(-1, func(key, value Generic) bool {
+	ost.Traverse(-1, func(key, value interface{}) bool {
 		i++
 		return true
 	})
@@ -341,7 +340,7 @@ func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test ordere
 
 	// Pre-Order Traversal
 	i = 0
-	ost.Traverse(TraversePreOrder, func(key, value Generic) bool {
+	ost.Traverse(TraversePreOrder, func(key, value interface{}) bool {
 		assert.Equal(t, test.expectedPreOrderTraverse[i].key, key)
 		assert.Equal(t, test.expectedPreOrderTraverse[i].value, value)
 		i++
@@ -350,7 +349,7 @@ func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test ordere
 
 	// In-Order Traversal
 	i = 0
-	ost.Traverse(TraverseInOrder, func(key, value Generic) bool {
+	ost.Traverse(TraverseInOrder, func(key, value interface{}) bool {
 		assert.Equal(t, test.expectedInOrderTraverse[i].key, key)
 		assert.Equal(t, test.expectedInOrderTraverse[i].value, value)
 		i++
@@ -359,7 +358,7 @@ func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test ordere
 
 	// Post-Order Traversal
 	i = 0
-	ost.Traverse(TraversePostOrder, func(key, value Generic) bool {
+	ost.Traverse(TraversePostOrder, func(key, value interface{}) bool {
 		assert.Equal(t, test.expectedPostOrderTraverse[i].key, key)
 		assert.Equal(t, test.expectedPostOrderTraverse[i].value, value)
 		i++

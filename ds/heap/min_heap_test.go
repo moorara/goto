@@ -1,10 +1,10 @@
 package heap
 
 import (
+	"math/rand"
 	"testing"
+	"time"
 
-	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/math"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,8 +12,8 @@ func TestMinHeap(t *testing.T) {
 	tests := []struct {
 		name                  string
 		initialSize           int
-		compareKey            Compare
-		compareValue          Compare
+		compareKey            func(a, b interface{}) int
+		compareValue          func(a, b interface{}) int
 		insertKeys            []int
 		insertValues          []string
 		expectedSize          int
@@ -28,7 +28,7 @@ func TestMinHeap(t *testing.T) {
 		{
 			"Empty",
 			2,
-			CompareInt, CompareString,
+			compareInt, compareString,
 			[]int{}, []string{},
 			0, true,
 			0, "",
@@ -38,7 +38,7 @@ func TestMinHeap(t *testing.T) {
 		{
 			"FewPairs",
 			2,
-			CompareInt, CompareString,
+			compareInt, compareString,
 			[]int{30, 10, 20}, []string{"thirty", "ten", "twenty"},
 			3, false,
 			10, "ten",
@@ -48,7 +48,7 @@ func TestMinHeap(t *testing.T) {
 		{
 			"SomePairs",
 			4,
-			CompareInt, CompareString,
+			compareInt, compareString,
 			[]int{50, 30, 40, 10, 20}, []string{"fifty", "thirty", "forty", "ten", "twenty"},
 			5, false,
 			10, "ten",
@@ -58,7 +58,7 @@ func TestMinHeap(t *testing.T) {
 		{
 			"MorePairs",
 			4,
-			CompareInt, CompareString,
+			compareInt, compareString,
 			[]int{90, 80, 70, 40, 50, 60, 30, 10, 20}, []string{"ninety", "eighty", "seventy", "forty", "fifty", "sixty", "thirty", "ten", "twenty"},
 			9, false,
 			10, "ten",
@@ -132,11 +132,12 @@ func BenchmarkMinHeap(b *testing.B) {
 	heapSize := 1024
 	minInt := 0
 	maxInt := 1000000
-	math.SeedWithNow()
+
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	b.Run("Insert", func(b *testing.B) {
-		heap := NewMinHeap(heapSize, CompareInt, CompareString)
-		items := math.GenerateIntSlice(b.N, minInt, maxInt)
+		heap := NewMinHeap(heapSize, compareInt, compareString)
+		items := genIntSlice(b.N, minInt, maxInt)
 		b.ResetTimer()
 
 		for n := 0; n < b.N; n++ {
@@ -145,8 +146,8 @@ func BenchmarkMinHeap(b *testing.B) {
 	})
 
 	b.Run("Delete", func(b *testing.B) {
-		heap := NewMinHeap(heapSize, CompareInt, CompareString)
-		items := math.GenerateIntSlice(b.N, minInt, maxInt)
+		heap := NewMinHeap(heapSize, compareInt, compareString)
+		items := genIntSlice(b.N, minInt, maxInt)
 		for n := 0; n < b.N; n++ {
 			heap.Insert(items[n], "")
 		}

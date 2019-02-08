@@ -1,17 +1,13 @@
 package ds
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 // Queue represents a stack data structure
 type Queue interface {
 	Size() int
 	IsEmpty() bool
-	Enqueue(Generic)
-	Dequeue() Generic
-	Peek() Generic
-	Contains(Generic) bool
+	Enqueue(interface{})
+	Dequeue() interface{}
+	Peek() interface{}
+	Contains(interface{}) bool
 }
 
 type arrayQueue struct {
@@ -21,11 +17,11 @@ type arrayQueue struct {
 	rearNodeIndex  int
 	frontNode      *arrayNode
 	rearNode       *arrayNode
-	compare        Compare
+	compare        func(a, b interface{}) int
 }
 
 // NewQueue creates a new array-list queue
-func NewQueue(nodeSize int, compare Compare) Queue {
+func NewQueue(nodeSize int, compare func(a, b interface{}) int) Queue {
 	return &arrayQueue{
 		listSize:       0,
 		nodeSize:       nodeSize,
@@ -45,7 +41,7 @@ func (q *arrayQueue) IsEmpty() bool {
 	return q.listSize == 0
 }
 
-func (q *arrayQueue) Enqueue(item Generic) {
+func (q *arrayQueue) Enqueue(item interface{}) {
 	if q.frontNode == nil && q.rearNode == nil {
 		q.frontNodeIndex = 0
 		q.rearNodeIndex = 0
@@ -64,7 +60,7 @@ func (q *arrayQueue) Enqueue(item Generic) {
 	}
 }
 
-func (q *arrayQueue) Dequeue() Generic {
+func (q *arrayQueue) Dequeue() interface{} {
 	if q.listSize == 0 {
 		return nil
 	}
@@ -81,7 +77,7 @@ func (q *arrayQueue) Dequeue() Generic {
 	return item
 }
 
-func (q *arrayQueue) Peek() Generic {
+func (q *arrayQueue) Peek() interface{} {
 	if q.listSize == 0 {
 		return nil
 	}
@@ -89,7 +85,7 @@ func (q *arrayQueue) Peek() Generic {
 	return q.frontNode.block[q.frontNodeIndex]
 }
 
-func (q *arrayQueue) Contains(item Generic) bool {
+func (q *arrayQueue) Contains(item interface{}) bool {
 	n := q.frontNode
 	i := q.frontNodeIndex
 

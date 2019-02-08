@@ -4,20 +4,19 @@ import (
 	"math/rand"
 	"testing"
 
-	. "github.com/moorara/goto/dt"
-	"github.com/moorara/goto/math"
+	"github.com/moorara/goto/sort"
 )
 
 const (
 	seed = 27
 )
 
-func getIntSlice(size int) []Generic {
-	items := make([]Generic, size)
+func getIntSlice(size int) []interface{} {
+	items := make([]interface{}, size)
 	for i := 0; i < len(items); i++ {
 		items[i] = i
 	}
-	math.Shuffle(items)
+	sort.Shuffle(items)
 
 	return items
 }
@@ -25,7 +24,7 @@ func getIntSlice(size int) []Generic {
 func runPutBenchmark(b *testing.B, ost OrderedSymbolTable) {
 	items := getIntSlice(b.N)
 	rand.Seed(seed)
-	math.Shuffle(items)
+	sort.Shuffle(items)
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
@@ -36,7 +35,7 @@ func runPutBenchmark(b *testing.B, ost OrderedSymbolTable) {
 func runGetBenchmark(b *testing.B, ost OrderedSymbolTable) {
 	items := getIntSlice(b.N)
 	rand.Seed(seed)
-	math.Shuffle(items)
+	sort.Shuffle(items)
 	for n := 0; n < b.N; n++ {
 		ost.Put(items[n], "")
 	}
@@ -49,32 +48,32 @@ func runGetBenchmark(b *testing.B, ost OrderedSymbolTable) {
 
 func BenchmarkOrderedSymbolTable(b *testing.B) {
 	b.Run("BST.Put", func(b *testing.B) {
-		ost := NewBST(CompareInt)
+		ost := NewBST(compareInt)
 		runPutBenchmark(b, ost)
 	})
 
 	b.Run("BST.Get", func(b *testing.B) {
-		ost := NewBST(CompareInt)
+		ost := NewBST(compareInt)
 		runGetBenchmark(b, ost)
 	})
 
 	b.Run("AVL.Put", func(b *testing.B) {
-		ost := NewAVL(CompareInt)
+		ost := NewAVL(compareInt)
 		runPutBenchmark(b, ost)
 	})
 
 	b.Run("AVL.Get", func(b *testing.B) {
-		ost := NewAVL(CompareInt)
+		ost := NewAVL(compareInt)
 		runGetBenchmark(b, ost)
 	})
 
 	b.Run("RedBlack.Put", func(b *testing.B) {
-		ost := NewRedBlack(CompareInt)
+		ost := NewRedBlack(compareInt)
 		runPutBenchmark(b, ost)
 	})
 
 	b.Run("RedBlack.Get", func(b *testing.B) {
-		ost := NewRedBlack(CompareInt)
+		ost := NewRedBlack(compareInt)
 		runGetBenchmark(b, ost)
 	})
 }

@@ -1,17 +1,13 @@
 package ds
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 // Stack represents a stack data structure
 type Stack interface {
 	Size() int
 	IsEmpty() bool
-	Push(Generic)
-	Pop() Generic
-	Peek() Generic
-	Contains(Generic) bool
+	Push(interface{})
+	Pop() interface{}
+	Peek() interface{}
+	Contains(interface{}) bool
 }
 
 type arrayStack struct {
@@ -19,11 +15,11 @@ type arrayStack struct {
 	nodeSize  int
 	nodeIndex int
 	topNode   *arrayNode
-	compare   Compare
+	compare   func(a, b interface{}) int
 }
 
 // NewStack creates a new array-list stack
-func NewStack(nodeSize int, compare Compare) Stack {
+func NewStack(nodeSize int, compare func(a, b interface{}) int) Stack {
 	return &arrayStack{
 		listSize:  0,
 		nodeSize:  nodeSize,
@@ -41,7 +37,7 @@ func (s *arrayStack) IsEmpty() bool {
 	return s.listSize == 0
 }
 
-func (s *arrayStack) Push(item Generic) {
+func (s *arrayStack) Push(item interface{}) {
 	s.listSize++
 	s.nodeIndex++
 
@@ -57,7 +53,7 @@ func (s *arrayStack) Push(item Generic) {
 	s.topNode.block[s.nodeIndex] = item
 }
 
-func (s *arrayStack) Pop() Generic {
+func (s *arrayStack) Pop() interface{} {
 	if s.listSize == 0 {
 		return nil
 	}
@@ -76,7 +72,7 @@ func (s *arrayStack) Pop() Generic {
 	return item
 }
 
-func (s *arrayStack) Peek() Generic {
+func (s *arrayStack) Peek() interface{} {
 	if s.listSize == 0 {
 		return nil
 	}
@@ -84,7 +80,7 @@ func (s *arrayStack) Peek() Generic {
 	return s.topNode.block[s.nodeIndex]
 }
 
-func (s *arrayStack) Contains(item Generic) bool {
+func (s *arrayStack) Contains(item interface{}) bool {
 	n := s.topNode
 	i := s.nodeIndex
 

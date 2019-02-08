@@ -1,16 +1,12 @@
 package heap
 
-import (
-	. "github.com/moorara/goto/dt"
-)
-
 // Heap represents a heap (priority queue) data structure
 type Heap interface {
 	Size() int
 	IsEmpty() bool
-	Insert(Generic, Generic)
-	Delete() (Generic, Generic)
-	Peek() (Generic, Generic)
-	ContainsKey(Generic) bool
-	ContainsValue(Generic) bool
+	Insert(interface{}, interface{})
+	Delete() (interface{}, interface{})
+	Peek() (interface{}, interface{})
+	ContainsKey(interface{}) bool
+	ContainsValue(interface{}) bool
 }
