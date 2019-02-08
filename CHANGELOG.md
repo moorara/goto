@@ -1,5 +1,18 @@
 # Change Log
 
+## [v0.2.0](https://github.com/moorara/goto/tree/v0.2.0) (2019-02-08)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.1.7...v0.2.0)
+
+**Implemented enhancements:**
+
+- Migrate to go modules [\#18](https://github.com/moorara/goto/issues/18)
+
+**Merged pull requests:**
+
+- Switch to actions [\#29](https://github.com/moorara/goto/pull/29) ([moorara](https://github.com/moorara))
+- Refactoring & Cleanup - Backward incompatible changes [\#28](https://github.com/moorara/goto/pull/28) ([moorara](https://github.com/moorara))
+- Migrate to Go modules 🎉 [\#26](https://github.com/moorara/goto/pull/26) ([moorara](https://github.com/moorara))
+
 ## [v0.1.7](https://github.com/moorara/goto/tree/v0.1.7) (2018-11-28)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.1.6...v0.1.7)
 
