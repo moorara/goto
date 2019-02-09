@@ -1,6 +1,15 @@
 # Change Log
 
-## [v0.2.1](https://github.com/moorara/goto/tree/v0.2.1) (2019-02-08)
+## [v0.2.2](https://github.com/moorara/goto/tree/v0.2.2) (2019-02-09)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.1...v0.2.2)
+
+**Merged pull requests:**
+
+- Fix logger caller issue [\#33](https://github.com/moorara/goto/pull/33) ([moorara](https://github.com/moorara))
+- Refactor log package [\#32](https://github.com/moorara/goto/pull/32) ([moorara](https://github.com/moorara))
+- Rename files in log package [\#31](https://github.com/moorara/goto/pull/31) ([moorara](https://github.com/moorara))
+
+## [v0.2.1](https://github.com/moorara/goto/tree/v0.2.1) (2019-02-09)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.0...v0.2.1)
 
 **Merged pull requests:**
