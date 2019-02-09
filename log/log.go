@@ -51,8 +51,10 @@ func NewNopLogger() *Logger {
 // NewLogger creates a new logger
 func NewLogger(logger kitLog.Logger, opts Options) *Logger {
 	var lev Level
+
+	logger = kitLog.NewSyncLogger(logger)
 	logger = kitLog.With(logger,
-		"caller", kitLog.DefaultCaller,
+		"caller", kitLog.Caller(6), // 6 is the caller depth
 		"timestamp", kitLog.DefaultTimestampUTC,
 	)
 
@@ -112,15 +114,6 @@ func (l *Logger) With(kv ...interface{}) *Logger {
 	return &Logger{
 		Level:  l.Level,
 		Logger: kitLog.With(l.Logger, kv...),
-	}
-}
-
-// SyncLogger returns a new logger which can be used concurrently by goroutines.
-// Only one goroutine is allowed to log at a time and other goroutines will block until the logger is available.
-func (l *Logger) SyncLogger() *Logger {
-	return &Logger{
-		Level:  l.Level,
-		Logger: kitLog.NewSyncLogger(l.Logger),
 	}
 }
 

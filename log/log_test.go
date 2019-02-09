@@ -245,23 +245,7 @@ func TestWith(t *testing.T) {
 	}
 }
 
-func TestSyncLogger(t *testing.T) {
-	tests := []struct {
-		mockLogger mockLogger
-	}{
-		{
-			mockLogger{},
-		},
-	}
-
-	for _, tc := range tests {
-		logger := &Logger{Logger: &tc.mockLogger}
-		logger = logger.SyncLogger()
-		assert.NotNil(t, logger)
-	}
-}
-
-func TestLogger(t *testing.T) {
+func TestLog(t *testing.T) {
 	tests := []struct {
 		name          string
 		mockLogger    mockLogger
