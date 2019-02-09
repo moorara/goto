@@ -17,73 +17,212 @@ func (m *mockLogger) Log(kv ...interface{}) error {
 	return m.LogOutError
 }
 
-func TestNewLogger(t *testing.T) {
-	tests := []struct {
-		name          string
-		level         string
-		expectedLevel Level
-	}{
-		{"app", "debug", Debug},
-		{"app", "info", Info},
-		{"app", "warn", Warn},
-		{"app", "error", Error},
-		{"app", "none", None},
-	}
-
-	for _, tc := range tests {
-		l := new(mockLogger)
-		logger := NewLogger(l, tc.name, tc.level)
-		assert.NotNil(t, logger)
-		assert.Equal(t, logger.Name, tc.name)
-		assert.Equal(t, logger.Level, tc.expectedLevel)
-	}
-}
-
 func TestNewNopLogger(t *testing.T) {
 	logger := NewNopLogger()
 	assert.NotNil(t, logger)
 }
 
-func TestNewJSONLogger(t *testing.T) {
+func TestNewLogger(t *testing.T) {
 	tests := []struct {
-		name          string
-		level         string
+		opts          Options
 		expectedLevel Level
 	}{
-		{"app", "debug", Debug},
-		{"app", "info", Info},
-		{"app", "warn", Warn},
-		{"app", "error", Error},
-		{"app", "none", None},
+		{
+			Options{
+				Level:       "",
+				Name:        "app",
+				Environment: "test",
+				Region:      "local",
+			},
+			Info,
+		},
+		{
+			Options{
+				Level:       "debug",
+				Name:        "app",
+				Environment: "dev",
+				Region:      "us-east-1",
+			},
+			Debug,
+		},
+		{
+			Options{
+				Level:       "info",
+				Name:        "app",
+				Environment: "stage",
+				Region:      "us-east-1",
+			},
+			Info,
+		},
+		{
+			Options{
+				Level:       "warn",
+				Name:        "app",
+				Environment: "prod",
+				Region:      "us-east-1",
+			},
+			Warn,
+		},
+		{
+			Options{
+				Level:       "error",
+				Name:        "app",
+				Environment: "prod",
+				Region:      "us-east-1",
+			},
+			Error,
+		},
+		{
+			Options{
+				Level:       "none",
+				Name:        "app",
+				Environment: "test",
+				Region:      "local",
+			},
+			None,
+		},
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			logger := NewJSONLogger(tc.name, tc.level)
-			assert.NotNil(t, logger)
-			assert.Equal(t, logger.Name, tc.name)
-			assert.Equal(t, logger.Level, tc.expectedLevel)
-		})
+		l := new(mockLogger)
+		logger := NewLogger(l, tc.opts)
+		assert.NotNil(t, logger)
+		assert.Equal(t, logger.Level, tc.expectedLevel)
+	}
+}
+
+func TestNewJSONLogger(t *testing.T) {
+	tests := []struct {
+		opts          Options
+		expectedLevel Level
+	}{
+		{
+			Options{
+				Level:       "",
+				Name:        "app",
+				Environment: "test",
+				Region:      "local",
+			},
+			Info,
+		},
+		{
+			Options{
+				Level:       "debug",
+				Name:        "app",
+				Environment: "dev",
+				Region:      "us-east-1",
+			},
+			Debug,
+		},
+		{
+			Options{
+				Level:       "info",
+				Name:        "app",
+				Environment: "stage",
+				Region:      "us-east-1",
+			},
+			Info,
+		},
+		{
+			Options{
+				Level:       "warn",
+				Name:        "app",
+				Environment: "prod",
+				Region:      "us-east-1",
+			},
+			Warn,
+		},
+		{
+			Options{
+				Level:       "error",
+				Name:        "app",
+				Environment: "prod",
+				Region:      "us-east-1",
+			},
+			Error,
+		},
+		{
+			Options{
+				Level:       "none",
+				Name:        "app",
+				Environment: "test",
+				Region:      "local",
+			},
+			None,
+		},
+	}
+
+	for _, tc := range tests {
+		logger := NewJSONLogger(tc.opts)
+		assert.NotNil(t, logger)
+		assert.Equal(t, logger.Level, tc.expectedLevel)
 	}
 }
 
 func TestNewFmtLogger(t *testing.T) {
 	tests := []struct {
-		name          string
-		level         string
+		opts          Options
 		expectedLevel Level
 	}{
-		{"app", "debug", Debug},
-		{"app", "info", Info},
-		{"app", "warn", Warn},
-		{"app", "error", Error},
-		{"app", "none", None},
+		{
+			Options{
+				Level:       "",
+				Name:        "app",
+				Environment: "test",
+				Region:      "local",
+			},
+			Info,
+		},
+		{
+			Options{
+				Level:       "debug",
+				Name:        "app",
+				Environment: "dev",
+				Region:      "us-east-1",
+			},
+			Debug,
+		},
+		{
+			Options{
+				Level:       "info",
+				Name:        "app",
+				Environment: "stage",
+				Region:      "us-east-1",
+			},
+			Info,
+		},
+		{
+			Options{
+				Level:       "warn",
+				Name:        "app",
+				Environment: "prod",
+				Region:      "us-east-1",
+			},
+			Warn,
+		},
+		{
+			Options{
+				Level:       "error",
+				Name:        "app",
+				Environment: "prod",
+				Region:      "us-east-1",
+			},
+			Error,
+		},
+		{
+			Options{
+				Level:       "none",
+				Name:        "app",
+				Environment: "test",
+				Region:      "local",
+			},
+			None,
+		},
 	}
 
 	for _, tc := range tests {
-		logger := NewFmtLogger(tc.name, tc.level)
+		logger := NewFmtLogger(tc.opts)
 		assert.NotNil(t, logger)
-		assert.Equal(t, logger.Name, tc.name)
 		assert.Equal(t, logger.Level, tc.expectedLevel)
 	}
 }

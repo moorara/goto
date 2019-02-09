@@ -24,23 +24,51 @@ const (
 	None
 )
 
-// Logger wraps a go-kit Logger
-type Logger struct {
-	Name   string
-	Level  Level
-	Logger kitLog.Logger
+type (
+	// Options contains optional options for Logger
+	Options struct {
+		Level       string
+		Name        string
+		Environment string
+		Region      string
+	}
+
+	// Logger wraps a go-kit Logger
+	Logger struct {
+		Level  Level
+		Logger kitLog.Logger
+	}
+)
+
+// NewNopLogger creates a new logger for testing purposes
+func NewNopLogger() *Logger {
+	logger := kitLog.NewNopLogger()
+	return &Logger{
+		Logger: logger,
+	}
 }
 
 // NewLogger creates a new logger
-func NewLogger(logger kitLog.Logger, name, level string) *Logger {
+func NewLogger(logger kitLog.Logger, opts Options) *Logger {
 	var lev Level
-	logger = kitLog.With(
-		logger,
-		"logger", name,
+	logger = kitLog.With(logger,
+		"caller", kitLog.DefaultCaller,
 		"timestamp", kitLog.DefaultTimestampUTC,
 	)
 
-	switch strings.ToLower(level) {
+	if opts.Name != "" {
+		logger = kitLog.With(logger, "logger", opts.Name)
+	}
+
+	if opts.Environment != "" {
+		logger = kitLog.With(logger, "environment", opts.Environment)
+	}
+
+	if opts.Region != "" {
+		logger = kitLog.With(logger, "region", opts.Region)
+	}
+
+	switch strings.ToLower(opts.Level) {
 	case "debug":
 		lev = Debug
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowDebug())
@@ -56,37 +84,32 @@ func NewLogger(logger kitLog.Logger, name, level string) *Logger {
 	case "none":
 		lev = None
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowNone())
+	default:
+		lev = Info
+		logger = kitLevel.NewFilter(logger, kitLevel.AllowInfo())
 	}
 
 	return &Logger{
-		Name:   name,
 		Level:  lev,
 		Logger: logger,
 	}
 }
 
-// NewNopLogger creates a new logger for testing purposes
-func NewNopLogger() *Logger {
-	logger := kitLog.NewNopLogger()
-	return NewLogger(logger, "nop", "none")
-}
-
 // NewJSONLogger creates a new logger logging in JSON
-func NewJSONLogger(name, level string) *Logger {
+func NewJSONLogger(opts Options) *Logger {
 	logger := kitLog.NewJSONLogger(os.Stdout)
-	return NewLogger(logger, name, level)
+	return NewLogger(logger, opts)
 }
 
 // NewFmtLogger creates a new logger logging using fmt format strings
-func NewFmtLogger(name, level string) *Logger {
+func NewFmtLogger(opts Options) *Logger {
 	logger := kitLog.NewLogfmtLogger(os.Stdout)
-	return NewLogger(logger, name, level)
+	return NewLogger(logger, opts)
 }
 
 // With returns a new logger which always logs a set of key-value pairs
 func (l *Logger) With(kv ...interface{}) *Logger {
 	return &Logger{
-		Name:   l.Name,
 		Level:  l.Level,
 		Logger: kitLog.With(l.Logger, kv...),
 	}
@@ -96,7 +119,6 @@ func (l *Logger) With(kv ...interface{}) *Logger {
 // Only one goroutine is allowed to log at a time and other goroutines will block until the logger is available.
 func (l *Logger) SyncLogger() *Logger {
 	return &Logger{
-		Name:   l.Name,
 		Level:  l.Level,
 		Logger: kitLog.NewSyncLogger(l.Logger),
 	}
