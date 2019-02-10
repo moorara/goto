@@ -10,7 +10,6 @@
 *.out
 *.test
 *.html
-reports/
 
 # Libraries should not vendor their dependencies
 vendor/
