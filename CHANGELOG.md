@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.2.4](https://github.com/moorara/goto/tree/v0.2.4) (2019-02-12)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.3...v0.2.4)
+
+**Merged pull requests:**
+
+- Improve logger [\#36](https://github.com/moorara/goto/pull/36) ([moorara](https://github.com/moorara))
+
 ## [v0.2.3](https://github.com/moorara/goto/tree/v0.2.3) (2019-02-12)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.2...v0.2.3)
 
