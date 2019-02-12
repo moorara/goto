@@ -28,70 +28,20 @@ func TestNewLogger(t *testing.T) {
 		expectedLevel Level
 	}{
 		{
-			Options{
-				Level:       "",
-				Name:        "app",
-				Environment: "test",
-				Region:      "local",
-			},
+			Options{},
 			InfoLevel,
-		},
-		{
-			Options{
-				Level:       "debug",
-				Name:        "app",
-				Environment: "dev",
-				Region:      "us-east-1",
-			},
-			DebugLevel,
-		},
-		{
-			Options{
-				Level:       "info",
-				Name:        "app",
-				Environment: "stage",
-				Region:      "us-east-1",
-			},
-			InfoLevel,
-		},
-		{
-			Options{
-				Level:       "warn",
-				Name:        "app",
-				Environment: "prod",
-				Region:      "us-east-1",
-			},
-			WarnLevel,
-		},
-		{
-			Options{
-				Level:       "error",
-				Name:        "app",
-				Environment: "prod",
-				Region:      "us-east-1",
-			},
-			ErrorLevel,
-		},
-		{
-			Options{
-				Level:       "none",
-				Name:        "app",
-				Environment: "test",
-				Region:      "local",
-			},
-			NoneLevel,
 		},
 	}
 
 	for _, tc := range tests {
-		l := new(mockLogger)
-		logger := NewLogger(l, tc.opts)
+		logger := NewLogger(tc.opts)
 		assert.NotNil(t, logger)
+		assert.NotNil(t, logger.Logger)
 		assert.Equal(t, logger.Level, tc.expectedLevel)
 	}
 }
 
-func TestNewJSONLogger(t *testing.T) {
+func TestLoggerSetOptions(t *testing.T) {
 	tests := []struct {
 		opts          Options
 		expectedLevel Level
@@ -99,135 +49,80 @@ func TestNewJSONLogger(t *testing.T) {
 		{
 			Options{
 				Level:       "",
-				Name:        "app",
+				Name:        "instance",
 				Environment: "test",
 				Region:      "local",
+				Component:   "app",
 			},
 			InfoLevel,
 		},
 		{
 			Options{
+				Format:      Logfmt,
 				Level:       "debug",
-				Name:        "app",
+				Name:        "instance",
 				Environment: "dev",
 				Region:      "us-east-1",
+				Component:   "app",
 			},
 			DebugLevel,
 		},
 		{
 			Options{
+				Format:      JSON,
 				Level:       "info",
-				Name:        "app",
+				Name:        "instance",
 				Environment: "stage",
 				Region:      "us-east-1",
+				Component:   "app",
 			},
 			InfoLevel,
 		},
 		{
 			Options{
+				Format:      JSON,
 				Level:       "warn",
-				Name:        "app",
+				Name:        "instance",
 				Environment: "prod",
 				Region:      "us-east-1",
+				Component:   "app",
 			},
 			WarnLevel,
 		},
 		{
 			Options{
+				Format:      JSON,
 				Level:       "error",
-				Name:        "app",
+				Name:        "instance",
 				Environment: "prod",
 				Region:      "us-east-1",
+				Component:   "app",
 			},
 			ErrorLevel,
 		},
 		{
 			Options{
 				Level:       "none",
-				Name:        "app",
+				Name:        "instance",
 				Environment: "test",
 				Region:      "local",
+				Component:   "app",
 			},
 			NoneLevel,
 		},
 	}
 
 	for _, tc := range tests {
-		logger := NewJSONLogger(tc.opts)
+		logger := &Logger{}
+		logger.setOptions(tc.opts)
+
 		assert.NotNil(t, logger)
+		assert.NotNil(t, logger.Logger)
 		assert.Equal(t, logger.Level, tc.expectedLevel)
 	}
 }
 
-func TestNewFmtLogger(t *testing.T) {
-	tests := []struct {
-		opts          Options
-		expectedLevel Level
-	}{
-		{
-			Options{
-				Level:       "",
-				Name:        "app",
-				Environment: "test",
-				Region:      "local",
-			},
-			InfoLevel,
-		},
-		{
-			Options{
-				Level:       "debug",
-				Name:        "app",
-				Environment: "dev",
-				Region:      "us-east-1",
-			},
-			DebugLevel,
-		},
-		{
-			Options{
-				Level:       "info",
-				Name:        "app",
-				Environment: "stage",
-				Region:      "us-east-1",
-			},
-			InfoLevel,
-		},
-		{
-			Options{
-				Level:       "warn",
-				Name:        "app",
-				Environment: "prod",
-				Region:      "us-east-1",
-			},
-			WarnLevel,
-		},
-		{
-			Options{
-				Level:       "error",
-				Name:        "app",
-				Environment: "prod",
-				Region:      "us-east-1",
-			},
-			ErrorLevel,
-		},
-		{
-			Options{
-				Level:       "none",
-				Name:        "app",
-				Environment: "test",
-				Region:      "local",
-			},
-			NoneLevel,
-		},
-	}
-
-	for _, tc := range tests {
-		logger := NewFmtLogger(tc.opts)
-		assert.NotNil(t, logger)
-		assert.Equal(t, logger.Level, tc.expectedLevel)
-	}
-}
-
-func TestWith(t *testing.T) {
+func TestLoggerWith(t *testing.T) {
 	tests := []struct {
 		mockLogger mockLogger
 		kv         []interface{}
@@ -245,7 +140,7 @@ func TestWith(t *testing.T) {
 	}
 }
 
-func TestLogger(t *testing.T) {
+func TestLoggerLog(t *testing.T) {
 	tests := []struct {
 		name          string
 		mockLogger    mockLogger
@@ -310,7 +205,86 @@ func TestLogger(t *testing.T) {
 	}
 }
 
-func TestSingleton(t *testing.T) {
+func TestSingletonSetOptions(t *testing.T) {
+	tests := []struct {
+		opts          Options
+		expectedLevel Level
+	}{
+		{
+			Options{
+				Level:       "",
+				Name:        "instance",
+				Environment: "test",
+				Region:      "local",
+				Component:   "app",
+			},
+			InfoLevel,
+		},
+		{
+			Options{
+				Format:      Logfmt,
+				Level:       "debug",
+				Name:        "instance",
+				Environment: "dev",
+				Region:      "us-east-1",
+				Component:   "app",
+			},
+			DebugLevel,
+		},
+		{
+			Options{
+				Format:      JSON,
+				Level:       "info",
+				Name:        "instance",
+				Environment: "stage",
+				Region:      "us-east-1",
+				Component:   "app",
+			},
+			InfoLevel,
+		},
+		{
+			Options{
+				Format:      JSON,
+				Level:       "warn",
+				Name:        "instance",
+				Environment: "prod",
+				Region:      "us-east-1",
+				Component:   "app",
+			},
+			WarnLevel,
+		},
+		{
+			Options{
+				Format:      JSON,
+				Level:       "error",
+				Name:        "instance",
+				Environment: "prod",
+				Region:      "us-east-1",
+				Component:   "app",
+			},
+			ErrorLevel,
+		},
+		{
+			Options{
+				Level:       "none",
+				Name:        "instance",
+				Environment: "test",
+				Region:      "local",
+				Component:   "app",
+			},
+			NoneLevel,
+		},
+	}
+
+	for _, tc := range tests {
+		SetOptions(tc.opts)
+
+		assert.NotNil(t, singleton.Logger)
+		assert.Equal(t, singleton.Level, tc.expectedLevel)
+	}
+}
+
+func TestSingletonLog(t *testing.T) {
 	tests := []struct {
 		name          string
 		mockLogger    mockLogger
