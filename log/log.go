@@ -8,25 +8,13 @@ import (
 	kitLevel "github.com/go-kit/kit/log/level"
 )
 
-// Level is the type for log level
-type Level int
-
-const (
-	// Debug log level
-	Debug Level = iota
-	// Info log level
-	Info
-	// Warn log level
-	Warn
-	// Error log level
-	Error
-	// None log level
-	None
-)
-
 type (
+	// Level is the type for log level
+	Level int
+
 	// Options contains optional options for Logger
 	Options struct {
+		depth       int
 		Level       string
 		Name        string
 		Environment string
@@ -40,6 +28,24 @@ type (
 	}
 )
 
+const (
+	// DebugLevel log
+	DebugLevel Level = iota
+	// InfoLevel log
+	InfoLevel
+	// WarnLevel log
+	WarnLevel
+	// ErrorLevel log
+	ErrorLevel
+	// NoneLevel log
+	NoneLevel
+)
+
+var singleton = NewJSONLogger(Options{
+	depth: 7,
+	Name:  "singleton",
+})
+
 // NewNopLogger creates a new logger for testing purposes
 func NewNopLogger() *Logger {
 	logger := kitLog.NewNopLogger()
@@ -52,9 +58,14 @@ func NewNopLogger() *Logger {
 func NewLogger(logger kitLog.Logger, opts Options) *Logger {
 	var lev Level
 
+	// Set default depth
+	if opts.depth == 0 {
+		opts.depth = 6
+	}
+
 	logger = kitLog.NewSyncLogger(logger)
 	logger = kitLog.With(logger,
-		"caller", kitLog.Caller(6), // 6 is the caller depth
+		"caller", kitLog.Caller(opts.depth),
 		"timestamp", kitLog.DefaultTimestampUTC,
 	)
 
@@ -72,22 +83,22 @@ func NewLogger(logger kitLog.Logger, opts Options) *Logger {
 
 	switch strings.ToLower(opts.Level) {
 	case "debug":
-		lev = Debug
+		lev = DebugLevel
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowDebug())
 	case "info":
-		lev = Info
+		lev = InfoLevel
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowInfo())
 	case "warn":
-		lev = Warn
+		lev = WarnLevel
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowWarn())
 	case "error":
-		lev = Error
+		lev = ErrorLevel
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowError())
 	case "none":
-		lev = None
+		lev = NoneLevel
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowNone())
 	default:
-		lev = Info
+		lev = InfoLevel
 		logger = kitLevel.NewFilter(logger, kitLevel.AllowInfo())
 	}
 
@@ -135,4 +146,24 @@ func (l *Logger) Warn(kv ...interface{}) error {
 // Error logs in error level
 func (l *Logger) Error(kv ...interface{}) error {
 	return kitLevel.Error(l.Logger).Log(kv...)
+}
+
+// Debug logs in debug level
+func Debug(kv ...interface{}) error {
+	return singleton.Debug(kv...)
+}
+
+// Info logs in info level
+func Info(kv ...interface{}) error {
+	return singleton.Info(kv...)
+}
+
+// Warn logs in warn level
+func Warn(kv ...interface{}) error {
+	return singleton.Warn(kv...)
+}
+
+// Error logs in error level
+func Error(kv ...interface{}) error {
+	return singleton.Error(kv...)
 }
