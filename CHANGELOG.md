@@ -1,5 +1,13 @@
 # Change Log
 
+## [v0.2.3](https://github.com/moorara/goto/tree/v0.2.3) (2019-02-12)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.2...v0.2.3)
+
+**Merged pull requests:**
+
+- Add singleton logger [\#35](https://github.com/moorara/goto/pull/35) ([moorara](https://github.com/moorara))
+- Update gitignore [\#34](https://github.com/moorara/goto/pull/34) ([moorara](https://github.com/moorara))
+
 ## [v0.2.2](https://github.com/moorara/goto/tree/v0.2.2) (2019-02-09)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.1...v0.2.2)
 
