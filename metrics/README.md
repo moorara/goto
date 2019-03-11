@@ -10,11 +10,11 @@ For creating new metrics using default *registry*, **buckets**, and **quantiles*
 package main
 
 import (
-	"log"
+  "log"
   "net/http"
 
   "github.com/moorara/goto/metrics"
-	"github.com/prometheus/client_golang/prometheus"
+  "github.com/prometheus/client_golang/prometheus"
   "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -27,8 +27,8 @@ func main() {
   histogram.WithLabelValues("prodcution", "us-east-1").Observe(0.1234)
 
   // Expose metrics via /metrics endpoint and an HTTP server
-	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe(":8080", nil))
+  http.Handle("/metrics", promhttp.Handler())
+  log.Fatal(http.ListenAndServe(":8080", nil))
 }
 ```
 
@@ -38,11 +38,11 @@ For creating new metrics using a new *registry* and custom **buckets** and **qua
 package main
 
 import (
-	"log"
+  "log"
   "net/http"
 
   "github.com/moorara/goto/metrics"
-	"github.com/prometheus/client_golang/prometheus"
+  "github.com/prometheus/client_golang/prometheus"
   "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -65,7 +65,7 @@ func main() {
   histogram.WithLabelValues("prodcution", "us-east-1").Observe(0.1234)
 
   // Expose metrics via /metrics endpoint and an HTTP server
-	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+  http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
+  log.Fatal(http.ListenAndServe(":8080", nil))
 }
 ```
