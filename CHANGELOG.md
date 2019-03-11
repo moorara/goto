@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.2.5](https://github.com/moorara/goto/tree/v0.2.5) (2019-03-11)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.4...v0.2.5)
+
+**Merged pull requests:**
+
+- Add trace and report packages [\#41](https://github.com/moorara/goto/pull/41) ([moorara](https://github.com/moorara))
+- Small update to go.mod [\#39](https://github.com/moorara/goto/pull/39) ([moorara](https://github.com/moorara))
+- Add metrics package [\#38](https://github.com/moorara/goto/pull/38) ([moorara](https://github.com/moorara))
+- Configure Renovate [\#37](https://github.com/moorara/goto/pull/37) ([renovate[bot]](https://github.com/apps/renovate))
+
 ## [v0.2.4](https://github.com/moorara/goto/tree/v0.2.4) (2019-02-12)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.3...v0.2.4)
 
