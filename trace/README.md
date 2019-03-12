@@ -1,6 +1,6 @@
 # trace
 
-This is a *helper* package for creating a [Jaeger](https://www.jaegertracing.io) tracer
+This is a helper package for creating a [Jaeger](https://www.jaegertracing.io) tracer
 that reports traces in [OpenTracing](https://opentracing.io) format.
 
 ## Quick Start

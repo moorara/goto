@@ -1,10 +1,10 @@
 # metrics
 
-This is a *helper* package for creating consistent [**Prometheus**](https://prometheus.io) metrics.
+This is a helper package for creating consistent [**Prometheus**](https://prometheus.io) metrics.
 
 ## Quick Start
 
-For creating new metrics using default *registry*, **buckets**, and **quantiles**:
+For creating new metrics using default **buckets** and **quantiles** and register them with default *registry*:
 
 ```go
 package main
@@ -14,17 +14,15 @@ import (
   "net/http"
 
   "github.com/moorara/goto/metrics"
-  "github.com/prometheus/client_golang/prometheus"
   "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-  mf := metrics.NewFactory("hello_service", nil, nil)
+  mf := metrics.NewFactory(metrics.FactoryOptions{})
 
   // Create a histogram metric
-  histogram := mf.Histogram("histogram_metric_name", "metric description", []string{"environment", "region"})
-  prometheus.MustRegister(histogram)
-  histogram.WithLabelValues("prodcution", "us-east-1").Observe(0.1234)
+  histogram := mf.Histogram("auth_service_session_duration_seconds", "duration of user sessions", []string{"environment", "region"})
+  histogram.WithLabelValues("prodcution", "us-east-1").Observe(60)
 
   // Expose metrics via /metrics endpoint and an HTTP server
   http.Handle("/metrics", promhttp.Handler())
@@ -32,7 +30,7 @@ func main() {
 }
 ```
 
-For creating new metrics using a new *registry* and custom **buckets** and **quantiles**:
+For creating new metrics using custom **buckets** and **quantiles** and register them with a new *registry*:
 
 ```go
 package main
@@ -48,24 +46,37 @@ import (
 
 func main() {
   registry := prometheus.NewRegistry()
-  mf := metrics.NewFactory("hello_service", []float64{0.01, 0.10, 0.50, 1.00, 5.00}, map[float64]float64{
-    0.1:  0.1,
-    0.95: 0.01,
-    0.99: 0.001,
+  mf := metrics.NewFactory(metrics.FactoryOptions{
+    Registerer: registry,
+    Buckets:    []float64{0.01, 0.10, 0.50, 1.00, 5.00},
+    Quantiles:  map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
   })
 
-  // Create default system metrics
-  sys := mf.SystemMetrics()
-  registry.MustRegister(sys.Go)
-  registry.MustRegister(sys.Process)
-
   // Create a histogram metric
-  histogram := mf.Histogram("histogram_metric_name", "metric description", []string{"environment", "region"})
-  registry.MustRegister(histogram)
-  histogram.WithLabelValues("prodcution", "us-east-1").Observe(0.1234)
+  histogram := mf.Histogram("auth_service_session_duration_seconds", "duration of user sessions", []string{"environment", "region"})
+  histogram.WithLabelValues("prodcution", "us-east-1").Observe(60)
 
   // Expose metrics via /metrics endpoint and an HTTP server
   http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
   log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+## Defaults
+
+**Default buckets:**
+
+```go
+[]float64{0.01, 0.10, 0.50, 1.00, 5.00}
+```
+
+**Default quantiles:**
+
+```go
+map[float64]float64{
+  0.1:  0.1,
+  0.5:  0.05,
+  0.95: 0.01,
+  0.99: 0.001,
 }
 ```
