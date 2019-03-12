@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultSkipDepth = 4
+	defaultSkipDepth = 3
 )
 
 type (
@@ -58,6 +58,18 @@ func (r *RollbarReporter) setOptions(opts RollbarOptions) {
 	r.skipDepth = opts.skipDepth
 }
 
+// OnPanic reports a panic and should be used with defer
+func (r *RollbarReporter) OnPanic() {
+	if e := recover(); e != nil {
+		err := fmt.Errorf("panic occurred: %v", e)
+		r.client.ErrorWithStackSkip(rollbar.CRIT, err, r.skipDepth+2)
+		r.client.Wait()
+		panic(e)
+	}
+
+	r.client.Wait()
+}
+
 // Error reports an error
 func (r *RollbarReporter) Error(err error) {
 	r.client.ErrorWithStackSkip(rollbar.ERR, err, r.skipDepth)
@@ -78,19 +90,28 @@ func (r *RollbarReporter) HTTPErrorWithMetadata(req *http.Request, err error, me
 	r.client.RequestErrorWithStackSkipWithExtras(rollbar.ERR, req, err, r.skipDepth, metadata)
 }
 
-// OnPanic reports a panic and should be used with defer
-func (r *RollbarReporter) OnPanic() {
-	if e := recover(); e != nil {
-		err := fmt.Errorf("a panic occurred: %v", e)
-		r.client.ErrorWithStackSkip(rollbar.CRIT, err, r.skipDepth+2)
-		r.client.Wait()
-		panic(e)
-	}
+// Wait blocks until all errors are reported
+func (r *RollbarReporter) Wait() {
+	r.client.Wait()
 }
 
 // SetOptions sets options for singleton reporter
 func SetOptions(opts RollbarOptions) {
 	singleton.setOptions(opts)
+}
+
+// OnPanic reports a panic and should be used with defer
+func OnPanic() {
+	if singleton.client != nil {
+		if e := recover(); e != nil {
+			err := fmt.Errorf("panic occurred: %v", e)
+			singleton.client.ErrorWithStackSkip(rollbar.CRIT, err, singleton.skipDepth+2)
+			singleton.client.Wait()
+			panic(e)
+		}
+	}
+
+	singleton.client.Wait()
 }
 
 // Error reports an error
@@ -121,14 +142,9 @@ func HTTPErrorWithMetadata(req *http.Request, err error, metadata map[string]int
 	}
 }
 
-// OnPanic reports a panic and should be used with defer
-func OnPanic() {
+// Wait blocks until all errors are reported
+func Wait() {
 	if singleton.client != nil {
-		if e := recover(); e != nil {
-			err := fmt.Errorf("a panic occurred: %v", e)
-			singleton.client.ErrorWithStackSkip(rollbar.CRIT, err, singleton.skipDepth+2)
-			singleton.client.Wait()
-			panic(e)
-		}
+		singleton.client.Wait()
 	}
 }

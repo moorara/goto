@@ -116,6 +116,61 @@ func TestReporterSetOptions(t *testing.T) {
 	}
 }
 
+func TestReporterOnPanic(t *testing.T) {
+	tests := []struct {
+		name              string
+		client            *mockRollbarClient
+		skipDepth         int
+		panicValue        interface{}
+		expectedError     error
+		expectedSkipDepth int
+	}{
+		{
+			name:       "Panic",
+			client:     &mockRollbarClient{},
+			skipDepth:  4,
+			panicValue: nil,
+		},
+		{
+			name:              "PanicWithError",
+			client:            &mockRollbarClient{},
+			skipDepth:         4,
+			panicValue:        errors.New("error"),
+			expectedError:     errors.New("panic occurred: error"),
+			expectedSkipDepth: 6,
+		},
+		{
+			name:              "PanicWithInt",
+			client:            &mockRollbarClient{},
+			skipDepth:         4,
+			panicValue:        1,
+			expectedError:     errors.New("panic occurred: 1"),
+			expectedSkipDepth: 6,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			reporter := &RollbarReporter{
+				client:    tc.client,
+				skipDepth: tc.skipDepth,
+			}
+
+			defer func() {
+				if r := recover(); r != nil {
+					assert.Equal(t, rollbar.CRIT, tc.client.ErrorWithStackSkipInLevel)
+					assert.Equal(t, tc.expectedError, tc.client.ErrorWithStackSkipInError)
+					assert.Equal(t, tc.expectedSkipDepth, tc.client.ErrorWithStackSkipInSkip)
+					assert.True(t, tc.client.WaitCalled)
+				}
+			}()
+
+			defer reporter.OnPanic()
+			panic(tc.panicValue)
+		})
+	}
+}
+
 func TestReporterError(t *testing.T) {
 	tests := []struct {
 		client    *mockRollbarClient
@@ -240,58 +295,22 @@ func TestReporterHTTPErrorWithMetadata(t *testing.T) {
 	}
 }
 
-func TestReporterOnPanic(t *testing.T) {
+func TestReporterWait(t *testing.T) {
 	tests := []struct {
-		name              string
-		client            *mockRollbarClient
-		skipDepth         int
-		panicValue        interface{}
-		expectedError     error
-		expectedSkipDepth int
+		client *mockRollbarClient
 	}{
 		{
-			name:       "Panic",
-			client:     &mockRollbarClient{},
-			skipDepth:  4,
-			panicValue: nil,
-		},
-		{
-			name:              "PanicWithError",
-			client:            &mockRollbarClient{},
-			skipDepth:         4,
-			panicValue:        errors.New("error"),
-			expectedError:     errors.New("a panic occurred: error"),
-			expectedSkipDepth: 6,
-		},
-		{
-			name:              "PanicWithInt",
-			client:            &mockRollbarClient{},
-			skipDepth:         4,
-			panicValue:        1,
-			expectedError:     errors.New("a panic occurred: 1"),
-			expectedSkipDepth: 6,
+			client: &mockRollbarClient{},
 		},
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			reporter := &RollbarReporter{
-				client:    tc.client,
-				skipDepth: tc.skipDepth,
-			}
+		reporter := &RollbarReporter{
+			client: tc.client,
+		}
 
-			defer func() {
-				if r := recover(); r != nil {
-					assert.Equal(t, rollbar.CRIT, tc.client.ErrorWithStackSkipInLevel)
-					assert.Equal(t, tc.expectedError, tc.client.ErrorWithStackSkipInError)
-					assert.Equal(t, tc.expectedSkipDepth, tc.client.ErrorWithStackSkipInSkip)
-					assert.True(t, tc.client.WaitCalled)
-				}
-			}()
-
-			defer reporter.OnPanic()
-			panic(tc.panicValue)
-		})
+		reporter.Wait()
+		assert.True(t, tc.client.WaitCalled)
 	}
 }
 
@@ -321,6 +340,61 @@ func TestSingletonSetOptions(t *testing.T) {
 
 		assert.NotNil(t, singleton.client)
 		assert.Equal(t, tc.expectedSkipDepth, singleton.skipDepth)
+	}
+}
+
+func TestSingletonOnPanic(t *testing.T) {
+	tests := []struct {
+		name              string
+		client            *mockRollbarClient
+		skipDepth         int
+		panicValue        interface{}
+		expectedError     error
+		expectedSkipDepth int
+	}{
+		{
+			name:       "Panic",
+			client:     &mockRollbarClient{},
+			skipDepth:  4,
+			panicValue: nil,
+		},
+		{
+			name:              "PanicWithError",
+			client:            &mockRollbarClient{},
+			skipDepth:         4,
+			panicValue:        errors.New("error"),
+			expectedError:     errors.New("panic occurred: error"),
+			expectedSkipDepth: 6,
+		},
+		{
+			name:              "PanicWithInt",
+			client:            &mockRollbarClient{},
+			skipDepth:         4,
+			panicValue:        1,
+			expectedError:     errors.New("panic occurred: 1"),
+			expectedSkipDepth: 6,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			singleton = &RollbarReporter{
+				client:    tc.client,
+				skipDepth: tc.skipDepth,
+			}
+
+			defer func() {
+				if r := recover(); r != nil {
+					assert.Equal(t, rollbar.CRIT, tc.client.ErrorWithStackSkipInLevel)
+					assert.Equal(t, tc.expectedError, tc.client.ErrorWithStackSkipInError)
+					assert.Equal(t, tc.expectedSkipDepth, tc.client.ErrorWithStackSkipInSkip)
+					assert.True(t, tc.client.WaitCalled)
+				}
+			}()
+
+			defer OnPanic()
+			panic(tc.panicValue)
+		})
 	}
 }
 
@@ -448,57 +522,21 @@ func TestSingletonHTTPErrorWithMetadata(t *testing.T) {
 	}
 }
 
-func TestSingletonOnPanic(t *testing.T) {
+func TestSingletonWait(t *testing.T) {
 	tests := []struct {
-		name              string
-		client            *mockRollbarClient
-		skipDepth         int
-		panicValue        interface{}
-		expectedError     error
-		expectedSkipDepth int
+		client *mockRollbarClient
 	}{
 		{
-			name:       "Panic",
-			client:     &mockRollbarClient{},
-			skipDepth:  4,
-			panicValue: nil,
-		},
-		{
-			name:              "PanicWithError",
-			client:            &mockRollbarClient{},
-			skipDepth:         4,
-			panicValue:        errors.New("error"),
-			expectedError:     errors.New("a panic occurred: error"),
-			expectedSkipDepth: 6,
-		},
-		{
-			name:              "PanicWithInt",
-			client:            &mockRollbarClient{},
-			skipDepth:         4,
-			panicValue:        1,
-			expectedError:     errors.New("a panic occurred: 1"),
-			expectedSkipDepth: 6,
+			client: &mockRollbarClient{},
 		},
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			singleton = &RollbarReporter{
-				client:    tc.client,
-				skipDepth: tc.skipDepth,
-			}
+		singleton = &RollbarReporter{
+			client: tc.client,
+		}
 
-			defer func() {
-				if r := recover(); r != nil {
-					assert.Equal(t, rollbar.CRIT, tc.client.ErrorWithStackSkipInLevel)
-					assert.Equal(t, tc.expectedError, tc.client.ErrorWithStackSkipInError)
-					assert.Equal(t, tc.expectedSkipDepth, tc.client.ErrorWithStackSkipInSkip)
-					assert.True(t, tc.client.WaitCalled)
-				}
-			}()
-
-			defer OnPanic()
-			panic(tc.panicValue)
-		})
+		Wait()
+		assert.True(t, tc.client.WaitCalled)
 	}
 }
