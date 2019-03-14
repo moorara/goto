@@ -1,9 +1,9 @@
 workflow "Main" {
   on = "push"
-  resolves = [ "Testing" ]
+  resolves = [ "Tests" ]
 }
 
-action "Testing" {
+action "Tests" {
   uses = "docker://golang:1.11"
   args = [ "go", "test", "-race", "./..." ]
 }
