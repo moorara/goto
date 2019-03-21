@@ -17,5 +17,5 @@ require (
 	github.com/uber/jaeger-client-go v2.15.1-0.20190309061702-9774b4be4743+incompatible
 	github.com/uber/jaeger-lib v2.0.1-0.20190122222657-d036253de8f5+incompatible
 	go.uber.org/atomic v1.3.2 // indirect
-	golang.org/x/net v0.0.0-20190311031020-56fb01167e7d // indirect
+	golang.org/x/net v0.0.0-20190321115123-1272bf9dcd53 // indirect
 )
