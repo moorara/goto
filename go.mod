@@ -14,7 +14,7 @@ require (
 	github.com/rollbar/rollbar-go v1.0.2
 	github.com/stretchr/testify v1.3.0
 	github.com/uber-go/atomic v1.3.2 // indirect
-	github.com/uber/jaeger-client-go v2.15.1-0.20190309061702-9774b4be4743+incompatible
+	github.com/uber/jaeger-client-go v2.16.0+incompatible
 	github.com/uber/jaeger-lib v2.0.1-0.20190122222657-d036253de8f5+incompatible
 	go.uber.org/atomic v1.3.2 // indirect
 	golang.org/x/net v0.0.0-20190322124238-addf6b3196f6 // indirect

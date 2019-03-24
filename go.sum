@@ -41,6 +41,7 @@ github.com/uber-go/atomic v1.3.2 h1:Azu9lPBWRNKzYXSIwRfgRuDuS0YKsK4NFhiQv98gkxo=
 github.com/uber-go/atomic v1.3.2/go.mod h1:/Ct5t2lcmbJ4OSe/waGBoaVvVqtO0bmtfVNex1PFV8g=
 github.com/uber/jaeger-client-go v2.15.1-0.20190309061702-9774b4be4743+incompatible h1:w1JEJ6U2w209Us4sTX/AfTPNmI4GXaljMbZXntpBu5U=
 github.com/uber/jaeger-client-go v2.15.1-0.20190309061702-9774b4be4743+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
+github.com/uber/jaeger-client-go v2.16.0+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.0.1-0.20190122222657-d036253de8f5+incompatible h1:9liPZv4EP6j3XhUZpV3RLvaMRu9NxRqUFfrM3s1wxYs=
 github.com/uber/jaeger-lib v2.0.1-0.20190122222657-d036253de8f5+incompatible/go.mod h1:ComeNDZlWwrWnDv8aPp0Ba6+uUTzImX/AauajbLI56U=
 go.uber.org/atomic v1.3.2 h1:2Oa65PReHzfn29GpvgsYwloV9AVFHPDk8tYxt2c2tr4=
