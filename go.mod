@@ -13,7 +13,7 @@ require (
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90
 	github.com/rollbar/rollbar-go v1.0.2
 	github.com/stretchr/testify v1.3.0
-	github.com/uber-go/atomic v1.3.2 // indirect
+	github.com/uber-go/atomic v1.4.0 // indirect
 	github.com/uber/jaeger-client-go v2.16.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	go.uber.org/atomic v1.3.2 // indirect
