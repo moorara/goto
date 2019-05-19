@@ -18,7 +18,7 @@ import (
   "github.com/moorara/goto/config"
 )
 
-Config := struct {
+var Config = struct {
   Enabled   bool
   LogLevel  string
   Timeout   time.Duration
