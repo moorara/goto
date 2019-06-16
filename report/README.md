@@ -21,8 +21,7 @@ func main() {
   report.SetOptions(report.RollbarOptions{
     Token:       "rollbar-token",
     Environment: "production",
-    CodeVersion: "0.1.0",
-    ProjectURL:  "github.com/moorara/repo",
+    CodeVersion: "commit-hash",
   })
 
   // Catch panics and report them
@@ -49,8 +48,7 @@ func main() {
   reporter := report.NewRollbarReporter(report.RollbarOptions{
     Token:       "rollbar-token",
     Environment: "production",
-    CodeVersion: "0.1.0",
-    ProjectURL:  "github.com/moorara/repo",
+    CodeVersion: "commit-hash",
   })
 
   // Catch panics and report them

@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	defaultSkipDepth = 3
+	// TODO: figure out the right value!
+	defaultSkipDepth = 0
 )
 
 type (
