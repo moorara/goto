@@ -4,7 +4,7 @@ func partition(a []interface{}, lo, hi int, compare func(a, b interface{}) int) 
 	v := a[lo]
 	var i, j int = lo, hi + 1
 
-	for true {
+	for {
 		for i++; i < hi && compare(a[i], v) < 0; i++ {
 		}
 		for j--; j > lo && compare(a[j], v) > 0; j-- {

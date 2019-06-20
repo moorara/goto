@@ -8,60 +8,45 @@ import (
 
 type (
 	symbolTableTest struct {
-		name        string
-		symbolTable string
-
-		compareKey func(a, b interface{}) int
-
-		keyValues []KeyValue
-
+		name            string
+		symbolTable     string
+		compareKey      func(a, b interface{}) int
+		keyValues       []KeyValue
 		expectedSize    int
 		expectedIsEmpty bool
 	}
 
 	orderedSymbolTableTest struct {
-		name        string
-		symbolTable string
-
-		compareKey func(a, b interface{}) int
-
-		keyValues []KeyValue
-
-		expectedSize    int
-		expectedHeight  int
-		expectedIsEmpty bool
-
-		expectedMinKey   interface{}
-		expectedMinValue interface{}
-
-		expectedMaxKey   interface{}
-		expectedMaxValue interface{}
-
-		floorKey           string
-		expectedFloorKey   interface{}
-		expectedFloorValue interface{}
-
-		ceilingKey           string
-		expectedCeilingKey   interface{}
-		expectedCeilingValue interface{}
-
-		rankKey      string
-		expectedRank int
-
-		selectRank          int
-		expectedSelectKey   interface{}
-		expectedSelectValue interface{}
-
-		rangeKeyLo        string
-		rangeKeyHi        string
-		expectedRangeSize int
-		expectedRange     []KeyValue
-
+		name                      string
+		symbolTable               string
+		compareKey                func(a, b interface{}) int
+		keyValues                 []KeyValue
+		expectedSize              int
+		expectedHeight            int
+		expectedIsEmpty           bool
+		expectedMinKey            interface{}
+		expectedMinValue          interface{}
+		expectedMaxKey            interface{}
+		expectedMaxValue          interface{}
+		floorKey                  string
+		expectedFloorKey          interface{}
+		expectedFloorValue        interface{}
+		ceilingKey                string
+		expectedCeilingKey        interface{}
+		expectedCeilingValue      interface{}
+		rankKey                   string
+		expectedRank              int
+		selectRank                int
+		expectedSelectKey         interface{}
+		expectedSelectValue       interface{}
+		rangeKeyLo                string
+		rangeKeyHi                string
+		expectedRangeSize         int
+		expectedRange             []KeyValue
 		expectedPreOrderTraverse  []KeyValue
 		expectedInOrderTraverse   []KeyValue
 		expectedPostOrderTraverse []KeyValue
-
-		expectedDotCode string
+		expectedDotCode           string
 	}
 )
 
@@ -220,186 +205,197 @@ func getOrderedSymbolTableTests() []orderedSymbolTableTest {
 }
 
 func runSymbolTableTest(t *testing.T, st SymbolTable, test symbolTableTest) {
-	// Tree initially should be empty
-	assert.True(t, st.IsEmpty())
-	assert.Zero(t, st.Size())
+	t.Run(test.name, func(t *testing.T) {
+		// Tree initially should be empty
+		assert.True(t, st.IsEmpty())
+		assert.Zero(t, st.Size())
 
-	// Tree should be empty at the end
-	assert.Zero(t, st.Size())
-	assert.True(t, st.IsEmpty())
+		// TODO: verify
+		assert.NotEmpty(t, test.symbolTable)
+		assert.NotEmpty(t, test.compareKey)
+		assert.NotEmpty(t, test.keyValues)
+		assert.NotEmpty(t, test.expectedSize)
+		assert.NotEmpty(t, test.expectedIsEmpty)
+
+		// Tree should be empty at the end
+		assert.Zero(t, st.Size())
+		assert.True(t, st.IsEmpty())
+	})
 }
 
 func runOrderedSymbolTableTest(t *testing.T, ost OrderedSymbolTable, test orderedSymbolTableTest) {
-	var i int
-	var kvs []KeyValue
-	var minKey, minValue interface{}
-	var maxKey, maxValue interface{}
-	var floorKey, floorValue interface{}
-	var ceilingKey, ceilingValue interface{}
-	var selectKey, selectValue interface{}
+	t.Run(test.name, func(t *testing.T) {
+		var i int
+		var kvs []KeyValue
+		var minKey, minValue interface{}
+		var maxKey, maxValue interface{}
+		var floorKey, floorValue interface{}
+		var ceilingKey, ceilingValue interface{}
+		var selectKey, selectValue interface{}
 
-	// Tree initially should be empty
-	assert.True(t, ost.verify())
-	assert.Zero(t, ost.Size())
-	assert.Zero(t, ost.Height())
-	assert.True(t, ost.IsEmpty())
-	minKey, minValue = ost.Min()
-	assert.Nil(t, minKey)
-	assert.Nil(t, minValue)
-	maxKey, maxValue = ost.Max()
-	assert.Nil(t, maxKey)
-	assert.Nil(t, maxValue)
-	floorKey, floorValue = ost.Floor(nil)
-	assert.Nil(t, floorKey)
-	assert.Nil(t, floorValue)
-	ceilingKey, ceilingValue = ost.Ceiling(nil)
-	assert.Nil(t, ceilingKey)
-	assert.Nil(t, ceilingValue)
-	assert.Equal(t, -1, ost.Rank(nil))
-	selectKey, selectValue = ost.Select(0)
-	assert.Nil(t, selectKey)
-	assert.Nil(t, selectValue)
-	assert.Equal(t, -1, ost.RangeSize(nil, nil))
-	assert.Nil(t, ost.Range(nil, nil))
-
-	// Put
-	for _, kv := range test.keyValues {
-		ost.Put(kv.key, kv.value)
-		ost.Put(kv.key, kv.value) // Update existing key-value
+		// Tree initially should be empty
 		assert.True(t, ost.verify())
-	}
+		assert.Zero(t, ost.Size())
+		assert.Zero(t, ost.Height())
+		assert.True(t, ost.IsEmpty())
+		minKey, minValue = ost.Min()
+		assert.Nil(t, minKey)
+		assert.Nil(t, minValue)
+		maxKey, maxValue = ost.Max()
+		assert.Nil(t, maxKey)
+		assert.Nil(t, maxValue)
+		floorKey, floorValue = ost.Floor(nil)
+		assert.Nil(t, floorKey)
+		assert.Nil(t, floorValue)
+		ceilingKey, ceilingValue = ost.Ceiling(nil)
+		assert.Nil(t, ceilingKey)
+		assert.Nil(t, ceilingValue)
+		assert.Equal(t, -1, ost.Rank(nil))
+		selectKey, selectValue = ost.Select(0)
+		assert.Nil(t, selectKey)
+		assert.Nil(t, selectValue)
+		assert.Equal(t, -1, ost.RangeSize(nil, nil))
+		assert.Nil(t, ost.Range(nil, nil))
 
-	// Get
-	for _, expected := range test.keyValues {
-		value, ok := ost.Get(expected.key)
-		assert.True(t, ok)
-		assert.Equal(t, expected.value, value)
-	}
+		// Put
+		for _, kv := range test.keyValues {
+			ost.Put(kv.key, kv.value)
+			ost.Put(kv.key, kv.value) // Update existing key-value
+			assert.True(t, ost.verify())
+		}
 
-	assert.Equal(t, test.expectedSize, ost.Size())
-	assert.Equal(t, test.expectedHeight, ost.Height())
-	assert.Equal(t, test.expectedIsEmpty, ost.IsEmpty())
-	minKey, minValue = ost.Min()
-	assert.Equal(t, test.expectedMinKey, minKey)
-	assert.Equal(t, test.expectedMinValue, minValue)
-	maxKey, maxValue = ost.Max()
-	assert.Equal(t, test.expectedMaxKey, maxKey)
-	assert.Equal(t, test.expectedMaxValue, maxValue)
-	floorKey, floorValue = ost.Floor(test.floorKey)
-	assert.Equal(t, test.expectedFloorKey, floorKey)
-	assert.Equal(t, test.expectedFloorValue, floorValue)
-	ceilingKey, ceilingValue = ost.Ceiling(test.ceilingKey)
-	assert.Equal(t, test.expectedCeilingKey, ceilingKey)
-	assert.Equal(t, test.expectedCeilingValue, ceilingValue)
-	assert.Equal(t, test.expectedRank, ost.Rank(test.rankKey))
-	selectKey, selectValue = ost.Select(test.selectRank)
-	assert.Equal(t, test.expectedSelectKey, selectKey)
-	assert.Equal(t, test.expectedSelectValue, selectValue)
+		// Get
+		for _, expected := range test.keyValues {
+			value, ok := ost.Get(expected.key)
+			assert.True(t, ok)
+			assert.Equal(t, expected.value, value)
+		}
 
-	minKey, minValue = ost.DeleteMin()
-	assert.Equal(t, test.expectedMinKey, minKey)
-	assert.Equal(t, test.expectedMinValue, minValue)
-	assert.True(t, ost.verify())
-	ost.Put(minKey, minValue)
-	maxKey, maxValue = ost.DeleteMax()
-	assert.Equal(t, test.expectedMaxKey, maxKey)
-	assert.Equal(t, test.expectedMaxValue, maxValue)
-	assert.True(t, ost.verify())
-	ost.Put(maxKey, maxValue)
+		assert.Equal(t, test.expectedSize, ost.Size())
+		assert.Equal(t, test.expectedHeight, ost.Height())
+		assert.Equal(t, test.expectedIsEmpty, ost.IsEmpty())
+		minKey, minValue = ost.Min()
+		assert.Equal(t, test.expectedMinKey, minKey)
+		assert.Equal(t, test.expectedMinValue, minValue)
+		maxKey, maxValue = ost.Max()
+		assert.Equal(t, test.expectedMaxKey, maxKey)
+		assert.Equal(t, test.expectedMaxValue, maxValue)
+		floorKey, floorValue = ost.Floor(test.floorKey)
+		assert.Equal(t, test.expectedFloorKey, floorKey)
+		assert.Equal(t, test.expectedFloorValue, floorValue)
+		ceilingKey, ceilingValue = ost.Ceiling(test.ceilingKey)
+		assert.Equal(t, test.expectedCeilingKey, ceilingKey)
+		assert.Equal(t, test.expectedCeilingValue, ceilingValue)
+		assert.Equal(t, test.expectedRank, ost.Rank(test.rankKey))
+		selectKey, selectValue = ost.Select(test.selectRank)
+		assert.Equal(t, test.expectedSelectKey, selectKey)
+		assert.Equal(t, test.expectedSelectValue, selectValue)
 
-	kvs = ost.KeyValues()
-	for _, kv := range kvs { // Soundness
-		assert.Contains(t, test.keyValues, kv)
-	}
-	for _, kv := range test.keyValues { // Completeness
-		assert.Contains(t, kvs, kv)
-	}
-	for i = 0; i < len(kvs)-1; i++ { // Sorted Ascending
-		assert.Equal(t, -1, test.compareKey(kvs[i].key, kvs[i+1].key))
-	}
-
-	assert.Equal(t, test.expectedRangeSize, ost.RangeSize(test.rangeKeyLo, test.rangeKeyHi))
-	kvs = ost.Range(test.rangeKeyLo, test.rangeKeyHi)
-	for _, kv := range kvs { // Soundness
-		assert.Contains(t, test.expectedRange, kv)
-	}
-	for _, kv := range test.expectedRange { // Completeness
-		assert.Contains(t, kvs, kv)
-	}
-	for i = 0; i < len(kvs)-1; i++ { // Sorted Ascending
-		assert.Equal(t, -1, test.compareKey(kvs[i].key, kvs[i+1].key))
-	}
-
-	// Invalid Traversal
-	i = 0
-	ost.Traverse(-1, func(key, value interface{}) bool {
-		i++
-		return true
-	})
-	assert.Zero(t, i)
-
-	// Pre-Order Traversal
-	i = 0
-	ost.Traverse(TraversePreOrder, func(key, value interface{}) bool {
-		assert.Equal(t, test.expectedPreOrderTraverse[i].key, key)
-		assert.Equal(t, test.expectedPreOrderTraverse[i].value, value)
-		i++
-		return true
-	})
-
-	// In-Order Traversal
-	i = 0
-	ost.Traverse(TraverseInOrder, func(key, value interface{}) bool {
-		assert.Equal(t, test.expectedInOrderTraverse[i].key, key)
-		assert.Equal(t, test.expectedInOrderTraverse[i].value, value)
-		i++
-		return true
-	})
-
-	// Post-Order Traversal
-	i = 0
-	ost.Traverse(TraversePostOrder, func(key, value interface{}) bool {
-		assert.Equal(t, test.expectedPostOrderTraverse[i].key, key)
-		assert.Equal(t, test.expectedPostOrderTraverse[i].value, value)
-		i++
-		return true
-	})
-
-	// Graphviz dot language code
-	assert.Equal(t, test.expectedDotCode, ost.Graphviz())
-
-	// Delete
-	value, ok := ost.Delete(nil)
-	assert.False(t, ok)
-	assert.Nil(t, value)
-	for _, expected := range test.keyValues {
-		value, ok := ost.Delete(expected.key)
-		assert.True(t, ok)
-		assert.Equal(t, expected.value, value)
+		minKey, minValue = ost.DeleteMin()
+		assert.Equal(t, test.expectedMinKey, minKey)
+		assert.Equal(t, test.expectedMinValue, minValue)
 		assert.True(t, ost.verify())
-	}
+		ost.Put(minKey, minValue)
+		maxKey, maxValue = ost.DeleteMax()
+		assert.Equal(t, test.expectedMaxKey, maxKey)
+		assert.Equal(t, test.expectedMaxValue, maxValue)
+		assert.True(t, ost.verify())
+		ost.Put(maxKey, maxValue)
 
-	// Tree should be empty at the end
-	assert.True(t, ost.verify())
-	assert.Zero(t, ost.Size())
-	assert.Zero(t, ost.Height())
-	assert.True(t, ost.IsEmpty())
-	minKey, minValue = ost.Min()
-	assert.Nil(t, minKey)
-	assert.Nil(t, minValue)
-	maxKey, maxValue = ost.Max()
-	assert.Nil(t, maxKey)
-	assert.Nil(t, maxValue)
-	floorKey, floorValue = ost.Floor(nil)
-	assert.Nil(t, floorKey)
-	assert.Nil(t, floorValue)
-	ceilingKey, ceilingValue = ost.Ceiling(nil)
-	assert.Nil(t, ceilingKey)
-	assert.Nil(t, ceilingValue)
-	assert.Equal(t, -1, ost.Rank(nil))
-	selectKey, selectValue = ost.Select(0)
-	assert.Nil(t, selectKey)
-	assert.Nil(t, selectValue)
-	assert.Equal(t, -1, ost.RangeSize(nil, nil))
-	assert.Nil(t, ost.Range(nil, nil))
+		kvs = ost.KeyValues()
+		for _, kv := range kvs { // Soundness
+			assert.Contains(t, test.keyValues, kv)
+		}
+		for _, kv := range test.keyValues { // Completeness
+			assert.Contains(t, kvs, kv)
+		}
+		for i = 0; i < len(kvs)-1; i++ { // Sorted Ascending
+			assert.Equal(t, -1, test.compareKey(kvs[i].key, kvs[i+1].key))
+		}
+
+		assert.Equal(t, test.expectedRangeSize, ost.RangeSize(test.rangeKeyLo, test.rangeKeyHi))
+		kvs = ost.Range(test.rangeKeyLo, test.rangeKeyHi)
+		for _, kv := range kvs { // Soundness
+			assert.Contains(t, test.expectedRange, kv)
+		}
+		for _, kv := range test.expectedRange { // Completeness
+			assert.Contains(t, kvs, kv)
+		}
+		for i = 0; i < len(kvs)-1; i++ { // Sorted Ascending
+			assert.Equal(t, -1, test.compareKey(kvs[i].key, kvs[i+1].key))
+		}
+
+		// Invalid Traversal
+		i = 0
+		ost.Traverse(-1, func(key, value interface{}) bool {
+			i++
+			return true
+		})
+		assert.Zero(t, i)
+
+		// Pre-Order Traversal
+		i = 0
+		ost.Traverse(TraversePreOrder, func(key, value interface{}) bool {
+			assert.Equal(t, test.expectedPreOrderTraverse[i].key, key)
+			assert.Equal(t, test.expectedPreOrderTraverse[i].value, value)
+			i++
+			return true
+		})
+
+		// In-Order Traversal
+		i = 0
+		ost.Traverse(TraverseInOrder, func(key, value interface{}) bool {
+			assert.Equal(t, test.expectedInOrderTraverse[i].key, key)
+			assert.Equal(t, test.expectedInOrderTraverse[i].value, value)
+			i++
+			return true
+		})
+
+		// Post-Order Traversal
+		i = 0
+		ost.Traverse(TraversePostOrder, func(key, value interface{}) bool {
+			assert.Equal(t, test.expectedPostOrderTraverse[i].key, key)
+			assert.Equal(t, test.expectedPostOrderTraverse[i].value, value)
+			i++
+			return true
+		})
+
+		// Graphviz dot language code
+		assert.Equal(t, test.expectedDotCode, ost.Graphviz())
+
+		// Delete
+		value, ok := ost.Delete(nil)
+		assert.False(t, ok)
+		assert.Nil(t, value)
+		for _, expected := range test.keyValues {
+			value, ok := ost.Delete(expected.key)
+			assert.True(t, ok)
+			assert.Equal(t, expected.value, value)
+			assert.True(t, ost.verify())
+		}
+
+		// Tree should be empty at the end
+		assert.True(t, ost.verify())
+		assert.Zero(t, ost.Size())
+		assert.Zero(t, ost.Height())
+		assert.True(t, ost.IsEmpty())
+		minKey, minValue = ost.Min()
+		assert.Nil(t, minKey)
+		assert.Nil(t, minValue)
+		maxKey, maxValue = ost.Max()
+		assert.Nil(t, maxKey)
+		assert.Nil(t, maxValue)
+		floorKey, floorValue = ost.Floor(nil)
+		assert.Nil(t, floorKey)
+		assert.Nil(t, floorValue)
+		ceilingKey, ceilingValue = ost.Ceiling(nil)
+		assert.Nil(t, ceilingKey)
+		assert.Nil(t, ceilingValue)
+		assert.Equal(t, -1, ost.Rank(nil))
+		selectKey, selectValue = ost.Select(0)
+		assert.Nil(t, selectKey)
+		assert.Nil(t, selectValue)
+		assert.Equal(t, -1, ost.RangeSize(nil, nil))
+		assert.Nil(t, ost.Range(nil, nil))
+	})
 }

@@ -721,6 +721,7 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			[][2]string{},
 			Config{
+				unexported:         "internal",
 				SkipFlag:           "default",
 				SkipFlagEnv:        "default",
 				SkipFlagEnvFile:    "default",
@@ -757,6 +758,7 @@ func TestPick(t *testing.T) {
 				FieldURLArray:      []url.URL{*exampleURL, *localhostURL},
 			},
 			Config{
+				unexported:         "internal",
 				SkipFlag:           "default",
 				SkipFlagEnv:        "default",
 				SkipFlagEnvFile:    "default",
@@ -833,6 +835,7 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				unexported:         "",
 				SkipFlag:           "",
 				SkipFlagEnv:        "",
 				SkipFlagEnvFile:    "",
@@ -909,6 +912,7 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				unexported:         "",
 				SkipFlag:           "",
 				SkipFlagEnv:        "",
 				SkipFlagEnvFile:    "",
@@ -985,6 +989,7 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				unexported:         "",
 				SkipFlag:           "",
 				SkipFlagEnv:        "",
 				SkipFlagEnvFile:    "",
@@ -1061,6 +1066,7 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				unexported:         "",
 				SkipFlag:           "",
 				SkipFlagEnv:        "",
 				SkipFlagEnvFile:    "",
@@ -1139,6 +1145,7 @@ func TestPick(t *testing.T) {
 			[][2]string{},
 			Config{},
 			Config{
+				unexported:         "",
 				SkipFlag:           "fromEnv",
 				SkipFlagEnv:        "",
 				SkipFlagEnvFile:    "",
@@ -1217,6 +1224,7 @@ func TestPick(t *testing.T) {
 			},
 			Config{},
 			Config{
+				unexported:         "",
 				SkipFlag:           "fromFile",
 				SkipFlagEnv:        "fromFile",
 				SkipFlagEnvFile:    "",
@@ -1302,6 +1310,7 @@ func TestPick(t *testing.T) {
 				FieldStringArray: []string{"url1", "url2"},
 			},
 			Config{
+				unexported:         "",
 				SkipFlag:           "fromEnv",
 				SkipFlagEnv:        "fromFile",
 				SkipFlagEnvFile:    "",

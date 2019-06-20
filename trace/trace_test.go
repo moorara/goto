@@ -42,12 +42,14 @@ func TestJaegerLogger(t *testing.T) {
 		var log map[string]interface{}
 
 		// Verify Error
-		dec.Decode(&log)
+		err := dec.Decode(&log)
+		assert.NoError(t, err)
 		assert.Equal(t, "error", log["level"])
 		assert.Equal(t, tc.expectedErrorMsg, log["message"])
 
 		// Verify Infof
-		dec.Decode(&log)
+		err = dec.Decode(&log)
+		assert.NoError(t, err)
 		assert.Equal(t, "info", log["level"])
 		assert.Equal(t, tc.expectedInfoMsg, log["message"])
 	}

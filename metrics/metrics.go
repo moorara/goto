@@ -12,10 +12,6 @@ var (
 		0.95: 0.01,
 		0.99: 0.001,
 	}
-
-	defaultOpLabels   = []string{"op", "success"}
-	defaultHTTPLabels = []string{"method", "endpoint", "statusCode", "statusClass"}
-	defaultGRPCLabels = []string{"method", "success"}
 )
 
 type (

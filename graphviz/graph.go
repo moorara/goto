@@ -36,23 +36,17 @@ func NewGraph(strict, digraph bool, name, rankdir, nodeColor, nodeStyle, nodeSha
 
 // AddNode adds a new node to graph for visualization
 func (g *Graph) AddNode(nodes ...Node) {
-	for _, n := range nodes {
-		g.Nodes = append(g.Nodes, n)
-	}
+	g.Nodes = append(g.Nodes, nodes...)
 }
 
 // AddEdge adds a new edge to graph for visualization
 func (g *Graph) AddEdge(edges ...Edge) {
-	for _, e := range edges {
-		g.Edges = append(g.Edges, e)
-	}
+	g.Edges = append(g.Edges, edges...)
 }
 
 // AddSubgraph adds a new subgraph to graph for visualization
 func (g *Graph) AddSubgraph(subgraphs ...Subgraph) {
-	for _, sg := range subgraphs {
-		g.Subgraphs = append(g.Subgraphs, sg)
-	}
+	g.Subgraphs = append(g.Subgraphs, subgraphs...)
 }
 
 // DotCode generates Graph dot language code for graph

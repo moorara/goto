@@ -1,9 +1,16 @@
 workflow "Main" {
   on = "push"
-  resolves = [ "Tests" ]
+  resolves = [ "Test", "Lint" ]
 }
 
-action "Tests" {
-  uses = "docker://golang:1.11"
-  args = [ "go", "test", "-race", "./..." ]
+action "Test" {
+  uses = "docker://golang:1.12"
+  runs = [ "go", "test" ]
+  args = [ "-race", "./..." ]
+}
+
+action "Lint" {
+  uses = "docker://golangci/golangci-lint:latest"
+  runs = [ "golangci-lint", "run" ]
+  args = [ "--deadline", "5m", "--new" ]
 }
