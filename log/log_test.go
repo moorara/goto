@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 
@@ -43,12 +44,13 @@ func TestNewLogger(t *testing.T) {
 
 func TestLoggerSetOptions(t *testing.T) {
 	tests := []struct {
+		name          string
 		opts          Options
 		expectedLevel Level
 	}{
 		{
+			"NoLevel",
 			Options{
-				Level:       "",
 				Name:        "instance",
 				Environment: "test",
 				Region:      "local",
@@ -57,6 +59,7 @@ func TestLoggerSetOptions(t *testing.T) {
 			InfoLevel,
 		},
 		{
+			"DebugLevel",
 			Options{
 				Format:      Logfmt,
 				Level:       "debug",
@@ -68,6 +71,7 @@ func TestLoggerSetOptions(t *testing.T) {
 			DebugLevel,
 		},
 		{
+			"InfoLevel",
 			Options{
 				Format:      JSON,
 				Level:       "info",
@@ -79,6 +83,7 @@ func TestLoggerSetOptions(t *testing.T) {
 			InfoLevel,
 		},
 		{
+			"WarnLevel",
 			Options{
 				Format:      JSON,
 				Level:       "warn",
@@ -90,6 +95,7 @@ func TestLoggerSetOptions(t *testing.T) {
 			WarnLevel,
 		},
 		{
+			"ErrorLevel",
 			Options{
 				Format:      JSON,
 				Level:       "error",
@@ -101,6 +107,7 @@ func TestLoggerSetOptions(t *testing.T) {
 			ErrorLevel,
 		},
 		{
+			"NoneLevel",
 			Options{
 				Level:       "none",
 				Name:        "instance",
@@ -109,6 +116,17 @@ func TestLoggerSetOptions(t *testing.T) {
 				Component:   "app",
 			},
 			NoneLevel,
+		},
+		{
+			"CustomWriter",
+			Options{
+				Writer:      &bytes.Buffer{},
+				Name:        "instance",
+				Environment: "test",
+				Region:      "local",
+				Component:   "app",
+			},
+			InfoLevel,
 		},
 	}
 

@@ -1,6 +1,7 @@
 package log
 
 import (
+	"io"
 	"os"
 	"strings"
 
@@ -18,6 +19,7 @@ type (
 	// Options contains optional options for Logger
 	Options struct {
 		depth       int
+		Writer      io.Writer
 		Format      Format
 		Level       string
 		Name        string
@@ -81,13 +83,17 @@ func (l *Logger) setOptions(opts Options) {
 		opts.depth = 6
 	}
 
+	if opts.Writer == nil {
+		opts.Writer = os.Stdout
+	}
+
 	switch opts.Format {
 	case Logfmt:
-		logger = kitLog.NewLogfmtLogger(os.Stdout)
+		logger = kitLog.NewLogfmtLogger(opts.Writer)
 	case JSON:
 		fallthrough
 	default:
-		logger = kitLog.NewJSONLogger(os.Stdout)
+		logger = kitLog.NewJSONLogger(opts.Writer)
 	}
 
 	logger = kitLog.NewSyncLogger(logger)
