@@ -1,7 +1,7 @@
 # log
 
 This package provides a logger for your go applications.
-Default output format is `log.JSON` and default log level is `log.InfoLevel`. 
+Default output format is `log.JSON` and default log level is `log.InfoLevel`.
 
 ## Quick Start
 
