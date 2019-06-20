@@ -1,6 +1,12 @@
 workflow "Main" {
   on = "push"
-  resolves = [ "Test", "Lint" ]
+  resolves = [ "Lint", "Test", "Cover" ]
+}
+
+action "Lint" {
+  uses = "docker://golangci/golangci-lint:latest"
+  runs = [ "golangci-lint", "run" ]
+  args = [ "--deadline", "5m", "--new" ]
 }
 
 action "Test" {
@@ -9,8 +15,8 @@ action "Test" {
   args = [ "-race", "./..." ]
 }
 
-action "Lint" {
-  uses = "docker://golangci/golangci-lint:latest"
-  runs = [ "golangci-lint", "run" ]
-  args = [ "--deadline", "5m", "--new" ]
+action "Cover" {
+  uses = "./.github/action-cover"
+  secrets = [ "CODECOV_TOKEN" ]
+  args = [ "./..." ]
 }
