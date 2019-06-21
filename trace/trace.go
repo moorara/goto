@@ -21,15 +21,11 @@ type jaegerLogger struct {
 }
 
 func (l *jaegerLogger) Error(msg string) {
-	if l.logger != nil {
-		level.Error(l.logger).Log("message", msg)
-	}
+	level.Error(l.logger).Log("message", msg)
 }
 
 func (l *jaegerLogger) Infof(msg string, args ...interface{}) {
-	if l.logger != nil {
-		level.Info(l.logger).Log("message", fmt.Sprintf(msg, args...))
-	}
+	level.Info(l.logger).Log("message", fmt.Sprintf(msg, args...))
 }
 
 // NewConstSampler creates a constant Jaeger sampler
@@ -98,20 +94,48 @@ func NewCollectorReporter(collectorAddr string, logSpans bool) *jconfig.Reporter
 	}
 }
 
+// Options contains optional options for Tracer
+type Options struct {
+	Name     string
+	Sampler  *jconfig.SamplerConfig
+	Reporter *jconfig.ReporterConfig
+	Logger   log.Logger
+	PromReg  prometheus.Registerer
+}
+
 // NewTracer creates a new tracer
-func NewTracer(name string, sampler *jconfig.SamplerConfig, reporter *jconfig.ReporterConfig, logger log.Logger, reg prometheus.Registerer) (opentracing.Tracer, io.Closer, error) {
-	jgConfig := &jconfig.Configuration{
-		ServiceName: name,
-		Sampler:     sampler,
-		Reporter:    reporter,
+func NewTracer(opts Options) (opentracing.Tracer, io.Closer, error) {
+	if opts.Name == "" {
+		opts.Name = "tracer"
 	}
 
-	jlogger := &jaegerLogger{logger}
-	loggerOpt := jconfig.Logger(jlogger)
+	if opts.Sampler == nil {
+		opts.Sampler = NewConstSampler(true)
+	}
 
-	regOpt := jprometheus.WithRegisterer(reg)
-	factory := jprometheus.New(regOpt).Namespace(jmetrics.NSOptions{Name: name})
-	metricsOpt := jconfig.Metrics(factory)
+	if opts.Reporter == nil {
+		opts.Reporter = NewAgentReporter("localhost:6831", false)
+	}
 
-	return jgConfig.NewTracer(loggerOpt, metricsOpt)
+	jgOpts := []jconfig.Option{}
+	jgConfig := &jconfig.Configuration{
+		ServiceName: opts.Name,
+		Sampler:     opts.Sampler,
+		Reporter:    opts.Reporter,
+	}
+
+	if opts.Logger != nil {
+		jlogger := &jaegerLogger{opts.Logger}
+		loggerOpt := jconfig.Logger(jlogger)
+		jgOpts = append(jgOpts, loggerOpt)
+	}
+
+	if opts.PromReg != nil {
+		regOpt := jprometheus.WithRegisterer(opts.PromReg)
+		factory := jprometheus.New(regOpt).Namespace(jmetrics.NSOptions{Name: opts.Name})
+		metricsOpt := jconfig.Metrics(factory)
+		jgOpts = append(jgOpts, metricsOpt)
+	}
+
+	return jgConfig.NewTracer(jgOpts...)
 }

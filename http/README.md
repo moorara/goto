@@ -14,7 +14,7 @@ package main
 import (
   "net/http"
 
-  gotoHTTP "github.com/moorara/goto/http"
+  xhttp "github.com/moorara/goto/http"
   "github.com/moorara/goto/log"
   "github.com/moorara/goto/metrics"
   "github.com/moorara/goto/trace"
@@ -39,17 +39,15 @@ func main() {
   mf := metrics.NewFactory(metrics.FactoryOptions{})
 
   // Create a tracer
-  sampler := trace.NewConstSampler(true)
-  reporter := trace.NewAgentReporter("localhost:6831", false)
-  tracer, closer, _ := trace.NewTracer("auth-service", sampler, reporter, nil, prometheus.DefaultRegisterer)
+  tracer, closer, _ := trace.NewTracer(trace.Options{Name: "auth-service"})
   defer closer.Close()
 
   // Create the http middleware and wrap a handler
-  mid := gotoHTTP.NewMiddleware(logger, mf, tracer)
+  mid := xhttp.NewMiddleware(logger, mf, tracer)
   handler := mid.Wrap(func(w http.ResponseWriter, r *http.Request) {
     // Get the http logger passed down
     ctx := r.Context()
-    val := ctx.Value(gotoHTTP.LoggerContextKey)
+    val := ctx.Value(xhttp.LoggerContextKey)
     logger, _ := val.(*log.Logger)
 
     // Create a new span

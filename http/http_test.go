@@ -128,13 +128,9 @@ func TestNewMiddleware(t *testing.T) {
 	})
 
 	promReg := prometheus.NewRegistry()
-	mFac := metrics.NewFactory(metrics.FactoryOptions{
-		Registerer: promReg,
-	})
+	mFac := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
 
-	sampler := trace.NewConstSampler(true)
-	reporter := trace.NewAgentReporter("localhost:6831", false)
-	tracer, closer, _ := trace.NewTracer("tracer", sampler, reporter, logger.Logger, promReg)
+	tracer, closer, _ := trace.NewTracer(trace.Options{})
 	defer closer.Close()
 
 	tests := []struct {

@@ -18,18 +18,16 @@ import (
 )
 
 func main() {
-  sampler := trace.NewConstSampler(true)
-  reporter := trace.NewAgentReporter("localhost:6831", false)
-  tracer, closer, _ := trace.NewTracer("hello_service", sampler, reporter, nil, prometheus.DefaultRegisterer)
+  tracer, closer, _ := trace.NewTracer(trace.Options{Name: "hello_service"})
   defer closer.Close()
 
   span := tracer.StartSpan("hello-world")
   defer span.Finish()
+  ext.HTTPMethod.Set(span, "GET")
+  ext.HTTPStatusCode.Set(span, 200)
   span.LogFields(
     log.String("environment", "prodcution"),
     log.String("region", "us-east-1"),
   )
-  ext.HTTPMethod.Set(span, "GET")
-  ext.HTTPStatusCode.Set(span, 200)
 }
 ```

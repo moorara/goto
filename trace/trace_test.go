@@ -162,28 +162,29 @@ func TestNewCollectorReporter(t *testing.T) {
 
 func TestNewTracer(t *testing.T) {
 	tests := []struct {
-		name        string
-		serviceName string
-		sampler     *config.SamplerConfig
-		reporter    *config.ReporterConfig
-		logger      log.Logger
-		reg         prometheus.Registerer
+		name string
+		opts Options
 	}{
 		{
-			"WithLoggingAndMetrics",
-			"service_name",
-			&config.SamplerConfig{},
-			&config.ReporterConfig{},
-			nil,
-			prometheus.NewRegistry(),
+			"EmptyOptions",
+			Options{},
+		},
+		{
+			"WithOptions",
+			Options{
+				Name:     "service_name",
+				Sampler:  &config.SamplerConfig{},
+				Reporter: &config.ReporterConfig{},
+				Logger:   log.NewNopLogger(),
+				PromReg:  prometheus.NewRegistry(),
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			tracer, closer, err := NewTracer(tc.serviceName, tc.sampler, tc.reporter, tc.logger, tc.reg)
+			tracer, closer, err := NewTracer(tc.opts)
 			assert.NoError(t, err)
-
 			defer closer.Close()
 
 			assert.NotNil(t, tracer)
