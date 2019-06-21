@@ -7,7 +7,7 @@ codecov:
 coverage:
   round: down
   precision: 2
-  range: "95...100"
+  range: "90...100"
 
   status:
     # https://docs.codecov.io/docs/commit-status#section-project-status
