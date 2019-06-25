@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/go-kit/kit v0.8.0
+	github.com/golang/protobuf v1.3.1
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90
@@ -14,4 +15,5 @@ require (
 	github.com/uber/jaeger-client-go v2.16.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	go.uber.org/atomic v1.4.0 // indirect
+	google.golang.org/grpc v1.21.1
 )
