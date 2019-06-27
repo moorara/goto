@@ -4,25 +4,10 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/moorara/goto/log"
 	"google.golang.org/grpc"
 )
 
-// contextKey is the type for the keys added to context
-type contextKey string
-
-var (
-	loggerContextKey = contextKey("logger")
-	methodRegex      = regexp.MustCompile(`(/|\.)`)
-)
-
-// LoggerFromContext returns a logger set by grpc server interceptor on each incoming context
-func LoggerFromContext(ctx context.Context) (*log.Logger, bool) {
-	val := ctx.Value(loggerContextKey)
-	logger, ok := val.(*log.Logger)
-
-	return logger, ok
-}
+var methodRegex = regexp.MustCompile(`(/|\.)`)
 
 func parseMethod(fullMethod string) (string, string, string, bool) {
 	// fullMethod should have the form /package.service/method

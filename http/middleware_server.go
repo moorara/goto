@@ -28,52 +28,53 @@ func LoggerForRequest(r *http.Request) (*log.Logger, bool) {
 }
 
 const (
-	defaultSpanName     = "http-request"
-	gaugeMetricName     = "http_requests"
-	counterMetricName   = "http_requests_total"
-	histogramMetricName = "http_request_duration_seconds"
-	summaryMetricName   = "http_request_duration_quantiles_seconds"
+	serverKind                = "server"
+	serverSpanName            = "http-server-request"
+	serverGaugeMetricName     = "http_server_requests"
+	serverCounterMetricName   = "http_server_requests_total"
+	serverHistogramMetricName = "http_server_request_duration_seconds"
+	serverSummaryMetricName   = "http_server_request_duration_quantiles_seconds"
 )
 
-// ObservabilityMiddleware is an http middleware for logging, metrics, and tracing
-type ObservabilityMiddleware struct {
+// ServerObservabilityMiddleware is an http server middleware for logging, metrics, and tracing
+type ServerObservabilityMiddleware struct {
 	logger  *log.Logger
 	metrics *metrics.RequestMetrics
 	tracer  opentracing.Tracer
 }
 
-// NewObservabilityMiddleware creates a new instance of http middleware for observability
-func NewObservabilityMiddleware(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ObservabilityMiddleware {
+// NewServerObservabilityMiddleware creates a new instance of http server middleware for observability
+func NewServerObservabilityMiddleware(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ServerObservabilityMiddleware {
 	metrics := &metrics.RequestMetrics{
-		ReqGauge:        mf.Gauge(gaugeMetricName, "gauge metric for number of active http requests", []string{"method", "url"}),
-		ReqCounter:      mf.Counter(counterMetricName, "counter metric for total number of http requests", []string{"method", "url", "statusCode", "statusClass"}),
-		ReqDurationHist: mf.Histogram(histogramMetricName, "histogram metric for duration of http requests in seconds", []string{"method", "url", "statusCode", "statusClass"}),
-		ReqDurationSumm: mf.Summary(summaryMetricName, "summary metric for duration of http requests in seconds", []string{"method", "url", "statusCode", "statusClass"}),
+		ReqGauge:        mf.Gauge(serverGaugeMetricName, "gauge metric for number of active server-side http requests", []string{"method", "url"}),
+		ReqCounter:      mf.Counter(serverCounterMetricName, "counter metric for total number of server-side http requests", []string{"method", "url", "statusCode", "statusClass"}),
+		ReqDurationHist: mf.Histogram(serverHistogramMetricName, "histogram metric for duration of server-side http requests in seconds", []string{"method", "url", "statusCode", "statusClass"}),
+		ReqDurationSumm: mf.Summary(serverSummaryMetricName, "summary metric for duration of server-side http requests in seconds", []string{"method", "url", "statusCode", "statusClass"}),
 	}
 
-	return &ObservabilityMiddleware{
+	return &ServerObservabilityMiddleware{
 		logger:  logger,
 		metrics: metrics,
 		tracer:  tracer,
 	}
 }
 
-func (m *ObservabilityMiddleware) createSpan(r *http.Request) opentracing.Span {
+func (m *ServerObservabilityMiddleware) createSpan(r *http.Request) opentracing.Span {
 	var span opentracing.Span
 
 	carrier := opentracing.HTTPHeadersCarrier(r.Header)
 	parentSpanContext, err := m.tracer.Extract(opentracing.HTTPHeaders, carrier)
 	if err != nil {
-		span = m.tracer.StartSpan(defaultSpanName)
+		span = m.tracer.StartSpan(serverSpanName)
 	} else {
-		span = m.tracer.StartSpan(defaultSpanName, opentracing.ChildOf(parentSpanContext))
+		span = m.tracer.StartSpan(serverSpanName, opentracing.ChildOf(parentSpanContext))
 	}
 
 	return span
 }
 
 // Wrap accepts an http handler and return a new http handler that takes care of logging, metrics, and tracing
-func (m *ObservabilityMiddleware) Wrap(next http.HandlerFunc) http.HandlerFunc {
+func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		proto := r.Proto
 		method := r.Method

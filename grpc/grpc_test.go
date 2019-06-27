@@ -4,45 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/moorara/goto/log"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
-
-func TestLoggerFromContext(t *testing.T) {
-	tests := []struct {
-		name       string
-		ctx        context.Context
-		logger     *log.Logger
-		expectedOK bool
-	}{
-		{
-			name:       "WithoutLogger",
-			ctx:        context.Background(),
-			logger:     nil,
-			expectedOK: false,
-		},
-		{
-			name:       "WithLogger",
-			ctx:        context.Background(),
-			logger:     log.NewNopLogger(),
-			expectedOK: true,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			if tc.logger != nil {
-				tc.ctx = context.WithValue(tc.ctx, loggerContextKey, tc.logger)
-			}
-
-			logger, ok := LoggerFromContext(tc.ctx)
-
-			assert.Equal(t, tc.expectedOK, ok)
-			assert.Equal(t, tc.logger, logger)
-		})
-	}
-}
 
 func TestParseMethod(t *testing.T) {
 	tests := []struct {

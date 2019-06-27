@@ -56,7 +56,7 @@ func TestLoggerForRequest(t *testing.T) {
 	}
 }
 
-func TestNewMiddleware(t *testing.T) {
+func TestNewServerObservabilityMiddleware(t *testing.T) {
 	logger := log.NewLogger(log.Options{
 		Level:       "info",
 		Name:        "logger",
@@ -91,7 +91,7 @@ func TestNewMiddleware(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			m := NewObservabilityMiddleware(tc.logger, tc.mf, tc.tracer)
+			m := NewServerObservabilityMiddleware(tc.logger, tc.mf, tc.tracer)
 
 			assert.Equal(t, tc.logger, m.logger)
 			assert.NotNil(t, m.metrics)
@@ -100,7 +100,7 @@ func TestNewMiddleware(t *testing.T) {
 	}
 }
 
-func TestObservabilityMiddlewareWrap(t *testing.T) {
+func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 	tests := []struct {
 		name                string
 		req                 *http.Request
@@ -177,28 +177,17 @@ func TestObservabilityMiddlewareWrap(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			buff := bytes.Buffer{}
+			buff := &bytes.Buffer{}
 			var insertedSpan opentracing.Span
 
-			// Create logger
-			logger := log.NewLogger(log.Options{
-				Writer:      &buff,
-				Format:      log.JSON,
-				Level:       "info",
-				Name:        "logger",
-				Environment: "test",
-				Region:      "local",
-				Component:   "http",
-			})
-
-			// Create metrics factory
+			logger := log.NewLogger(log.Options{Writer: buff})
 			promReg := prometheus.NewRegistry()
-			metricsFactory := metrics.NewFactory(metrics.FactoryOptions{
-				Registerer: promReg,
-			})
-
-			// Create tracer
+			metricsFactory := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
 			tracer := mocktracer.New()
+
+			// Create http server middleware
+			mid := NewServerObservabilityMiddleware(logger, metricsFactory, tracer)
+			assert.NotNil(t, mid)
 
 			// Inject the parent span context if any
 			if tc.reqSpan != nil {
@@ -206,10 +195,6 @@ func TestObservabilityMiddlewareWrap(t *testing.T) {
 				err := tracer.Inject(tc.reqSpan.Context(), opentracing.HTTPHeaders, carrier)
 				assert.NoError(t, err)
 			}
-
-			// Create http middleware
-			mid := NewObservabilityMiddleware(logger, metricsFactory, tracer)
-			assert.NotNil(t, mid)
 
 			// Test http handler
 			handler := mid.Wrap(func(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +213,7 @@ func TestObservabilityMiddlewareWrap(t *testing.T) {
 			// Verify logs
 
 			var log map[string]interface{}
-			err := json.NewDecoder(&buff).Decode(&log)
+			err := json.NewDecoder(buff).Decode(&log)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedProto, log["req.proto"])
 			assert.Equal(t, tc.expectedMethod, log["req.method"])
@@ -260,16 +245,16 @@ func TestObservabilityMiddlewareWrap(t *testing.T) {
 
 			for _, metricFamily := range metricFamilies {
 				switch *metricFamily.Name {
-				case gaugeMetricName:
+				case serverGaugeMetricName:
 					assert.Equal(t, promModel.MetricType_GAUGE, *metricFamily.Type)
 					verifyLabels(metricFamily.Metric[0].Label)
-				case counterMetricName:
+				case serverCounterMetricName:
 					assert.Equal(t, promModel.MetricType_COUNTER, *metricFamily.Type)
 					verifyLabels(metricFamily.Metric[0].Label)
-				case histogramMetricName:
+				case serverHistogramMetricName:
 					assert.Equal(t, promModel.MetricType_HISTOGRAM, *metricFamily.Type)
 					verifyLabels(metricFamily.Metric[0].Label)
-				case summaryMetricName:
+				case serverSummaryMetricName:
 					assert.Equal(t, promModel.MetricType_SUMMARY, *metricFamily.Type)
 					verifyLabels(metricFamily.Metric[0].Label)
 				}
@@ -279,7 +264,7 @@ func TestObservabilityMiddlewareWrap(t *testing.T) {
 
 			span := tracer.FinishedSpans()[0]
 			assert.Equal(t, insertedSpan, span)
-			assert.Equal(t, defaultSpanName, span.OperationName)
+			assert.Equal(t, serverSpanName, span.OperationName)
 			assert.Equal(t, tc.expectedProto, span.Tag("http.proto"))
 			assert.Equal(t, tc.expectedMethod, span.Tag("http.method"))
 			assert.Equal(t, tc.expectedURL, span.Tag("http.url"))

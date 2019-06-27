@@ -34,10 +34,10 @@ type ClientObservabilityInterceptor struct {
 // NewClientObservabilityInterceptor creates a new instance of gRPC server interceptor for observability
 func NewClientObservabilityInterceptor(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ClientObservabilityInterceptor {
 	metrics := &metrics.RequestMetrics{
-		ReqGauge:        mf.Gauge(clientGaugeMetricName, "gauge metric for number of active grpc client requests", []string{"package", "service", "method", "stream"}),
-		ReqCounter:      mf.Counter(clientCounterMetricName, "counter metric for total number of grpc client requests", []string{"package", "service", "method", "stream", "success"}),
-		ReqDurationHist: mf.Histogram(clientHistogramMetricName, "histogram metric for duration of grpc client requests in seconds", []string{"package", "service", "method", "stream", "success"}),
-		ReqDurationSumm: mf.Summary(clientSummaryMetricName, "summary metric for duration of grpc client requests in seconds", []string{"package", "service", "method", "stream", "success"}),
+		ReqGauge:        mf.Gauge(clientGaugeMetricName, "gauge metric for number of active client-side grpc requests", []string{"package", "service", "method", "stream"}),
+		ReqCounter:      mf.Counter(clientCounterMetricName, "counter metric for total number of client-side grpc requests", []string{"package", "service", "method", "stream", "success"}),
+		ReqDurationHist: mf.Histogram(clientHistogramMetricName, "histogram metric for duration of client-side grpc requests in seconds", []string{"package", "service", "method", "stream", "success"}),
+		ReqDurationSumm: mf.Summary(clientSummaryMetricName, "summary metric for duration of client-side grpc requests in seconds", []string{"package", "service", "method", "stream", "success"}),
 	}
 
 	return &ClientObservabilityInterceptor{

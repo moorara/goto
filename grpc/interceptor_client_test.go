@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func extractSpan(ctx context.Context, tracer opentracing.Tracer) opentracing.SpanContext {
+func extractSpanContext(ctx context.Context, tracer opentracing.Tracer) opentracing.SpanContext {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if ok {
 		carrier := &MetadataTextMap{md}
@@ -85,28 +85,32 @@ func TestInjectTrace(t *testing.T) {
 	ctxWithMD := metadata.NewOutgoingContext(ctx, metadata.Pairs("key", "value"))
 
 	tests := []struct {
-		name   string
-		tracer opentracing.Tracer
-		ctx    context.Context
-		span   opentracing.Span
+		name     string
+		tracer   opentracing.Tracer
+		ctx      context.Context
+		span     opentracing.Span
+		expected bool
 	}{
 		{
-			name:   "WithoutMetadata",
-			tracer: tracer,
-			ctx:    ctx,
-			span:   tracer.StartSpan("test-span"),
+			name:     "WithoutMetadata",
+			tracer:   tracer,
+			ctx:      ctx,
+			span:     tracer.StartSpan("test-span"),
+			expected: true,
 		},
 		{
-			name:   "WithMetadata",
-			tracer: tracer,
-			ctx:    ctxWithMD,
-			span:   tracer.StartSpan("test-span"),
+			name:     "WithMetadata",
+			tracer:   tracer,
+			ctx:      ctxWithMD,
+			span:     tracer.StartSpan("test-span"),
+			expected: true,
 		},
 		{
-			name:   "InjectFails",
-			tracer: tracer,
-			ctx:    ctx,
-			span:   &mockSpan{},
+			name:     "InjectFails",
+			tracer:   tracer,
+			ctx:      ctx,
+			span:     &mockSpan{},
+			expected: false,
 		},
 	}
 
@@ -118,7 +122,8 @@ func TestInjectTrace(t *testing.T) {
 
 			ctx := i.injectTrace(tc.ctx, tc.span)
 
-			assert.NotNil(t, ctx)
+			injectedSpanContext := extractSpanContext(ctx, tc.tracer)
+			assert.Equal(t, tc.expected, injectedSpanContext != nil)
 		})
 	}
 }
@@ -243,7 +248,10 @@ func TestUnaryClientInterceptor(t *testing.T) {
 			promReg := prometheus.NewRegistry()
 			mf := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
 			tracer := mocktracer.New()
+
+			// Create the interceptor
 			i := NewClientObservabilityInterceptor(logger, mf, tracer)
+			assert.NotNil(t, i)
 
 			// Insert the parent span if any
 			if tc.parentSpan != nil {
@@ -252,7 +260,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 
 			invoker := func(ctx context.Context, method string, req, res interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 				time.Sleep(tc.mockDelay)
-				injectedSpanContext = extractSpan(ctx, tracer)
+				injectedSpanContext = extractSpanContext(ctx, tracer)
 				return tc.mockRespError
 			}
 
@@ -456,7 +464,10 @@ func TestStreamClientInterceptor(t *testing.T) {
 			promReg := prometheus.NewRegistry()
 			mf := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
 			tracer := mocktracer.New()
+
+			// Create the interceptor
 			i := NewClientObservabilityInterceptor(logger, mf, tracer)
+			assert.NotNil(t, i)
 
 			// Insert the parent span if any
 			if tc.parentSpan != nil {
@@ -465,7 +476,7 @@ func TestStreamClientInterceptor(t *testing.T) {
 
 			streamer := func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 				time.Sleep(tc.mockDelay)
-				injectedSpanContext = extractSpan(ctx, tracer)
+				injectedSpanContext = extractSpanContext(ctx, tracer)
 				return tc.mockRespCS, tc.mockRespError
 			}
 

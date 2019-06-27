@@ -16,21 +16,23 @@ import (
 func main() {
 	// Create a logger
 	logger := log.NewLogger(log.Options{
-		Name:        "handler",
+		Name:        "server",
 		Environment: "dev",
 		Region:      "us-east-1",
-		Component:   "auth-service",
+		Component:   "hello-server",
 	})
 
 	// Create a metrics factory
 	mf := metrics.NewFactory(metrics.FactoryOptions{})
 
 	// Create a tracer
-	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "auth-service"})
+	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "server"})
 	defer closer.Close()
 
-	// Create the http middleware and wrap a handler
-	mid := xhttp.NewObservabilityMiddleware(logger, mf, tracer)
+	// Create an http server middleware
+	mid := xhttp.NewServerObservabilityMiddleware(logger, mf, tracer)
+
+	// Wrap the http handler
 	handler := mid.Wrap(func(w http.ResponseWriter, r *http.Request) {
 		logger, _ := xhttp.LoggerForRequest(r)
 		logger.Info("message", "handled the request successfully!")
@@ -48,7 +50,6 @@ func main() {
 
 	http.Handle("/", handler)
 	http.Handle("/metrics", promhttp.Handler())
-
 	logger.Info("message", "starting server on localhost:8080 ...")
 	panic(http.ListenAndServe(":8080", nil))
 }

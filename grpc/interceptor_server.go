@@ -14,6 +14,19 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// contextKey is the type for the keys added to context
+type contextKey string
+
+var loggerContextKey = contextKey("logger")
+
+// LoggerFromContext returns a logger set by grpc server interceptor on each incoming context
+func LoggerFromContext(ctx context.Context) (*log.Logger, bool) {
+	val := ctx.Value(loggerContextKey)
+	logger, ok := val.(*log.Logger)
+
+	return logger, ok
+}
+
 const (
 	serverKind                = "server"
 	serverSpanName            = "grpc-server-request"
@@ -33,10 +46,10 @@ type ServerObservabilityInterceptor struct {
 // NewServerObservabilityInterceptor creates a new instance of gRPC server interceptor for observability
 func NewServerObservabilityInterceptor(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ServerObservabilityInterceptor {
 	metrics := &metrics.RequestMetrics{
-		ReqGauge:        mf.Gauge(serverGaugeMetricName, "gauge metric for number of active grpc server requests", []string{"package", "service", "method", "stream"}),
-		ReqCounter:      mf.Counter(serverCounterMetricName, "counter metric for total number of grpc server requests", []string{"package", "service", "method", "stream", "success"}),
-		ReqDurationHist: mf.Histogram(serverHistogramMetricName, "histogram metric for duration of grpc server requests in seconds", []string{"package", "service", "method", "stream", "success"}),
-		ReqDurationSumm: mf.Summary(serverSummaryMetricName, "summary metric for duration of grpc server requests in seconds", []string{"package", "service", "method", "stream", "success"}),
+		ReqGauge:        mf.Gauge(serverGaugeMetricName, "gauge metric for number of active server-side grpc requests", []string{"package", "service", "method", "stream"}),
+		ReqCounter:      mf.Counter(serverCounterMetricName, "counter metric for total number of server-side grpc requests", []string{"package", "service", "method", "stream", "success"}),
+		ReqDurationHist: mf.Histogram(serverHistogramMetricName, "histogram metric for duration of server-side grpc requests in seconds", []string{"package", "service", "method", "stream", "success"}),
+		ReqDurationSumm: mf.Summary(serverSummaryMetricName, "summary metric for duration of server-side grpc requests in seconds", []string{"package", "service", "method", "stream", "success"}),
 	}
 
 	return &ServerObservabilityInterceptor{
