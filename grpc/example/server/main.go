@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"time"
 
 	xgrpc "github.com/moorara/goto/grpc"
 	"github.com/moorara/goto/grpc/example/zonePB"
@@ -16,13 +17,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-const port = ":8080"
+const grpcPort = ":10080"
+const httpPort = ":10081"
 
 // ZoneServer is an implementation of zonePB.ZoneManagerServer
 type ZoneServer struct{}
 
 // GetContainingZone the zone containing all the given locations
 func (s *ZoneServer) GetContainingZone(stream zonePB.ZoneManager_GetContainingZoneServer) error {
+	// A random delay between 5ms to 50ms
+	d := 5 + rand.Intn(45)
+	time.Sleep(time.Duration(d) * time.Millisecond)
+
 	logger, _ := xgrpc.LoggerFromContext(stream.Context())
 	logger.Info("message", "GetContainingZone handled!")
 
@@ -46,6 +52,10 @@ func (s *ZoneServer) GetContainingZone(stream zonePB.ZoneManager_GetContainingZo
 
 // GetPlacesInZone returns all places in a zone
 func (s *ZoneServer) GetPlacesInZone(ctx context.Context, zone *zonePB.Zone) (*zonePB.GetPlacesResponse, error) {
+	// A random delay between 5ms to 50ms
+	d := 5 + rand.Intn(45)
+	time.Sleep(time.Duration(d) * time.Millisecond)
+
 	logger, _ := xgrpc.LoggerFromContext(ctx)
 	logger.Info("message", "GetPlacesInZone handled!")
 
@@ -74,6 +84,10 @@ func (s *ZoneServer) GetPlacesInZone(ctx context.Context, zone *zonePB.Zone) (*z
 
 // GetUsersInZone returns all the users entering a zone
 func (s *ZoneServer) GetUsersInZone(zone *zonePB.Zone, stream zonePB.ZoneManager_GetUsersInZoneServer) error {
+	// A random delay between 5ms to 50ms
+	d := 5 + rand.Intn(45)
+	time.Sleep(time.Duration(d) * time.Millisecond)
+
 	logger, _ := xgrpc.LoggerFromContext(stream.Context())
 	logger.Info("message", "GetUsersInZone handled!")
 
@@ -112,6 +126,10 @@ func (s *ZoneServer) GetUsersInZone(zone *zonePB.Zone, stream zonePB.ZoneManager
 
 // GetUsersInZones returns all the users entering any of the given zones
 func (s *ZoneServer) GetUsersInZones(stream zonePB.ZoneManager_GetUsersInZonesServer) error {
+	// A random delay between 5ms to 50ms
+	d := 5 + rand.Intn(45)
+	time.Sleep(time.Duration(d) * time.Millisecond)
+
 	logger, _ := xgrpc.LoggerFromContext(stream.Context())
 	logger.Info("message", "GetUsersInZones handled!")
 
@@ -183,15 +201,15 @@ func main() {
 	// Start HTTP server for exposing metrics
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		logger.Info("message", "starting http server on :8081")
-		panic(http.ListenAndServe(":8081", nil))
+		logger.Info("message", "starting http server ...", "port", httpPort)
+		panic(http.ListenAndServe(httpPort, nil))
 	}()
 
-	conn, err := net.Listen("tcp", port)
+	conn, err := net.Listen("tcp", grpcPort)
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Info("message", "starting grpc server ...", "port", port)
+	logger.Info("message", "starting grpc server ...", "port", grpcPort)
 	panic(server.Serve(conn))
 }

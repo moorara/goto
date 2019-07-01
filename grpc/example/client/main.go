@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"io"
+	"math/rand"
 	"net/http"
+	"time"
 
 	xgrpc "github.com/moorara/goto/grpc"
 	"github.com/moorara/goto/grpc/example/zonePB"
@@ -14,11 +16,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-const address = "localhost:8080"
+const httpPort = ":10082"
+const grpcServer = "localhost:10080"
 
 func getContainingZone(client zonePB.ZoneManagerClient) {
-	ctx := context.Background()
+	// A random delay between 1s to 5s
+	d := 1 + rand.Intn(4)
+	time.Sleep(time.Duration(d) * time.Second)
 
+	ctx := context.Background()
 	stream, err := client.GetContainingZone(ctx)
 	if err != nil {
 		panic(err)
@@ -49,6 +55,10 @@ func getContainingZone(client zonePB.ZoneManagerClient) {
 }
 
 func getPlacesInZone(client zonePB.ZoneManagerClient) {
+	// A random delay between 1s to 5s
+	d := 1 + rand.Intn(4)
+	time.Sleep(time.Duration(d) * time.Second)
+
 	ctx := context.Background()
 	zone := &zonePB.Zone{
 		Location: &zonePB.Location{
@@ -65,6 +75,10 @@ func getPlacesInZone(client zonePB.ZoneManagerClient) {
 }
 
 func getUsersInZone(client zonePB.ZoneManagerClient) {
+	// A random delay between 1s to 5s
+	d := 1 + rand.Intn(4)
+	time.Sleep(time.Duration(d) * time.Second)
+
 	ctx := context.Background()
 	zone := &zonePB.Zone{
 		Location: &zonePB.Location{
@@ -92,6 +106,10 @@ func getUsersInZone(client zonePB.ZoneManagerClient) {
 }
 
 func getUsersInZones(client zonePB.ZoneManagerClient) {
+	// A random delay between 1s to 5s
+	d := 1 + rand.Intn(4)
+	time.Sleep(time.Duration(d) * time.Second)
+
 	ctx := context.Background()
 	zones := []*zonePB.Zone{
 		{
@@ -164,27 +182,31 @@ func main() {
 	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "zone-client"})
 	defer closer.Close()
 
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		logger.Info("message", "starting http server ...", "port", httpPort)
+		panic(http.ListenAndServe(httpPort, nil))
+	}()
+
 	// Create a gRPC interceptor for observability
 	i := xgrpc.NewClientObservabilityInterceptor(logger, mf, tracer)
 
 	optInsecure := grpc.WithInsecure()
 	optUnaryInterceptor := grpc.WithUnaryInterceptor(i.UnaryInterceptor)
 	optStreamInterceptor := grpc.WithStreamInterceptor(i.StreamInterceptor)
-	conn, err := grpc.Dial(address, optInsecure, optUnaryInterceptor, optStreamInterceptor)
+	conn, err := grpc.Dial(grpcServer, optInsecure, optUnaryInterceptor, optStreamInterceptor)
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 
 	client := zonePB.NewZoneManagerClient(conn)
-	logger.Info("message", "client connected to server", "address", address)
+	logger.Info("message", "client connected to server", "server", grpcServer)
 
-	getContainingZone(client)
-	getPlacesInZone(client)
-	getUsersInZone(client)
-	getUsersInZones(client)
-
-	http.Handle("/metrics", promhttp.Handler())
-	logger.Info("message", "starting http server on :8082")
-	panic(http.ListenAndServe(":8082", nil))
+	for {
+		getContainingZone(client)
+		getPlacesInZone(client)
+		getUsersInZone(client)
+		getUsersInZones(client)
+	}
 }
