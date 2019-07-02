@@ -52,7 +52,7 @@ func TestMetadataTextMap(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			m := MetadataTextMap{tc.md}
+			m := metadataTextMap{tc.md}
 
 			t.Run("Set", func(t *testing.T) {
 				for k, vals := range tc.pairs {

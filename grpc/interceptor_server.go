@@ -66,7 +66,7 @@ func (i *ServerObservabilityInterceptor) createSpan(ctx context.Context) opentra
 	// Get trace information from incoming metadata
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		carrier := &MetadataTextMap{md}
+		carrier := &metadataTextMap{md}
 		parentSpanContext, _ = i.tracer.Extract(opentracing.TextMap, carrier)
 		// In case of error, we just create a new span without parent and start a new trace!
 	}

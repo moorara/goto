@@ -31,7 +31,7 @@ func injectSpan(ctx context.Context, tracer opentracing.Tracer, span opentracing
 		md = metadata.New(nil)
 	}
 
-	carrier := &MetadataTextMap{md}
+	carrier := &metadataTextMap{md}
 	err := tracer.Inject(span.Context(), opentracing.TextMap, carrier)
 	if err != nil {
 		return ctx

@@ -25,7 +25,7 @@ import (
 func extractSpanContext(ctx context.Context, tracer opentracing.Tracer) opentracing.SpanContext {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if ok {
-		carrier := &MetadataTextMap{md}
+		carrier := &metadataTextMap{md}
 		parentSpanContext, err := tracer.Extract(opentracing.TextMap, carrier)
 		if err == nil {
 			return parentSpanContext

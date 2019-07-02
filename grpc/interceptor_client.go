@@ -71,7 +71,7 @@ func (i *ClientObservabilityInterceptor) injectSpan(ctx context.Context, span op
 		md = metadata.New(nil)
 	}
 
-	carrier := &MetadataTextMap{md}
+	carrier := &metadataTextMap{md}
 	err := i.tracer.Inject(span.Context(), opentracing.TextMap, carrier)
 	if err != nil {
 		span.LogFields(
