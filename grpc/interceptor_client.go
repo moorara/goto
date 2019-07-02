@@ -62,7 +62,7 @@ func (i *ClientObservabilityInterceptor) createSpan(ctx context.Context) opentra
 	return span
 }
 
-func (i *ClientObservabilityInterceptor) injectTrace(ctx context.Context, span opentracing.Span) context.Context {
+func (i *ClientObservabilityInterceptor) injectSpan(ctx context.Context, span opentracing.Span) context.Context {
 	// Get any metadata if set
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if ok {
@@ -99,7 +99,7 @@ func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, f
 	defer span.Finish()
 
 	// Propagate the current trace
-	ctx = i.injectTrace(ctx, span)
+	ctx = i.injectSpan(ctx, span)
 
 	// Invoke the gRPC method
 	start := time.Now()
@@ -158,7 +158,7 @@ func (i *ClientObservabilityInterceptor) StreamInterceptor(ctx context.Context, 
 	defer span.Finish()
 
 	// Propagate the current trace
-	ctx = i.injectTrace(ctx, span)
+	ctx = i.injectSpan(ctx, span)
 
 	// Invoke the gRPC streaming method
 	start := time.Now()

@@ -66,7 +66,7 @@ func (m *ClientObservabilityMiddleware) createSpan(ctx context.Context) opentrac
 	return span
 }
 
-func (m *ClientObservabilityMiddleware) injectTrace(req *http.Request, span opentracing.Span) {
+func (m *ClientObservabilityMiddleware) injectSpan(req *http.Request, span opentracing.Span) {
 	carrier := opentracing.HTTPHeadersCarrier(req.Header)
 	err := m.tracer.Inject(span.Context(), opentracing.HTTPHeaders, carrier)
 	if err != nil {
@@ -91,7 +91,7 @@ func (m *ClientObservabilityMiddleware) Wrap(ctx context.Context, req *http.Requ
 	defer span.Finish()
 
 	// Propagate the current trace
-	m.injectTrace(req, span)
+	m.injectSpan(req, span)
 
 	start := time.Now()
 	res, err := doer(req)

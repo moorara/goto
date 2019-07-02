@@ -75,7 +75,7 @@ func TestNewClientObservabilityMiddleware(t *testing.T) {
 	}
 }
 
-func TestClientObservabilityMiddlewareInjectTrace(t *testing.T) {
+func TestClientObservabilityMiddlewareInjectSpan(t *testing.T) {
 	tracer := mocktracer.New()
 
 	tests := []struct {
@@ -107,7 +107,7 @@ func TestClientObservabilityMiddlewareInjectTrace(t *testing.T) {
 				tracer: tc.tracer,
 			}
 
-			m.injectTrace(tc.req, tc.span)
+			m.injectSpan(tc.req, tc.span)
 
 			injectedSpanContext := extractSpanContext(tc.req, tc.tracer)
 			assert.Equal(t, tc.expected, injectedSpanContext != nil)

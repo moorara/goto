@@ -187,7 +187,7 @@ func main() {
 	mf := metrics.NewFactory(metrics.FactoryOptions{})
 
 	// Create a tracer
-	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "zone-server"})
+	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "server"})
 	defer closer.Close()
 
 	// Create a gRPC interceptor for observability

@@ -179,7 +179,7 @@ func main() {
 	mf := metrics.NewFactory(metrics.FactoryOptions{})
 
 	// Create a tracer
-	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "zone-client"})
+	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "client"})
 	defer closer.Close()
 
 	go func() {

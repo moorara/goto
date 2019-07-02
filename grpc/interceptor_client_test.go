@@ -79,7 +79,7 @@ func TestNewClientObservabilityInterceptor(t *testing.T) {
 	}
 }
 
-func TestInjectTrace(t *testing.T) {
+func TestInjectSpan(t *testing.T) {
 	tracer := mocktracer.New()
 	ctx := context.Background()
 	ctxWithMD := metadata.NewOutgoingContext(ctx, metadata.Pairs("key", "value"))
@@ -120,7 +120,7 @@ func TestInjectTrace(t *testing.T) {
 				tracer: tc.tracer,
 			}
 
-			ctx := i.injectTrace(tc.ctx, tc.span)
+			ctx := i.injectSpan(tc.ctx, tc.span)
 
 			injectedSpanContext := extractSpanContext(ctx, tc.tracer)
 			assert.Equal(t, tc.expected, injectedSpanContext != nil)
