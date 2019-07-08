@@ -1,5 +1,52 @@
 # Change Log
 
+## [v0.2.6](https://github.com/moorara/goto/tree/v0.2.6) (2019-07-07)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.5...v0.2.6)
+
+**Closed issues:**
+
+- Use semantic versions for jaeger packages [\#40](https://github.com/moorara/goto/issues/40)
+
+**Merged pull requests:**
+
+- Add debug logging to config.Pick [\#81](https://github.com/moorara/goto/pull/81) ([moorara](https://github.com/moorara))
+- grpc: raname MetadataTextMap to metadataTextMap [\#79](https://github.com/moorara/goto/pull/79) ([moorara](https://github.com/moorara))
+- Refactoring http and grpc packages [\#78](https://github.com/moorara/goto/pull/78) ([moorara](https://github.com/moorara))
+- Refactoring http and grpc examples [\#77](https://github.com/moorara/goto/pull/77) ([moorara](https://github.com/moorara))
+- Update kit mod [\#76](https://github.com/moorara/goto/pull/76) ([moorara](https://github.com/moorara))
+- Improve http pkg [\#74](https://github.com/moorara/goto/pull/74) ([moorara](https://github.com/moorara))
+- Update codecov.yml [\#73](https://github.com/moorara/goto/pull/73) ([moorara](https://github.com/moorara))
+- Add grpc pkg [\#72](https://github.com/moorara/goto/pull/72) ([moorara](https://github.com/moorara))
+- Update Codecov configuration [\#71](https://github.com/moorara/goto/pull/71) ([moorara](https://github.com/moorara))
+- Refactor trace package [\#70](https://github.com/moorara/goto/pull/70) ([moorara](https://github.com/moorara))
+- Add Codecov integration [\#69](https://github.com/moorara/goto/pull/69) ([moorara](https://github.com/moorara))
+- Refactor log READMe [\#68](https://github.com/moorara/goto/pull/68) ([moorara](https://github.com/moorara))
+- Add writer option to log package [\#67](https://github.com/moorara/goto/pull/67) ([moorara](https://github.com/moorara))
+- Add linting action [\#66](https://github.com/moorara/goto/pull/66) ([moorara](https://github.com/moorara))
+- Update go modules [\#65](https://github.com/moorara/goto/pull/65) ([moorara](https://github.com/moorara))
+- Add http middleware [\#64](https://github.com/moorara/goto/pull/64) ([moorara](https://github.com/moorara))
+- report: change value of skip stack [\#63](https://github.com/moorara/goto/pull/63) ([moorara](https://github.com/moorara))
+- Update module prometheus/client\_golang to v1 [\#62](https://github.com/moorara/goto/pull/62) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module rollbar/rollbar-go to v1.1.0 [\#61](https://github.com/moorara/goto/pull/61) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module prometheus/client\_golang to v0.9.4 [\#60](https://github.com/moorara/goto/pull/60) ([renovate[bot]](https://github.com/apps/renovate))
+- Fix config example [\#59](https://github.com/moorara/goto/pull/59) ([moorara](https://github.com/moorara))
+- Update module prometheus/client\_golang to v0.9.3 [\#58](https://github.com/moorara/goto/pull/58) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module uber-go/atomic to v1.4.0 [\#57](https://github.com/moorara/goto/pull/57) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module go.uber.org/atomic to v1.4.0 [\#56](https://github.com/moorara/goto/pull/56) ([renovate[bot]](https://github.com/apps/renovate))
+- Add go mod tidy option to renovate config [\#55](https://github.com/moorara/goto/pull/55) ([moorara](https://github.com/moorara))
+- Update go modules [\#54](https://github.com/moorara/goto/pull/54) ([moorara](https://github.com/moorara))
+- Update golang.org/x/net commit hash to b630fd6 [\#52](https://github.com/moorara/goto/pull/52) ([renovate[bot]](https://github.com/apps/renovate))
+- Update golang.org/x/net commit hash to 15845e8 [\#51](https://github.com/moorara/goto/pull/51) ([renovate[bot]](https://github.com/apps/renovate))
+- Update golang.org/x/net commit hash to e3b2ff5 [\#50](https://github.com/moorara/goto/pull/50) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module uber/jaeger-client-go to v2.16.0 [\#49](https://github.com/moorara/goto/pull/49) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module opentracing/opentracing-go to v1.1.0 [\#48](https://github.com/moorara/goto/pull/48) ([renovate[bot]](https://github.com/apps/renovate))
+- Update golang.org/x/net commit hash to addf6b3 [\#47](https://github.com/moorara/goto/pull/47) ([renovate[bot]](https://github.com/apps/renovate))
+- Update golang.org/x/net commit hash to 1272bf9 [\#46](https://github.com/moorara/goto/pull/46) ([renovate[bot]](https://github.com/apps/renovate))
+- Update .github files [\#45](https://github.com/moorara/goto/pull/45) ([moorara](https://github.com/moorara))
+- Refactor report package [\#44](https://github.com/moorara/goto/pull/44) ([moorara](https://github.com/moorara))
+- Refactoring packages [\#43](https://github.com/moorara/goto/pull/43) ([moorara](https://github.com/moorara))
+- Refactor README files [\#42](https://github.com/moorara/goto/pull/42) ([moorara](https://github.com/moorara))
+
 ## [v0.2.5](https://github.com/moorara/goto/tree/v0.2.5) (2019-03-11)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.4...v0.2.5)
 
