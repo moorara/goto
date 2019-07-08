@@ -676,12 +676,12 @@ func TestPickError(t *testing.T) {
 		{
 			"NonPointer",
 			Config{},
-			"non-pointer type is passed",
+			"a non-pointer type is passed",
 		},
 		{
 			"NonStruct",
 			new(string),
-			"non-struct type is passed",
+			"a non-struct type is passed",
 		},
 	}
 
@@ -1381,6 +1381,10 @@ func TestPick(t *testing.T) {
 			}
 
 			err := Pick(&tc.config)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedConfig, tc.config)
+
+			err = PickAndLog(&tc.config)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedConfig, tc.config)
 		})

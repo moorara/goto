@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/url"
 	"os"
 	"reflect"
@@ -14,6 +15,9 @@ import (
 	"time"
 	"unicode"
 )
+
+// this is used for printing debugging logs
+var debug bool
 
 const (
 	flagTag   = "flag"
@@ -31,6 +35,12 @@ func (v *flagValue) String() string {
 
 func (v *flagValue) Set(string) error {
 	return nil
+}
+
+func print(msg string, args ...interface{}) {
+	if debug {
+		log.Printf(msg+"\n", args...)
+	}
 }
 
 /*
@@ -174,11 +184,13 @@ func getFieldValue(flag, env, file string) string {
 	// First, try reading from flag
 	if value == "" && flag != skipValue {
 		value = getFlagValue(flag)
+		print("value read from flag %s: %s", flag, value)
 	}
 
 	// Second, try reading from environment variable
 	if value == "" && env != skipValue {
 		value = os.Getenv(env)
+		print("value read from environment variable %s: %s", env, value)
 	}
 
 	// Third, try reading from file
@@ -186,6 +198,7 @@ func getFieldValue(flag, env, file string) string {
 		filepath := os.Getenv(file)
 		if content, err := ioutil.ReadFile(filepath); err == nil {
 			value = string(content)
+			print("value read from file %s: %s", file, value)
 		}
 	}
 
@@ -332,14 +345,14 @@ func urlSlice(strs []string) []url.URL {
 	return urls
 }
 
-// Pick reads values for exported fields of a struct from command-line flags, environment variables, and/or configuration files.
-func Pick(config interface{}) error {
+func pick(config interface{}) error {
 	v := reflect.ValueOf(config) // reflect.Value --> v.Type(), v.Kind(), v.NumField()
 	t := reflect.TypeOf(config)  // reflect.Type --> t.Name(), t.Kind(), t.NumField()
 
 	// If a pointer is passed, navigate to the value
 	if t.Kind() != reflect.Ptr {
-		return errors.New("non-pointer type is passed")
+		print("a non-pointer type is passed")
+		return errors.New("a non-pointer type is passed")
 	}
 
 	// Navigate to the pointer value
@@ -347,7 +360,8 @@ func Pick(config interface{}) error {
 	t = t.Elem()
 
 	if t.Kind() != reflect.Struct {
-		return errors.New("non-struct type is passed")
+		print("a non-struct type is passed")
+		return errors.New("a non-struct type is passed")
 	}
 
 	// Iterate over struct fields
@@ -368,11 +382,15 @@ func Pick(config interface{}) error {
 			flagName = getFlagName(name)
 		}
 
+		print("[%s] expecting flag name: %s", name, flagName)
+
 		// `env:"..."`
 		envName := tField.Tag.Get(envTag)
 		if envName == "" {
 			envName = getEnvVarName(name)
 		}
+
+		print("[%s] expecting environment variable name: %s", name, envName)
 
 		// `file:"..."`
 		fileName := tField.Tag.Get(fileTag)
@@ -380,11 +398,15 @@ func Pick(config interface{}) error {
 			fileName = getFileVarName(name)
 		}
 
+		print("[%s] expecting file environment variable name: %s", name, fileName)
+
 		// `sep:"..."`
 		sep := tField.Tag.Get(sepTag)
 		if sep == "" {
 			sep = ","
 		}
+
+		print("[%s] expecting separator for list: %s", name, sep)
 
 		// Define a flag for the field so flag.Parse() can be called
 		defaultValue := fmt.Sprintf("%v", vField.Interface())
@@ -397,15 +419,18 @@ func Pick(config interface{}) error {
 
 		switch vField.Kind() {
 		case reflect.String:
+			print("[%s] setting string value: %s", name, str)
 			vField.SetString(str)
 
 		case reflect.Bool:
 			if b, err := strconv.ParseBool(str); err == nil {
+				print("[%s] setting boolean value: %t", name, b)
 				vField.SetBool(b)
 			}
 
 		case reflect.Float32, reflect.Float64:
 			if f, err := strconv.ParseFloat(str, 64); err == nil {
+				print("[%s] setting float value: %f", name, f)
 				vField.SetFloat(f)
 			}
 
@@ -413,14 +438,17 @@ func Pick(config interface{}) error {
 			if t := vField.Type(); t.PkgPath() == "time" && t.Name() == "Duration" {
 				// time.Duration
 				if d, err := time.ParseDuration(str); err == nil {
+					print("[%s] setting duration value: %s", name, d)
 					vField.Set(reflect.ValueOf(d))
 				}
 			} else if i, err := strconv.ParseInt(str, 10, 64); err == nil {
+				print("[%s] setting integer value: %d", name, i)
 				vField.SetInt(i)
 			}
 
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			if u, err := strconv.ParseUint(str, 10, 64); err == nil {
+				print("[%s] setting unsigned integer value: %d", name, u)
 				vField.SetUint(u)
 			}
 
@@ -428,6 +456,7 @@ func Pick(config interface{}) error {
 			if t := vField.Type(); t.PkgPath() == "net/url" && t.Name() == "URL" {
 				// url.URL
 				if u, err := url.Parse(str); err == nil {
+					print("[%s] setting url value: %s", name, str)
 					// u is a pointer
 					vField.Set(reflect.ValueOf(u).Elem())
 				}
@@ -440,66 +469,81 @@ func Pick(config interface{}) error {
 
 			switch tSlice.Kind() {
 			case reflect.String:
+				print("[%s] setting string slice: %v", name, str)
 				vField.Set(reflect.ValueOf(strs))
 
 			case reflect.Float32:
 				floats := float32Slice(strs)
+				print("[%s] setting float32 slice: %v", name, floats)
 				vField.Set(reflect.ValueOf(floats))
 
 			case reflect.Float64:
 				floats := float64Slice(strs)
+				print("[%s] setting float64 slice: %v", name, floats)
 				vField.Set(reflect.ValueOf(floats))
 
 			case reflect.Int:
 				ints := intSlice(strs)
+				print("[%s] setting int slice: %v", name, ints)
 				vField.Set(reflect.ValueOf(ints))
 
 			case reflect.Int8:
 				ints := int8Slice(strs)
+				print("[%s] setting int8 slice: %v", name, ints)
 				vField.Set(reflect.ValueOf(ints))
 
 			case reflect.Int16:
 				ints := int16Slice(strs)
+				print("[%s] setting int16 slice: %v", name, ints)
 				vField.Set(reflect.ValueOf(ints))
 
 			case reflect.Int32:
 				ints := int32Slice(strs)
+				print("[%s] setting int32 slice: %v", name, ints)
 				vField.Set(reflect.ValueOf(ints))
 
 			case reflect.Int64:
 				if tSlice.PkgPath() == "time" && tSlice.Name() == "Duration" {
 					// []time.Duration
 					durations := durationSlice(strs)
+					print("[%s] setting duration slice: %v", name, durations)
 					vField.Set(reflect.ValueOf(durations))
 				} else {
 					ints := int64Slice(strs)
+					print("[%s] setting int64 slice: %v", name, ints)
 					vField.Set(reflect.ValueOf(ints))
 				}
 
 			case reflect.Uint:
 				uints := uintSlice(strs)
+				print("[%s] setting uint slice: %v", name, uints)
 				vField.Set(reflect.ValueOf(uints))
 
 			case reflect.Uint8:
 				uints := uint8Slice(strs)
+				print("[%s] setting uint8 slice: %v", name, uints)
 				vField.Set(reflect.ValueOf(uints))
 
 			case reflect.Uint16:
 				uints := uint16Slice(strs)
+				print("[%s] setting uint16 slice: %v", name, uints)
 				vField.Set(reflect.ValueOf(uints))
 
 			case reflect.Uint32:
 				uints := uint32Slice(strs)
+				print("[%s] setting uint32 slice: %v", name, uints)
 				vField.Set(reflect.ValueOf(uints))
 
 			case reflect.Uint64:
 				uints := uint64Slice(strs)
+				print("[%s] setting uint64 slice: %v", name, uints)
 				vField.Set(reflect.ValueOf(uints))
 
 			case reflect.Struct:
 				if tSlice.PkgPath() == "net/url" && tSlice.Name() == "URL" {
 					// []url.URL
 					urls := urlSlice(strs)
+					print("[%s] setting url slice: %v", name, urls)
 					vField.Set(reflect.ValueOf(urls))
 				}
 			}
@@ -507,4 +551,20 @@ func Pick(config interface{}) error {
 	}
 
 	return nil
+}
+
+// Pick reads values for exported fields of a struct from either command-line flags, environment variables, or configuration files.
+// You can also specify default values.
+// You can see examples at https://github.com/moorara/goto/tree/master/config
+func Pick(config interface{}) error {
+	debug = false
+	return pick(config)
+}
+
+// PickAndLog is same as Pick, but it also logs debugging information.
+// You can also specify default values.
+// You can see examples at https://github.com/moorara/goto/tree/master/config
+func PickAndLog(config interface{}) error {
+	debug = true
+	return pick(config)
 }
