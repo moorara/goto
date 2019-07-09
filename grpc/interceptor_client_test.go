@@ -347,6 +347,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 				spanLogs := span.Logs()
 				if tc.mockRespError != nil {
 					lf := spanLogs[0].Fields[0]
+					assert.True(t, span.Tag("error").(bool))
 					assert.Equal(t, "grpc.error", lf.Key)
 					assert.Equal(t, tc.mockRespError.Error(), lf.ValueString)
 				}
@@ -575,6 +576,7 @@ func TestStreamClientInterceptor(t *testing.T) {
 				spanLogs := span.Logs()
 				if tc.mockRespError != nil {
 					lf := spanLogs[0].Fields[0]
+					assert.True(t, span.Tag("error").(bool))
 					assert.Equal(t, "grpc.error", lf.Key)
 					assert.Equal(t, tc.mockRespError.Error(), lf.ValueString)
 				}

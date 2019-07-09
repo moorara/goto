@@ -262,6 +262,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 			var log map[string]interface{}
 			err = json.NewDecoder(buff).Decode(&log)
 			assert.NoError(t, err)
+			assert.Equal(t, clientKind, log["http.kind"])
 			assert.Equal(t, tc.expectedProto, log["req.proto"])
 			assert.Equal(t, tc.expectedMethod, log["req.method"])
 			assert.Equal(t, tc.expectedURL, log["req.url"])

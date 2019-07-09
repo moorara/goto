@@ -142,7 +142,9 @@ func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, r
 	// https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 	ext.SpanKind.Set(span, ext.SpanKindRPCServerEnum)
 	span.SetTag("grpc.package", pkg).SetTag("grpc.service", service).SetTag("grpc.method", method).SetTag("grpc.stream", stream).SetTag("grpc.success", success)
+
 	if err != nil {
+		ext.Error.Set(span, true)
 		span.LogFields(
 			opentracingLog.String("grpc.error", err.Error()),
 		)
@@ -214,7 +216,9 @@ func (i *ServerObservabilityInterceptor) StreamInterceptor(srv interface{}, ss g
 	// https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 	ext.SpanKind.Set(span, ext.SpanKindRPCServerEnum)
 	span.SetTag("grpc.package", pkg).SetTag("grpc.service", service).SetTag("grpc.method", method).SetTag("grpc.stream", stream).SetTag("grpc.success", success)
+
 	if err != nil {
+		ext.Error.Set(span, true)
 		span.LogFields(
 			opentracingLog.String("grpc.error", err.Error()),
 		)

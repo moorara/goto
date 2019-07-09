@@ -109,6 +109,7 @@ func (m *ClientObservabilityMiddleware) Wrap(ctx context.Context, req *http.Requ
 	}
 
 	pairs := []interface{}{
+		"http.kind", clientKind,
 		"req.proto", proto,
 		"req.method", method,
 		"req.url", url,

@@ -85,6 +85,7 @@ func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.Handler
 
 		// Create a new logger that logs the context of current request
 		logger := m.logger.With(
+			"http.kind", serverKind,
 			"req.proto", proto,
 			"req.method", method,
 			"req.url", url,
