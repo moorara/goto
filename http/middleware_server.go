@@ -16,7 +16,16 @@ import (
 // contextKey is the type for the keys added to context
 type contextKey string
 
-var loggerContextKey = contextKey("logger")
+const (
+	loggerContextKey = contextKey("logger")
+
+	serverKind                = "server"
+	serverSpanName            = "http-server-request"
+	serverGaugeMetricName     = "http_server_requests"
+	serverCounterMetricName   = "http_server_requests_total"
+	serverHistogramMetricName = "http_server_request_duration_seconds"
+	serverSummaryMetricName   = "http_server_request_duration_quantiles_seconds"
+)
 
 // LoggerForRequest returns a logger set by http middleware on each request context
 func LoggerForRequest(r *http.Request) (*log.Logger, bool) {
@@ -26,15 +35,6 @@ func LoggerForRequest(r *http.Request) (*log.Logger, bool) {
 
 	return logger, ok
 }
-
-const (
-	serverKind                = "server"
-	serverSpanName            = "http-server-request"
-	serverGaugeMetricName     = "http_server_requests"
-	serverCounterMetricName   = "http_server_requests_total"
-	serverHistogramMetricName = "http_server_request_duration_seconds"
-	serverSummaryMetricName   = "http_server_request_duration_quantiles_seconds"
-)
 
 // ServerObservabilityMiddleware is an http server middleware for logging, metrics, and tracing
 type ServerObservabilityMiddleware struct {
