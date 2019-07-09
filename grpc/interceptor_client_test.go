@@ -282,6 +282,10 @@ func TestUnaryClientInterceptor(t *testing.T) {
 				assert.NotEmpty(t, log["responseTime"])
 				assert.NotEmpty(t, log["message"])
 
+				if tc.mockRespError != nil {
+					assert.Equal(t, tc.mockRespError.Error(), log["grpc.error"])
+				}
+
 				// Verify metrics
 
 				verifyLabels := func(labels []*promModel.LabelPair) {
@@ -338,6 +342,13 @@ func TestUnaryClientInterceptor(t *testing.T) {
 					assert.True(t, ok)
 					assert.Equal(t, parentSpan.SpanContext.SpanID, span.ParentID)
 					assert.Equal(t, parentSpan.SpanContext.TraceID, span.SpanContext.TraceID)
+				}
+
+				spanLogs := span.Logs()
+				if tc.mockRespError != nil {
+					lf := spanLogs[0].Fields[0]
+					assert.Equal(t, "grpc.error", lf.Key)
+					assert.Equal(t, tc.mockRespError.Error(), lf.ValueString)
 				}
 			}
 		})
@@ -499,6 +510,10 @@ func TestStreamClientInterceptor(t *testing.T) {
 				assert.NotEmpty(t, log["responseTime"])
 				assert.NotEmpty(t, log["message"])
 
+				if tc.mockRespError != nil {
+					assert.Equal(t, tc.mockRespError.Error(), log["grpc.error"])
+				}
+
 				// Verify metrics
 
 				verifyLabels := func(labels []*promModel.LabelPair) {
@@ -555,6 +570,13 @@ func TestStreamClientInterceptor(t *testing.T) {
 					assert.True(t, ok)
 					assert.Equal(t, parentSpan.SpanContext.SpanID, span.ParentID)
 					assert.Equal(t, parentSpan.SpanContext.TraceID, span.SpanContext.TraceID)
+				}
+
+				spanLogs := span.Logs()
+				if tc.mockRespError != nil {
+					lf := spanLogs[0].Fields[0]
+					assert.Equal(t, "grpc.error", lf.Key)
+					assert.Equal(t, tc.mockRespError.Error(), lf.ValueString)
 				}
 			}
 		})

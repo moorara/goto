@@ -10,6 +10,7 @@ import (
 	"github.com/moorara/goto/metrics"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	opentracingLog "github.com/opentracing/opentracing-go/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -120,6 +121,10 @@ func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, r
 		"message", fmt.Sprintf("%s %s.%s.%s %f", serverKind, pkg, service, method, duration),
 	}
 
+	if err != nil {
+		pairs = append(pairs, "grpc.error", err.Error())
+	}
+
 	if success {
 		logger.Info(pairs...)
 	} else {
@@ -137,9 +142,11 @@ func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, r
 	// https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 	ext.SpanKind.Set(span, ext.SpanKindRPCServerEnum)
 	span.SetTag("grpc.package", pkg).SetTag("grpc.service", service).SetTag("grpc.method", method).SetTag("grpc.stream", stream).SetTag("grpc.success", success)
-	/* span.LogFields(
-		opentracingLog.String("key", value),
-	) */
+	if err != nil {
+		span.LogFields(
+			opentracingLog.String("grpc.error", err.Error()),
+		)
+	}
 
 	return res, err
 }
@@ -186,6 +193,10 @@ func (i *ServerObservabilityInterceptor) StreamInterceptor(srv interface{}, ss g
 		"message", fmt.Sprintf("%s %s.%s.%s %f", serverKind, pkg, service, method, duration),
 	}
 
+	if err != nil {
+		pairs = append(pairs, "grpc.error", err.Error())
+	}
+
 	if success {
 		logger.Info(pairs...)
 	} else {
@@ -203,9 +214,11 @@ func (i *ServerObservabilityInterceptor) StreamInterceptor(srv interface{}, ss g
 	// https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 	ext.SpanKind.Set(span, ext.SpanKindRPCServerEnum)
 	span.SetTag("grpc.package", pkg).SetTag("grpc.service", service).SetTag("grpc.method", method).SetTag("grpc.stream", stream).SetTag("grpc.success", success)
-	/* span.LogFields(
-		opentracingLog.String("key", value),
-	) */
+	if err != nil {
+		span.LogFields(
+			opentracingLog.String("grpc.error", err.Error()),
+		)
+	}
 
 	return err
 }

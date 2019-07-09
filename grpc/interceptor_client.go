@@ -118,6 +118,10 @@ func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, f
 		"message", fmt.Sprintf("%s %s.%s.%s %f", clientKind, pkg, service, method, duration),
 	}
 
+	if err != nil {
+		pairs = append(pairs, "grpc.error", err.Error())
+	}
+
 	if success {
 		i.logger.Info(pairs...)
 	} else {
@@ -135,9 +139,11 @@ func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, f
 	// https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 	ext.SpanKind.Set(span, ext.SpanKindRPCClientEnum)
 	span.SetTag("grpc.package", pkg).SetTag("grpc.service", service).SetTag("grpc.method", method).SetTag("grpc.stream", stream).SetTag("grpc.success", success)
-	/* span.LogFields(
-		opentracingLog.String("key", value),
-	) */
+	if err != nil {
+		span.LogFields(
+			opentracingLog.String("grpc.error", err.Error()),
+		)
+	}
 
 	return err
 }
@@ -177,6 +183,10 @@ func (i *ClientObservabilityInterceptor) StreamInterceptor(ctx context.Context, 
 		"message", fmt.Sprintf("%s %s.%s.%s %f", clientKind, pkg, service, method, duration),
 	}
 
+	if err != nil {
+		pairs = append(pairs, "grpc.error", err.Error())
+	}
+
 	if success {
 		i.logger.Info(pairs...)
 	} else {
@@ -194,9 +204,11 @@ func (i *ClientObservabilityInterceptor) StreamInterceptor(ctx context.Context, 
 	// https://github.com/opentracing/specification/blob/master/semantic_conventions.md
 	ext.SpanKind.Set(span, ext.SpanKindRPCClientEnum)
 	span.SetTag("grpc.package", pkg).SetTag("grpc.service", service).SetTag("grpc.method", method).SetTag("grpc.stream", stream).SetTag("grpc.success", success)
-	/* span.LogFields(
-		opentracingLog.String("key", value),
-	) */
+	if err != nil {
+		span.LogFields(
+			opentracingLog.String("grpc.error", err.Error()),
+		)
+	}
 
 	return cs, err
 }
