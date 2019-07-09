@@ -8,8 +8,8 @@ zonePB:
 
 .PHONY: server
 server:
-	@ cd server && go run main.go
+	@ cd server && go run .
 
 .PHONY: client
 client:
-	@ cd client && go run main.go
+	@ cd client && go run .
