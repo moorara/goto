@@ -7,6 +7,14 @@ import (
 	"google.golang.org/grpc"
 )
 
+// contextKey is the type for the keys added to context
+type contextKey string
+
+const (
+	requestIDKey        = "request-id"
+	requestIDContextKey = contextKey("requestID")
+)
+
 var methodRegex = regexp.MustCompile(`(/|\.)`)
 
 func parseMethod(fullMethod string) (string, string, string, bool) {

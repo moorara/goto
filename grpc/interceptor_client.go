@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/moorara/goto/log"
 	"github.com/moorara/goto/metrics"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -63,7 +64,6 @@ func (i *ClientObservabilityInterceptor) createSpan(ctx context.Context) opentra
 }
 
 func (i *ClientObservabilityInterceptor) injectSpan(ctx context.Context, span opentracing.Span) context.Context {
-	// Get any metadata if set
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if ok {
 		md = md.Copy()
@@ -79,6 +79,19 @@ func (i *ClientObservabilityInterceptor) injectSpan(ctx context.Context, span op
 			opentracingLog.String("message", "Tracer.Inject() failed"),
 		)
 	}
+
+	return metadata.NewOutgoingContext(ctx, md)
+}
+
+func (i *ClientObservabilityInterceptor) injectRequestID(ctx context.Context, requestID string) context.Context {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if ok {
+		md = md.Copy()
+	} else {
+		md = metadata.New(nil)
+	}
+
+	md.Set(requestIDKey, requestID)
 
 	return metadata.NewOutgoingContext(ctx, md)
 }
@@ -101,6 +114,15 @@ func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, f
 	// Propagate the current trace
 	ctx = i.injectSpan(ctx, span)
 
+	// Get request id from context
+	requestID, ok := ctx.Value(requestIDContextKey).(string)
+	if !ok || requestID == "" {
+		requestID = uuid.New().String()
+	}
+
+	// Propagate the request id
+	ctx = i.injectRequestID(ctx, requestID)
+
 	// Invoke the gRPC method
 	start := time.Now()
 	err := invoker(ctx, fullMethod, req, res, cc, opts...)
@@ -121,6 +143,9 @@ func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, f
 	if err != nil {
 		pairs = append(pairs, "grpc.error", err.Error())
 	}
+
+	// requestID is not empty at this point
+	pairs = append(pairs, "requestId", requestID)
 
 	if success {
 		i.logger.Info(pairs...)
@@ -168,6 +193,15 @@ func (i *ClientObservabilityInterceptor) StreamInterceptor(ctx context.Context, 
 	// Propagate the current trace
 	ctx = i.injectSpan(ctx, span)
 
+	// Get request id from context
+	requestID, ok := ctx.Value(requestIDContextKey).(string)
+	if !ok || requestID == "" {
+		requestID = uuid.New().String()
+	}
+
+	// Propagate the request id
+	ctx = i.injectRequestID(ctx, requestID)
+
 	// Invoke the gRPC streaming method
 	start := time.Now()
 	cs, err := streamer(ctx, desc, cc, fullMethod, opts...)
@@ -188,6 +222,9 @@ func (i *ClientObservabilityInterceptor) StreamInterceptor(ctx context.Context, 
 	if err != nil {
 		pairs = append(pairs, "grpc.error", err.Error())
 	}
+
+	// requestID is not empty at this point
+	pairs = append(pairs, "requestId", requestID)
 
 	if success {
 		i.logger.Info(pairs...)

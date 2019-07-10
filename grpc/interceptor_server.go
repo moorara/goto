@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/moorara/goto/log"
 	"github.com/moorara/goto/metrics"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -14,9 +15,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
-
-// contextKey is the type for the keys added to context
-type contextKey string
 
 var loggerContextKey = contextKey("logger")
 
@@ -81,6 +79,23 @@ func (i *ServerObservabilityInterceptor) createSpan(ctx context.Context) opentra
 	return span
 }
 
+func (i *ServerObservabilityInterceptor) getRequestID(ctx context.Context) string {
+	var requestID string
+
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		vals := md.Get(requestIDKey)
+		if len(vals) > 0 {
+			requestID = vals[0]
+		}
+	}
+
+	if requestID == "" {
+		requestID = uuid.New().String()
+	}
+
+	return requestID
+}
+
 // UnaryInterceptor is the gRPC UnaryServerInterceptor for logging, metrics, and tracing
 func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	stream := "false"
@@ -105,8 +120,15 @@ func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, r
 	span := i.createSpan(ctx)
 	defer span.Finish()
 
+	// Get or generate request id
+	requestID := i.getRequestID(ctx)
+
+	// Capture the request id in logs
+	logger = logger.With("requestId", requestID)
+
 	// Update request context
 	ctx = opentracing.ContextWithSpan(ctx, span)
+	ctx = context.WithValue(ctx, requestIDContextKey, requestID)
 	ctx = context.WithValue(ctx, loggerContextKey, logger)
 
 	// Call the gRPC method handler
@@ -155,6 +177,8 @@ func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, r
 
 // StreamInterceptor is the gRPC StreamServerInterceptor for logging, metrics, and tracing
 func (i *ServerObservabilityInterceptor) StreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	ctx := ss.Context()
+
 	stream := "true"
 	pkg, service, method, ok := parseMethod(info.FullMethod)
 	if !ok {
@@ -174,13 +198,20 @@ func (i *ServerObservabilityInterceptor) StreamInterceptor(srv interface{}, ss g
 	)
 
 	// Create a new span
-	span := i.createSpan(ss.Context())
+	span := i.createSpan(ctx)
 	defer span.Finish()
 
+	// Get or generate request id
+	requestID := i.getRequestID(ctx)
+
+	// Capture the request id in logs
+	logger = logger.With("requestId", requestID)
+
 	// Update stream context
-	ctx := ss.Context()
 	ctx = opentracing.ContextWithSpan(ctx, span)
+	ctx = context.WithValue(ctx, requestIDContextKey, requestID)
 	ctx = context.WithValue(ctx, loggerContextKey, logger)
+
 	ss = ServerStreamWithContext(ss, ctx)
 
 	// Call the gRPC streaming method handler

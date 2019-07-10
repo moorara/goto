@@ -119,6 +119,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 	tests := []struct {
 		name                string
 		parentSpan          opentracing.Span
+		requestID           string
 		ctx                 context.Context
 		req                 *http.Request
 		resDelay            time.Duration
@@ -133,6 +134,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 		{
 			name:                "Error",
 			parentSpan:          nil,
+			requestID:           "",
 			ctx:                 context.Background(),
 			req:                 httptest.NewRequest("GET", "/v1/dogs", nil),
 			resDelay:            10 * time.Millisecond,
@@ -147,6 +149,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 		{
 			name:                "200",
 			parentSpan:          nil,
+			requestID:           "",
 			ctx:                 context.Background(),
 			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds", nil),
 			resDelay:            10 * time.Millisecond,
@@ -161,6 +164,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 		{
 			name:                "301",
 			parentSpan:          nil,
+			requestID:           "",
 			ctx:                 context.Background(),
 			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds/1234", nil),
 			resDelay:            10 * time.Millisecond,
@@ -175,6 +179,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 		{
 			name:                "404",
 			parentSpan:          nil,
+			requestID:           "",
 			ctx:                 context.Background(),
 			req:                 httptest.NewRequest("POST", "/v1/breeds/dogs", nil),
 			resDelay:            10 * time.Millisecond,
@@ -189,6 +194,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 		{
 			name:                "500",
 			parentSpan:          nil,
+			requestID:           "",
 			ctx:                 context.Background(),
 			req:                 httptest.NewRequest("PUT", "/v1/dogs/breeds/abcd", nil),
 			resDelay:            10 * time.Millisecond,
@@ -203,6 +209,7 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 		{
 			name:                "WithParentSpan",
 			parentSpan:          mocktracer.New().StartSpan("parent-span"),
+			requestID:           "",
 			ctx:                 context.Background(),
 			req:                 httptest.NewRequest("DELETE", "/v1/dogs/breeds/1234-abcd", nil),
 			resDelay:            10 * time.Millisecond,
@@ -214,12 +221,28 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 			expectedStatusCode:  204,
 			expectedStatusClass: "2xx",
 		},
+		{
+			name:                "WithRequestID",
+			parentSpan:          nil,
+			requestID:           "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+			ctx:                 context.Background(),
+			req:                 httptest.NewRequest("GET", "/v1/dogs", nil),
+			resDelay:            10 * time.Millisecond,
+			resError:            nil,
+			resStatusCode:       200,
+			expectedProto:       "HTTP/1.1",
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/dogs",
+			expectedStatusCode:  200,
+			expectedStatusClass: "2xx",
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buff := &bytes.Buffer{}
 			var injectedSpanContext opentracing.SpanContext
+			var injectedRequestID string
 
 			logger := log.NewLogger(log.Options{Writer: buff})
 			promReg := prometheus.NewRegistry()
@@ -230,15 +253,19 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 			mid := NewClientObservabilityMiddleware(logger, metricsFactory, tracer)
 			assert.NotNil(t, mid)
 
-			// Insert the parent span if any
 			if tc.parentSpan != nil {
 				tc.ctx = opentracing.ContextWithSpan(tc.ctx, tc.parentSpan)
+			}
+
+			if tc.requestID != "" {
+				tc.ctx = context.WithValue(tc.ctx, requestIDContextKey, tc.requestID)
 			}
 
 			// Test http doer
 			doer := func(req *http.Request) (*http.Response, error) {
 				time.Sleep(tc.resDelay)
 				injectedSpanContext = extractSpanContext(req, tracer)
+				injectedRequestID = req.Header.Get(requestIDHeader)
 				if tc.resError != nil {
 					return nil, tc.resError
 				}
@@ -257,6 +284,14 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 				assert.Equal(t, tc.resStatusCode, res.StatusCode)
 			}
 
+			// Verify request id
+
+			if tc.requestID != "" {
+				assert.Equal(t, tc.requestID, injectedRequestID)
+			} else {
+				assert.NotEmpty(t, injectedRequestID)
+			}
+
 			// Verify logs
 
 			var log map[string]interface{}
@@ -270,6 +305,12 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 			assert.Equal(t, tc.expectedStatusClass, log["res.statusClass"])
 			assert.NotEmpty(t, log["responseTime"])
 			assert.NotEmpty(t, log["message"])
+
+			if tc.requestID != "" {
+				assert.Equal(t, tc.requestID, log["requestId"])
+			} else {
+				assert.NotEmpty(t, log["requestId"])
+			}
 
 			// Verify metrics
 

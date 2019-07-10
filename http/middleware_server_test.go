@@ -105,6 +105,7 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 		name                string
 		req                 *http.Request
 		reqSpan             opentracing.Span
+		requestID           string
 		resDelay            time.Duration
 		resStatusCode       int
 		expectedProto       string
@@ -117,6 +118,7 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			name:                "200",
 			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds", nil),
 			reqSpan:             nil,
+			requestID:           "",
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       200,
 			expectedProto:       "HTTP/1.1",
@@ -129,6 +131,7 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			name:                "301",
 			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds/1234", nil),
 			reqSpan:             nil,
+			requestID:           "",
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       301,
 			expectedProto:       "HTTP/1.1",
@@ -141,6 +144,7 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			name:                "404",
 			req:                 httptest.NewRequest("POST", "/v1/breeds/dogs", nil),
 			reqSpan:             nil,
+			requestID:           "",
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       404,
 			expectedProto:       "HTTP/1.1",
@@ -153,6 +157,7 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			name:                "500",
 			req:                 httptest.NewRequest("PUT", "/v1/dogs/breeds/abcd", nil),
 			reqSpan:             nil,
+			requestID:           "",
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       500,
 			expectedProto:       "HTTP/1.1",
@@ -165,6 +170,7 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			name:                "WithRequestSpan",
 			req:                 httptest.NewRequest("DELETE", "/v1/dogs/breeds/1234-abcd", nil),
 			reqSpan:             mocktracer.New().StartSpan("parent-span"),
+			requestID:           "",
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       204,
 			expectedProto:       "HTTP/1.1",
@@ -173,12 +179,26 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			expectedStatusCode:  204,
 			expectedStatusClass: "2xx",
 		},
+		{
+			name:                "WithRequestID",
+			req:                 httptest.NewRequest("GET", "/v1/dogs", nil),
+			reqSpan:             nil,
+			requestID:           "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+			resDelay:            10 * time.Millisecond,
+			resStatusCode:       200,
+			expectedProto:       "HTTP/1.1",
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/dogs",
+			expectedStatusCode:  200,
+			expectedStatusClass: "2xx",
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buff := &bytes.Buffer{}
 			var insertedSpan opentracing.Span
+			var insertedRequestID string
 
 			logger := log.NewLogger(log.Options{Writer: buff})
 			promReg := prometheus.NewRegistry()
@@ -189,17 +209,21 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			mid := NewServerObservabilityMiddleware(logger, metricsFactory, tracer)
 			assert.NotNil(t, mid)
 
-			// Inject the parent span context if any
 			if tc.reqSpan != nil {
 				carrier := opentracing.HTTPHeadersCarrier(tc.req.Header)
 				err := tracer.Inject(tc.reqSpan.Context(), opentracing.HTTPHeaders, carrier)
 				assert.NoError(t, err)
 			}
 
+			if tc.requestID != "" {
+				tc.req.Header.Set(requestIDHeader, tc.requestID)
+			}
+
 			// Test http handler
 			handler := mid.Wrap(func(w http.ResponseWriter, r *http.Request) {
 				time.Sleep(tc.resDelay)
 				insertedSpan = opentracing.SpanFromContext(r.Context())
+				insertedRequestID, _ = r.Context().Value(requestIDContextKey).(string)
 				w.WriteHeader(tc.resStatusCode)
 			})
 
@@ -209,6 +233,18 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 
 			res := rec.Result()
 			assert.Equal(t, tc.expectedStatusCode, res.StatusCode)
+
+			// Verify request id
+
+			responseRequestID := res.Header.Get(requestIDHeader)
+
+			if tc.requestID != "" {
+				assert.Equal(t, tc.requestID, insertedRequestID)
+				assert.Equal(t, tc.requestID, responseRequestID)
+			} else {
+				assert.NotEmpty(t, insertedRequestID)
+				assert.NotEmpty(t, responseRequestID)
+			}
 
 			// Verify logs
 
@@ -223,6 +259,12 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 			assert.Equal(t, tc.expectedStatusClass, log["res.statusClass"])
 			assert.NotEmpty(t, log["responseTime"])
 			assert.NotEmpty(t, log["message"])
+
+			if tc.requestID != "" {
+				assert.Equal(t, tc.requestID, log["requestId"])
+			} else {
+				assert.NotEmpty(t, log["requestId"])
+			}
 
 			// Verify metrics
 

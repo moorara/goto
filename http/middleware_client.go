@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/moorara/goto/log"
 	"github.com/moorara/goto/metrics"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -93,6 +94,15 @@ func (m *ClientObservabilityMiddleware) Wrap(ctx context.Context, req *http.Requ
 	// Propagate the current trace
 	m.injectSpan(req, span)
 
+	// Get request id from context
+	requestID, ok := ctx.Value(requestIDContextKey).(string)
+	if !ok || requestID == "" {
+		requestID = uuid.New().String()
+	}
+
+	// Propagate the request id
+	req.Header.Add(requestIDHeader, requestID)
+
 	start := time.Now()
 	res, err := doer(req)
 	duration := time.Since(start).Seconds()
@@ -118,6 +128,9 @@ func (m *ClientObservabilityMiddleware) Wrap(ctx context.Context, req *http.Requ
 		"responseTime", duration,
 		"message", fmt.Sprintf("%s %s %d %f", method, url, statusCode, duration),
 	}
+
+	// requestID is not empty at this point
+	pairs = append(pairs, "requestId", requestID)
 
 	// Logging
 	switch {

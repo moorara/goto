@@ -6,6 +6,14 @@ import (
 	"net/http"
 )
 
+// contextKey is the type for the keys added to context
+type contextKey string
+
+const (
+	requestIDHeader     = "request-id"
+	requestIDContextKey = contextKey("requestID")
+)
+
 // Error is an http error
 type Error struct {
 	Request    *http.Request

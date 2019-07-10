@@ -23,7 +23,6 @@ import (
 )
 
 func injectSpan(ctx context.Context, tracer opentracing.Tracer, span opentracing.Span) context.Context {
-	// Get any metadata if set
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
 		md = md.Copy()
@@ -36,6 +35,19 @@ func injectSpan(ctx context.Context, tracer opentracing.Tracer, span opentracing
 	if err != nil {
 		return ctx
 	}
+
+	return metadata.NewIncomingContext(ctx, md)
+}
+
+func injectRequestID(ctx context.Context, requestID string) context.Context {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		md = md.Copy()
+	} else {
+		md = metadata.New(nil)
+	}
+
+	md.Set(requestIDKey, requestID)
 
 	return metadata.NewIncomingContext(ctx, md)
 }
@@ -123,6 +135,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	tests := []struct {
 		name            string
 		parentSpan      opentracing.Span
+		requestID       string
 		ctx             context.Context
 		req             interface{}
 		info            *grpc.UnaryServerInfo
@@ -139,6 +152,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		{
 			name:            "InvalidMethod",
 			parentSpan:      nil,
+			requestID:       "",
 			ctx:             context.Background(),
 			req:             nil,
 			info:            &grpc.UnaryServerInfo{FullMethod: ""},
@@ -155,6 +169,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		{
 			name:            "HandlerFails",
 			parentSpan:      nil,
+			requestID:       "",
 			ctx:             context.Background(),
 			req:             nil,
 			info:            &grpc.UnaryServerInfo{FullMethod: "/package.service/method"},
@@ -171,6 +186,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		{
 			name:            "HandlerSucceeds",
 			parentSpan:      nil,
+			requestID:       "",
 			ctx:             context.Background(),
 			req:             nil,
 			info:            &grpc.UnaryServerInfo{FullMethod: "/package.service/method"},
@@ -187,6 +203,24 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		{
 			name:            "HandlerSucceedsWithParentSpan",
 			parentSpan:      mocktracer.New().StartSpan("parent-span"),
+			requestID:       "",
+			ctx:             context.Background(),
+			req:             nil,
+			info:            &grpc.UnaryServerInfo{FullMethod: "/package.service/method"},
+			mockDelay:       10 * time.Millisecond,
+			mockRespError:   nil,
+			mockRespRes:     nil,
+			verify:          true,
+			expectedPackage: "package",
+			expectedService: "service",
+			expectedMethod:  "method",
+			expectedStream:  "false",
+			expectedSuccess: true,
+		},
+		{
+			name:            "HandlerSucceedsWithRequestID",
+			parentSpan:      nil,
+			requestID:       "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 			ctx:             context.Background(),
 			req:             nil,
 			info:            &grpc.UnaryServerInfo{FullMethod: "/package.service/method"},
@@ -206,6 +240,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			buff := &bytes.Buffer{}
 			var insertedSpan opentracing.Span
+			var insertedRequestID string
 
 			logger := log.NewLogger(log.Options{Writer: buff})
 			promReg := prometheus.NewRegistry()
@@ -216,14 +251,18 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			i := NewServerObservabilityInterceptor(logger, mf, tracer)
 			assert.NotNil(t, i)
 
-			// Inject the parent span context if any
 			if tc.parentSpan != nil {
 				tc.ctx = injectSpan(tc.ctx, tracer, tc.parentSpan)
+			}
+
+			if tc.requestID != "" {
+				tc.ctx = injectRequestID(tc.ctx, tc.requestID)
 			}
 
 			handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 				time.Sleep(tc.mockDelay)
 				insertedSpan = opentracing.SpanFromContext(ctx)
+				insertedRequestID, _ = ctx.Value(requestIDContextKey).(string)
 				return tc.mockRespRes, tc.mockRespError
 			}
 
@@ -232,6 +271,14 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			assert.Equal(t, tc.mockRespRes, res)
 
 			if tc.verify {
+				// Verify request id
+
+				if tc.requestID != "" {
+					assert.Equal(t, tc.requestID, insertedRequestID)
+				} else {
+					assert.NotEmpty(t, insertedRequestID)
+				}
+
 				// Verify logs
 
 				var log map[string]interface{}
@@ -248,6 +295,12 @@ func TestUnaryServerInterceptor(t *testing.T) {
 
 				if tc.mockRespError != nil {
 					assert.Equal(t, tc.mockRespError.Error(), log["grpc.error"])
+				}
+
+				if tc.requestID != "" {
+					assert.Equal(t, tc.requestID, log["requestId"])
+				} else {
+					assert.NotEmpty(t, log["requestId"])
 				}
 
 				// Verify metrics
@@ -324,6 +377,7 @@ func TestStreamServerInterceptor(t *testing.T) {
 	tests := []struct {
 		name            string
 		parentSpan      opentracing.Span
+		requestID       string
 		srv             interface{}
 		ss              *mockServerStream
 		info            *grpc.StreamServerInfo
@@ -339,6 +393,7 @@ func TestStreamServerInterceptor(t *testing.T) {
 		{
 			name:            "InvalidMethod",
 			parentSpan:      nil,
+			requestID:       "",
 			srv:             nil,
 			ss:              &mockServerStream{ContextOutContext: context.Background()},
 			info:            &grpc.StreamServerInfo{FullMethod: ""},
@@ -354,6 +409,7 @@ func TestStreamServerInterceptor(t *testing.T) {
 		{
 			name:            "HandlerFails",
 			parentSpan:      nil,
+			requestID:       "",
 			srv:             nil,
 			ss:              &mockServerStream{ContextOutContext: context.Background()},
 			info:            &grpc.StreamServerInfo{FullMethod: "/package.service/method"},
@@ -369,6 +425,7 @@ func TestStreamServerInterceptor(t *testing.T) {
 		{
 			name:            "HandlerSucceeds",
 			parentSpan:      nil,
+			requestID:       "",
 			srv:             nil,
 			ss:              &mockServerStream{ContextOutContext: context.Background()},
 			info:            &grpc.StreamServerInfo{FullMethod: "/package.service/method"},
@@ -396,12 +453,29 @@ func TestStreamServerInterceptor(t *testing.T) {
 			expectedStream:  "true",
 			expectedSuccess: true,
 		},
+		{
+			name:            "HandlerSucceedsWithRequestID",
+			parentSpan:      nil,
+			requestID:       "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+			srv:             nil,
+			ss:              &mockServerStream{ContextOutContext: context.Background()},
+			info:            &grpc.StreamServerInfo{FullMethod: "/package.service/method"},
+			mockDelay:       10 * time.Millisecond,
+			mockRespError:   nil,
+			verify:          true,
+			expectedPackage: "package",
+			expectedService: "service",
+			expectedMethod:  "method",
+			expectedStream:  "true",
+			expectedSuccess: true,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buff := &bytes.Buffer{}
 			var insertedSpan opentracing.Span
+			var insertedRequestID string
 
 			logger := log.NewLogger(log.Options{Writer: buff})
 			promReg := prometheus.NewRegistry()
@@ -412,14 +486,18 @@ func TestStreamServerInterceptor(t *testing.T) {
 			i := NewServerObservabilityInterceptor(logger, mf, tracer)
 			assert.NotNil(t, i)
 
-			// Inject the parent span context if any
 			if tc.parentSpan != nil {
 				tc.ss.ContextOutContext = injectSpan(tc.ss.ContextOutContext, tracer, tc.parentSpan)
+			}
+
+			if tc.requestID != "" {
+				tc.ss.ContextOutContext = injectRequestID(tc.ss.ContextOutContext, tc.requestID)
 			}
 
 			handler := func(srv interface{}, stream grpc.ServerStream) error {
 				time.Sleep(tc.mockDelay)
 				insertedSpan = opentracing.SpanFromContext(stream.Context())
+				insertedRequestID, _ = stream.Context().Value(requestIDContextKey).(string)
 				return tc.mockRespError
 			}
 
@@ -427,6 +505,14 @@ func TestStreamServerInterceptor(t *testing.T) {
 			assert.Equal(t, tc.mockRespError, err)
 
 			if tc.verify {
+				// Verify request id
+
+				if tc.requestID != "" {
+					assert.Equal(t, tc.requestID, insertedRequestID)
+				} else {
+					assert.NotEmpty(t, insertedRequestID)
+				}
+
 				// Verify logs
 
 				var log map[string]interface{}
@@ -443,6 +529,12 @@ func TestStreamServerInterceptor(t *testing.T) {
 
 				if tc.mockRespError != nil {
 					assert.Equal(t, tc.mockRespError.Error(), log["grpc.error"])
+				}
+
+				if tc.requestID != "" {
+					assert.Equal(t, tc.requestID, log["requestId"])
+				} else {
+					assert.NotEmpty(t, log["requestId"])
 				}
 
 				// Verify metrics

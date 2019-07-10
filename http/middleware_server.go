@@ -7,14 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/moorara/goto/log"
 	"github.com/moorara/goto/metrics"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
-
-// contextKey is the type for the keys added to context
-type contextKey string
 
 const (
 	loggerContextKey = contextKey("logger")
@@ -95,10 +93,23 @@ func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.Handler
 		span := m.createSpan(r)
 		defer span.Finish()
 
+		// Get or generate request id
+		requestID := r.Header.Get(requestIDHeader)
+		if requestID == "" {
+			requestID = uuid.New().String()
+		}
+
+		// Capture the request id in logs
+		logger = logger.With("requestId", requestID)
+
 		// Update request context
 		ctx := r.Context()
 		ctx = opentracing.ContextWithSpan(ctx, span)
+		ctx = context.WithValue(ctx, requestIDContextKey, requestID)
 		ctx = context.WithValue(ctx, loggerContextKey, logger)
+
+		// Add request id to response headers
+		w.Header().Set(requestIDHeader, requestID)
 
 		// Call next http handler
 		start := time.Now()
