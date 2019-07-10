@@ -17,6 +17,29 @@ import (
 
 const port = ":10080"
 
+type server struct {
+	tracer opentracing.Tracer
+}
+
+func (s *server) handler(w http.ResponseWriter, r *http.Request) {
+	// A random delay between 5ms to 50ms
+	d := 5 + rand.Intn(45)
+	time.Sleep(time.Duration(d) * time.Millisecond)
+
+	logger, _ := xhttp.LoggerForRequest(r)
+	logger.Info("message", "handled the request successfully!")
+
+	// Create a new span
+	parentSpan := opentracing.SpanFromContext(r.Context())
+	span := s.tracer.StartSpan("send-greeting", opentracing.ChildOf(parentSpan.Context()))
+	ext.DBType.Set(span, "sql")
+	ext.DBStatement.Set(span, "SELECT * FROM messages")
+	span.LogFields(opentracingLog.String("message", "sending the greeting message"))
+	span.Finish()
+
+	w.Write([]byte("Hello, World!"))
+}
+
 func main() {
 	// Create a logger
 	logger := log.NewLogger(log.Options{
@@ -37,26 +60,10 @@ func main() {
 	mid := xhttp.NewServerObservabilityMiddleware(logger, mf, tracer)
 
 	// Wrap the http handler
-	handler := mid.Wrap(func(w http.ResponseWriter, r *http.Request) {
-		// A random delay between 5ms to 50ms
-		d := 5 + rand.Intn(45)
-		time.Sleep(time.Duration(d) * time.Millisecond)
+	s := &server{tracer: tracer}
+	h := mid.Wrap(s.handler)
 
-		logger, _ := xhttp.LoggerForRequest(r)
-		logger.Info("message", "handled the request successfully!")
-
-		// Create a new span
-		parentSpan := opentracing.SpanFromContext(r.Context())
-		span := tracer.StartSpan("send-greeting", opentracing.ChildOf(parentSpan.Context()))
-		ext.DBType.Set(span, "sql")
-		ext.DBStatement.Set(span, "SELECT * FROM messages")
-		span.LogFields(opentracingLog.String("message", "sending the greeting message"))
-		span.Finish()
-
-		w.Write([]byte("Hello, World!"))
-	})
-
-	http.Handle("/", handler)
+	http.Handle("/", h)
 	http.Handle("/metrics", promhttp.Handler())
 	logger.Info("message", "starting http server ...", "port", port)
 	panic(http.ListenAndServe(port, nil))
