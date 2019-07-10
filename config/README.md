@@ -1,3 +1,6 @@
+**This package is FROZEN and DEPRECATED in favor of [konfig](https://github.com/moorara/konfig).**
+
+
 # config
 
 This is a very minimal utility for reading configuration values from either
