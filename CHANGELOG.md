@@ -1,6 +1,21 @@
 # Change Log
 
-## [v0.2.6](https://github.com/moorara/goto/tree/v0.2.6) (2019-07-07)
+## [v0.2.7](https://github.com/moorara/goto/tree/v0.2.7) (2019-07-10)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.6...v0.2.7)
+
+**Merged pull requests:**
+
+- Deprecate config in favor of konfig! [\#89](https://github.com/moorara/goto/pull/89) ([moorara](https://github.com/moorara))
+- Add request-id to http and grpc requests [\#88](https://github.com/moorara/goto/pull/88) ([moorara](https://github.com/moorara))
+- Refactor http example [\#87](https://github.com/moorara/goto/pull/87) ([moorara](https://github.com/moorara))
+- Update module golang/protobuf to v1.3.2 [\#86](https://github.com/moorara/goto/pull/86) ([renovate[bot]](https://github.com/apps/renovate))
+- Revamp http example [\#85](https://github.com/moorara/goto/pull/85) ([moorara](https://github.com/moorara))
+- Improve http middleware and grpc interceptors [\#84](https://github.com/moorara/goto/pull/84) ([moorara](https://github.com/moorara))
+- Add error message to grpc logs [\#83](https://github.com/moorara/goto/pull/83) ([moorara](https://github.com/moorara))
+- Small refactoring [\#82](https://github.com/moorara/goto/pull/82) ([moorara](https://github.com/moorara))
+- Update module google.golang.org/grpc to v1.22.0 [\#80](https://github.com/moorara/goto/pull/80) ([renovate[bot]](https://github.com/apps/renovate))
+
+## [v0.2.6](https://github.com/moorara/goto/tree/v0.2.6) (2019-07-08)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.5...v0.2.6)
 
 **Closed issues:**
