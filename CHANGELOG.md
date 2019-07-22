@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.2.8](https://github.com/moorara/goto/tree/v0.2.8) (2019-07-22)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.7...v0.2.8)
+
+**Merged pull requests:**
+
+- Refactoring [\#90](https://github.com/moorara/goto/pull/90) ([moorara](https://github.com/moorara))
+
 ## [v0.2.7](https://github.com/moorara/goto/tree/v0.2.7) (2019-07-10)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.6...v0.2.7)
 
