@@ -12,7 +12,6 @@ import (
 
 	"github.com/moorara/goto/log"
 	"github.com/moorara/goto/metrics"
-	"github.com/moorara/goto/trace"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -56,19 +55,7 @@ func TestLoggerForRequest(t *testing.T) {
 	}
 }
 
-func TestNewServerObservabilityMiddleware(t *testing.T) {
-	logger := log.NewLogger(log.Options{
-		Level:       "info",
-		Name:        "logger",
-		Environment: "test",
-	})
-
-	promReg := prometheus.NewRegistry()
-	mFac := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
-
-	tracer, closer, _ := trace.NewTracer(trace.Options{})
-	defer closer.Close()
-
+func TestNewServerMiddleware(t *testing.T) {
 	tests := []struct {
 		name   string
 		logger *log.Logger
@@ -76,22 +63,16 @@ func TestNewServerObservabilityMiddleware(t *testing.T) {
 		tracer opentracing.Tracer
 	}{
 		{
-			"Default",
-			logger,
-			mFac,
-			tracer,
-		},
-		{
-			"WithMocks",
-			log.NewNopLogger(),
-			metrics.NewFactory(metrics.FactoryOptions{}),
-			mocktracer.New(),
+			name:   "WithMocks",
+			logger: log.NewNopLogger(),
+			mf:     metrics.NewFactory(metrics.FactoryOptions{}),
+			tracer: mocktracer.New(),
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			m := NewServerObservabilityMiddleware(tc.logger, tc.mf, tc.tracer)
+			m := NewServerMiddleware(tc.logger, tc.mf, tc.tracer)
 
 			assert.Equal(t, tc.logger, m.logger)
 			assert.NotNil(t, m.metrics)
@@ -100,11 +81,72 @@ func TestNewServerObservabilityMiddleware(t *testing.T) {
 	}
 }
 
-func TestServerObservabilityMiddlewareWrap(t *testing.T) {
+func TestServerMiddlewareRequestID(t *testing.T) {
+	tests := []struct {
+		name          string
+		req           *http.Request
+		requestID     string
+		resStatusCode int
+	}{
+		{
+			name:          "WithoutRequestID",
+			req:           httptest.NewRequest("GET", "/v1/items", nil),
+			requestID:     "",
+			resStatusCode: 200,
+		},
+		{
+			name:          "WithRequestID",
+			req:           httptest.NewRequest("GET", "/v1/items", nil),
+			requestID:     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+			resStatusCode: 200,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var requestIDFromHeader string
+			var requestIDFromContext string
+			var requestIDFromResponse string
+
+			mid := &ServerMiddleware{}
+
+			if tc.requestID != "" {
+				tc.req.Header.Set(requestIDHeader, tc.requestID)
+			}
+
+			// Test http handler
+			handler := mid.RequestID(func(w http.ResponseWriter, r *http.Request) {
+				requestIDFromHeader = r.Header.Get(requestIDHeader)
+				requestIDFromContext, _ = r.Context().Value(requestIDContextKey).(string)
+				w.WriteHeader(tc.resStatusCode)
+			})
+
+			// Handle the mock request
+			rec := httptest.NewRecorder()
+			handler(rec, tc.req)
+
+			res := rec.Result()
+			assert.Equal(t, tc.resStatusCode, res.StatusCode)
+
+			// Verify request id
+			requestIDFromResponse = res.Header.Get(requestIDHeader)
+			if tc.requestID == "" {
+				assert.NotEmpty(t, requestIDFromHeader)
+				assert.NotEmpty(t, requestIDFromContext)
+				assert.NotEmpty(t, requestIDFromResponse)
+			} else {
+				assert.Equal(t, tc.requestID, requestIDFromHeader)
+				assert.Equal(t, tc.requestID, requestIDFromContext)
+				assert.Equal(t, tc.requestID, requestIDFromResponse)
+			}
+		})
+	}
+}
+
+func TestServerMiddlewareLogging(t *testing.T) {
 	tests := []struct {
 		name                string
 		req                 *http.Request
-		reqSpan             opentracing.Span
 		requestID           string
 		resDelay            time.Duration
 		resStatusCode       int
@@ -116,79 +158,57 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 	}{
 		{
 			name:                "200",
-			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds", nil),
-			reqSpan:             nil,
-			requestID:           "",
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       200,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs/breeds",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  200,
 			expectedStatusClass: "2xx",
 		},
 		{
 			name:                "301",
-			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds/1234", nil),
-			reqSpan:             nil,
-			requestID:           "",
+			req:                 httptest.NewRequest("GET", "/v1/items/1234", nil),
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       301,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs/breeds/1234",
+			expectedURL:         "/v1/items/1234",
 			expectedStatusCode:  301,
 			expectedStatusClass: "3xx",
 		},
 		{
 			name:                "404",
-			req:                 httptest.NewRequest("POST", "/v1/breeds/dogs", nil),
-			reqSpan:             nil,
-			requestID:           "",
+			req:                 httptest.NewRequest("POST", "/v1/items", nil),
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       404,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "POST",
-			expectedURL:         "/v1/breeds/dogs",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  404,
 			expectedStatusClass: "4xx",
 		},
 		{
 			name:                "500",
-			req:                 httptest.NewRequest("PUT", "/v1/dogs/breeds/abcd", nil),
-			reqSpan:             nil,
-			requestID:           "",
+			req:                 httptest.NewRequest("PUT", "/v1/items/1234", nil),
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       500,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "PUT",
-			expectedURL:         "/v1/dogs/breeds/abcd",
+			expectedURL:         "/v1/items/1234",
 			expectedStatusCode:  500,
 			expectedStatusClass: "5xx",
 		},
 		{
-			name:                "WithRequestSpan",
-			req:                 httptest.NewRequest("DELETE", "/v1/dogs/breeds/1234-abcd", nil),
-			reqSpan:             mocktracer.New().StartSpan("parent-span"),
-			requestID:           "",
-			resDelay:            10 * time.Millisecond,
-			resStatusCode:       204,
-			expectedProto:       "HTTP/1.1",
-			expectedMethod:      "DELETE",
-			expectedURL:         "/v1/dogs/breeds/1234-abcd",
-			expectedStatusCode:  204,
-			expectedStatusClass: "2xx",
-		},
-		{
 			name:                "WithRequestID",
-			req:                 httptest.NewRequest("GET", "/v1/dogs", nil),
-			reqSpan:             nil,
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
 			requestID:           "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 			resDelay:            10 * time.Millisecond,
 			resStatusCode:       200,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  200,
 			expectedStatusClass: "2xx",
 		},
@@ -197,54 +217,25 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buff := &bytes.Buffer{}
-			var insertedSpan opentracing.Span
-			var insertedRequestID string
-
 			logger := log.NewLogger(log.Options{Writer: buff})
-			promReg := prometheus.NewRegistry()
-			metricsFactory := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
-			tracer := mocktracer.New()
-
-			// Create http server middleware
-			mid := NewServerObservabilityMiddleware(logger, metricsFactory, tracer)
-			assert.NotNil(t, mid)
-
-			if tc.reqSpan != nil {
-				carrier := opentracing.HTTPHeadersCarrier(tc.req.Header)
-				err := tracer.Inject(tc.reqSpan.Context(), opentracing.HTTPHeaders, carrier)
-				assert.NoError(t, err)
-			}
+			mid := &ServerMiddleware{logger: logger}
 
 			if tc.requestID != "" {
 				tc.req.Header.Set(requestIDHeader, tc.requestID)
 			}
 
 			// Test http handler
-			handler := mid.Wrap(func(w http.ResponseWriter, r *http.Request) {
+			handler := mid.Logging(func(w http.ResponseWriter, r *http.Request) {
 				time.Sleep(tc.resDelay)
-				insertedSpan = opentracing.SpanFromContext(r.Context())
-				insertedRequestID, _ = r.Context().Value(requestIDContextKey).(string)
 				w.WriteHeader(tc.resStatusCode)
 			})
 
-			// Trigger a mock request
+			// Handle the mock request
 			rec := httptest.NewRecorder()
 			handler(rec, tc.req)
 
 			res := rec.Result()
 			assert.Equal(t, tc.expectedStatusCode, res.StatusCode)
-
-			// Verify request id
-
-			responseRequestID := res.Header.Get(requestIDHeader)
-
-			if tc.requestID != "" {
-				assert.Equal(t, tc.requestID, insertedRequestID)
-				assert.Equal(t, tc.requestID, responseRequestID)
-			} else {
-				assert.NotEmpty(t, insertedRequestID)
-				assert.NotEmpty(t, responseRequestID)
-			}
 
 			// Verify logs
 
@@ -262,9 +253,83 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 
 			if tc.requestID != "" {
 				assert.Equal(t, tc.requestID, log["requestId"])
-			} else {
-				assert.NotEmpty(t, log["requestId"])
 			}
+		})
+	}
+}
+
+func TestServerMiddlewareMetrics(t *testing.T) {
+	tests := []struct {
+		name                string
+		req                 *http.Request
+		resDelay            time.Duration
+		resStatusCode       int
+		expectedMethod      string
+		expectedURL         string
+		expectedStatusCode  int
+		expectedStatusClass string
+	}{
+		{
+			name:                "200",
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
+			resDelay:            10 * time.Millisecond,
+			resStatusCode:       200,
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/items",
+			expectedStatusCode:  200,
+			expectedStatusClass: "2xx",
+		},
+		{
+			name:                "301",
+			req:                 httptest.NewRequest("GET", "/v1/items/1234", nil),
+			resDelay:            10 * time.Millisecond,
+			resStatusCode:       301,
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/items/1234",
+			expectedStatusCode:  301,
+			expectedStatusClass: "3xx",
+		},
+		{
+			name:                "404",
+			req:                 httptest.NewRequest("POST", "/v1/items", nil),
+			resDelay:            10 * time.Millisecond,
+			resStatusCode:       404,
+			expectedMethod:      "POST",
+			expectedURL:         "/v1/items",
+			expectedStatusCode:  404,
+			expectedStatusClass: "4xx",
+		},
+		{
+			name:                "500",
+			req:                 httptest.NewRequest("PUT", "/v1/items/1234", nil),
+			resDelay:            10 * time.Millisecond,
+			resStatusCode:       500,
+			expectedMethod:      "PUT",
+			expectedURL:         "/v1/items/1234",
+			expectedStatusCode:  500,
+			expectedStatusClass: "5xx",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			promReg := prometheus.NewRegistry()
+			metricsFactory := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
+			mid := NewServerMiddleware(nil, metricsFactory, nil)
+			assert.NotNil(t, mid)
+
+			// Test http handler
+			handler := mid.Metrics(func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(tc.resDelay)
+				w.WriteHeader(tc.resStatusCode)
+			})
+
+			// Handle the mock request
+			rec := httptest.NewRecorder()
+			handler(rec, tc.req)
+
+			res := rec.Result()
+			assert.Equal(t, tc.expectedStatusCode, res.StatusCode)
 
 			// Verify metrics
 
@@ -302,6 +367,106 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 					verifyLabels(metricFamily.Metric[0].Label)
 				}
 			}
+		})
+	}
+}
+
+func TestServerMiddlewareTracing(t *testing.T) {
+	tests := []struct {
+		name               string
+		req                *http.Request
+		reqSpan            opentracing.Span
+		resDelay           time.Duration
+		resStatusCode      int
+		expectedProto      string
+		expectedMethod     string
+		expectedURL        string
+		expectedStatusCode int
+	}{
+		{
+			name:               "200",
+			req:                httptest.NewRequest("GET", "/v1/items", nil),
+			reqSpan:            nil,
+			resDelay:           10 * time.Millisecond,
+			resStatusCode:      200,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "GET",
+			expectedURL:        "/v1/items",
+			expectedStatusCode: 200,
+		},
+		{
+			name:               "301",
+			req:                httptest.NewRequest("GET", "/v1/items/1234", nil),
+			reqSpan:            nil,
+			resDelay:           10 * time.Millisecond,
+			resStatusCode:      301,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "GET",
+			expectedURL:        "/v1/items/1234",
+			expectedStatusCode: 301,
+		},
+		{
+			name:               "404",
+			req:                httptest.NewRequest("POST", "/v1/items", nil),
+			reqSpan:            nil,
+			resDelay:           10 * time.Millisecond,
+			resStatusCode:      404,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "POST",
+			expectedURL:        "/v1/items",
+			expectedStatusCode: 404,
+		},
+		{
+			name:               "500",
+			req:                httptest.NewRequest("PUT", "/v1/items/1234", nil),
+			reqSpan:            nil,
+			resDelay:           10 * time.Millisecond,
+			resStatusCode:      500,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "PUT",
+			expectedURL:        "/v1/items/1234",
+			expectedStatusCode: 500,
+		},
+		{
+			name:               "WithRequestSpan",
+			req:                httptest.NewRequest("DELETE", "/v1/items/1234", nil),
+			reqSpan:            mocktracer.New().StartSpan("parent-span"),
+			resDelay:           10 * time.Millisecond,
+			resStatusCode:      204,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "DELETE",
+			expectedURL:        "/v1/items/1234",
+			expectedStatusCode: 204,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var insertedSpan opentracing.Span
+
+			tracer := mocktracer.New()
+			mid := &ServerMiddleware{tracer: tracer}
+
+			// Inject the parent span context if any
+			if tc.reqSpan != nil {
+				carrier := opentracing.HTTPHeadersCarrier(tc.req.Header)
+				err := tracer.Inject(tc.reqSpan.Context(), opentracing.HTTPHeaders, carrier)
+				assert.NoError(t, err)
+			}
+
+			// Test http handler
+			handler := mid.Tracing(func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(tc.resDelay)
+				insertedSpan = opentracing.SpanFromContext(r.Context())
+				w.WriteHeader(tc.resStatusCode)
+			})
+
+			// Handle the mock request
+			rec := httptest.NewRecorder()
+			handler(rec, tc.req)
+
+			res := rec.Result()
+			assert.Equal(t, tc.expectedStatusCode, res.StatusCode)
 
 			// Verify traces
 
@@ -319,6 +484,13 @@ func TestServerObservabilityMiddlewareWrap(t *testing.T) {
 				assert.Equal(t, reqSpan.SpanContext.SpanID, span.ParentID)
 				assert.Equal(t, reqSpan.SpanContext.TraceID, span.SpanContext.TraceID)
 			}
+
+			/* spanLogs := span.Logs()
+			spanLogFields := spanLogs[0].Fields
+			for _, lf := range spanLogFields {
+				switch lf.Key {
+				}
+			} */
 		})
 	}
 }

@@ -188,8 +188,8 @@ func main() {
 		panic(http.ListenAndServe(httpPort, nil))
 	}()
 
-	// Create a gRPC interceptor for observability
-	i := xgrpc.NewClientObservabilityInterceptor(logger, mf, tracer)
+	// Create a gRPC interceptor
+	i := xgrpc.NewClientInterceptor(logger, mf, tracer)
 
 	optInsecure := grpc.WithInsecure()
 	optUnaryInterceptor := grpc.WithUnaryInterceptor(i.UnaryInterceptor)

@@ -35,15 +35,15 @@ const (
 	serverSummaryMetricName   = "grpc_server_request_duration_quantiles_seconds"
 )
 
-// ServerObservabilityInterceptor is a gRPC server interceptor for logging, metrics, and tracing
-type ServerObservabilityInterceptor struct {
+// ServerInterceptor is a gRPC server interceptor for logging, metrics, and tracing
+type ServerInterceptor struct {
 	logger  *log.Logger
 	metrics *metrics.RequestMetrics
 	tracer  opentracing.Tracer
 }
 
-// NewServerObservabilityInterceptor creates a new instance of gRPC server interceptor for observability
-func NewServerObservabilityInterceptor(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ServerObservabilityInterceptor {
+// NewServerInterceptor creates a new instance of gRPC server interceptor
+func NewServerInterceptor(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ServerInterceptor {
 	metrics := &metrics.RequestMetrics{
 		ReqGauge:        mf.Gauge(serverGaugeMetricName, "gauge metric for number of active server-side grpc requests", []string{"package", "service", "method", "stream"}),
 		ReqCounter:      mf.Counter(serverCounterMetricName, "counter metric for total number of server-side grpc requests", []string{"package", "service", "method", "stream", "success"}),
@@ -51,14 +51,14 @@ func NewServerObservabilityInterceptor(logger *log.Logger, mf *metrics.Factory, 
 		ReqDurationSumm: mf.Summary(serverSummaryMetricName, "summary metric for duration of server-side grpc requests in seconds", []string{"package", "service", "method", "stream", "success"}),
 	}
 
-	return &ServerObservabilityInterceptor{
+	return &ServerInterceptor{
 		logger:  logger,
 		metrics: metrics,
 		tracer:  tracer,
 	}
 }
 
-func (i *ServerObservabilityInterceptor) createSpan(ctx context.Context) opentracing.Span {
+func (i *ServerInterceptor) createSpan(ctx context.Context) opentracing.Span {
 	var span opentracing.Span
 	var parentSpanContext opentracing.SpanContext
 
@@ -79,7 +79,7 @@ func (i *ServerObservabilityInterceptor) createSpan(ctx context.Context) opentra
 	return span
 }
 
-func (i *ServerObservabilityInterceptor) getRequestID(ctx context.Context) string {
+func (i *ServerInterceptor) getRequestID(ctx context.Context) string {
 	var requestID string
 
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
@@ -97,7 +97,7 @@ func (i *ServerObservabilityInterceptor) getRequestID(ctx context.Context) strin
 }
 
 // UnaryInterceptor is the gRPC UnaryServerInterceptor for logging, metrics, and tracing
-func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func (i *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	stream := "false"
 	pkg, service, method, ok := parseMethod(info.FullMethod)
 	if !ok {
@@ -176,7 +176,7 @@ func (i *ServerObservabilityInterceptor) UnaryInterceptor(ctx context.Context, r
 }
 
 // StreamInterceptor is the gRPC StreamServerInterceptor for logging, metrics, and tracing
-func (i *ServerObservabilityInterceptor) StreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+func (i *ServerInterceptor) StreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 	ctx := ss.Context()
 
 	stream := "true"

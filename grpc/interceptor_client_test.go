@@ -47,7 +47,7 @@ func extractRequestID(ctx context.Context) string {
 	return ""
 }
 
-func TestNewClientObservabilityInterceptor(t *testing.T) {
+func TestNewClientInterceptor(t *testing.T) {
 	logger := log.NewLogger(log.Options{
 		Level:       "info",
 		Name:        "logger",
@@ -82,7 +82,7 @@ func TestNewClientObservabilityInterceptor(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			coi := NewClientObservabilityInterceptor(tc.logger, tc.mf, tc.tracer)
+			coi := NewClientInterceptor(tc.logger, tc.mf, tc.tracer)
 
 			assert.Equal(t, tc.logger, coi.logger)
 			assert.NotNil(t, coi.metrics)
@@ -128,7 +128,7 @@ func TestInjectSpan(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			i := &ClientObservabilityInterceptor{
+			i := &ClientInterceptor{
 				tracer: tc.tracer,
 			}
 
@@ -163,7 +163,7 @@ func TestInjectRequestID(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			i := &ClientObservabilityInterceptor{}
+			i := &ClientInterceptor{}
 
 			ctx := i.injectRequestID(tc.ctx, tc.requestID)
 
@@ -321,7 +321,7 @@ func TestUnaryClientInterceptor(t *testing.T) {
 			tracer := mocktracer.New()
 
 			// Create the interceptor
-			i := NewClientObservabilityInterceptor(logger, mf, tracer)
+			i := NewClientInterceptor(logger, mf, tracer)
 			assert.NotNil(t, i)
 
 			if tc.parentSpan != nil {
@@ -593,7 +593,7 @@ func TestStreamClientInterceptor(t *testing.T) {
 			tracer := mocktracer.New()
 
 			// Create the interceptor
-			i := NewClientObservabilityInterceptor(logger, mf, tracer)
+			i := NewClientInterceptor(logger, mf, tracer)
 			assert.NotNil(t, i)
 
 			if tc.parentSpan != nil {

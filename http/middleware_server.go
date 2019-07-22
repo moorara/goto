@@ -34,15 +34,15 @@ func LoggerForRequest(r *http.Request) (*log.Logger, bool) {
 	return logger, ok
 }
 
-// ServerObservabilityMiddleware is an http server middleware for logging, metrics, and tracing
-type ServerObservabilityMiddleware struct {
+// ServerMiddleware is an http server middleware for logging, metrics, tracing, etc.
+type ServerMiddleware struct {
 	logger  *log.Logger
 	metrics *metrics.RequestMetrics
 	tracer  opentracing.Tracer
 }
 
-// NewServerObservabilityMiddleware creates a new instance of http server middleware for observability
-func NewServerObservabilityMiddleware(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ServerObservabilityMiddleware {
+// NewServerMiddleware creates a new instance of http server middleware
+func NewServerMiddleware(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ServerMiddleware {
 	metrics := &metrics.RequestMetrics{
 		ReqGauge:        mf.Gauge(serverGaugeMetricName, "gauge metric for number of active server-side http requests", []string{"method", "url"}),
 		ReqCounter:      mf.Counter(serverCounterMetricName, "counter metric for total number of server-side http requests", []string{"method", "url", "statusCode", "statusClass"}),
@@ -50,36 +50,45 @@ func NewServerObservabilityMiddleware(logger *log.Logger, mf *metrics.Factory, t
 		ReqDurationSumm: mf.Summary(serverSummaryMetricName, "summary metric for duration of server-side http requests in seconds", []string{"method", "url", "statusCode", "statusClass"}),
 	}
 
-	return &ServerObservabilityMiddleware{
+	return &ServerMiddleware{
 		logger:  logger,
 		metrics: metrics,
 		tracer:  tracer,
 	}
 }
 
-func (m *ServerObservabilityMiddleware) createSpan(r *http.Request) opentracing.Span {
-	var span opentracing.Span
+// RequestID ensures incoming requests have unique ids
+// This middleware ensures the request headers and context have a unique id
+// A new request id will be generated if needed
+func (m *ServerMiddleware) RequestID(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Ensure request id in headers
+		requestID := r.Header.Get(requestIDHeader)
+		if requestID == "" {
+			requestID = uuid.New().String()
+			r.Header.Set(requestIDHeader, requestID)
+		}
 
-	carrier := opentracing.HTTPHeadersCarrier(r.Header)
-	parentSpanContext, err := m.tracer.Extract(opentracing.HTTPHeaders, carrier)
-	if err != nil {
-		span = m.tracer.StartSpan(serverSpanName)
-	} else {
-		span = m.tracer.StartSpan(serverSpanName, opentracing.ChildOf(parentSpanContext))
+		// Add request id to context
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, requestIDContextKey, requestID)
+		req := r.WithContext(ctx)
+
+		// Add request id to response headers
+		w.Header().Set(requestIDHeader, requestID)
+
+		// Call the next http handler
+		next(w, req)
 	}
-
-	return span
 }
 
-// Wrap accepts an http handler and return a new http handler that takes care of logging, metrics, and tracing
-func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.HandlerFunc {
+// Logging takes care of logging for incoming http requests
+// Request id will be read from reqeust headers if present
+func (m *ServerMiddleware) Logging(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		proto := r.Proto
 		method := r.Method
 		url := r.URL.Path
-
-		// Increment guage metric
-		m.metrics.ReqGauge.WithLabelValues(method, url).Inc()
 
 		// Create a new logger that logs the context of current request
 		logger := m.logger.With(
@@ -89,32 +98,18 @@ func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.Handler
 			"req.url", url,
 		)
 
-		// Create a new span
-		span := m.createSpan(r)
-		defer span.Finish()
-
-		// Get or generate request id
-		requestID := r.Header.Get(requestIDHeader)
-		if requestID == "" {
-			requestID = uuid.New().String()
+		if requestID := r.Header.Get(requestIDHeader); requestID != "" {
+			logger = logger.With("requestId", requestID)
 		}
-
-		// Capture the request id in logs
-		logger = logger.With("requestId", requestID)
 
 		// Update request context
 		ctx := r.Context()
-		ctx = opentracing.ContextWithSpan(ctx, span)
-		ctx = context.WithValue(ctx, requestIDContextKey, requestID)
 		ctx = context.WithValue(ctx, loggerContextKey, logger)
+		req := r.WithContext(ctx)
 
-		// Add request id to response headers
-		w.Header().Set(requestIDHeader, requestID)
-
-		// Call next http handler
+		// Call the next http handler
 		start := time.Now()
 		rw := NewResponseWriter(w)
-		req := r.WithContext(ctx)
 		next(rw, req)
 		statusCode := rw.StatusCode
 		statusClass := rw.StatusClass
@@ -138,6 +133,25 @@ func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.Handler
 		default:
 			logger.Info(pairs...)
 		}
+	}
+}
+
+// Metrics takes care of metrics for incoming http requests
+func (m *ServerMiddleware) Metrics(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		method := r.Method
+		url := r.URL.Path
+
+		// Increment guage metric
+		m.metrics.ReqGauge.WithLabelValues(method, url).Inc()
+
+		// Call the next http handler
+		start := time.Now()
+		rw := NewResponseWriter(w)
+		next(rw, r)
+		statusCode := rw.StatusCode
+		statusClass := rw.StatusClass
+		duration := time.Since(start).Seconds()
 
 		// Metrics
 		statusText := strconv.Itoa(statusCode)
@@ -145,6 +159,44 @@ func (m *ServerObservabilityMiddleware) Wrap(next http.HandlerFunc) http.Handler
 		m.metrics.ReqCounter.WithLabelValues(method, url, statusText, statusClass).Inc()
 		m.metrics.ReqDurationHist.WithLabelValues(method, url, statusText, statusClass).Observe(duration)
 		m.metrics.ReqDurationSumm.WithLabelValues(method, url, statusText, statusClass).Observe(duration)
+	}
+}
+
+func (m *ServerMiddleware) createSpan(r *http.Request) opentracing.Span {
+	var span opentracing.Span
+
+	carrier := opentracing.HTTPHeadersCarrier(r.Header)
+	parentSpanContext, err := m.tracer.Extract(opentracing.HTTPHeaders, carrier)
+	if err != nil {
+		span = m.tracer.StartSpan(serverSpanName)
+	} else {
+		span = m.tracer.StartSpan(serverSpanName, opentracing.ChildOf(parentSpanContext))
+	}
+
+	return span
+}
+
+// Tracing takes care of tracing for incoming http requests
+// Trace information will be read from reqeust headers if present
+func (m *ServerMiddleware) Tracing(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		proto := r.Proto
+		method := r.Method
+		url := r.URL.Path
+
+		// Create a new span
+		span := m.createSpan(r)
+		defer span.Finish()
+
+		// Update request context
+		ctx := r.Context()
+		ctx = opentracing.ContextWithSpan(ctx, span)
+		req := r.WithContext(ctx)
+
+		// Call the next http handler
+		rw := NewResponseWriter(w)
+		next(rw, req)
+		statusCode := rw.StatusCode
 
 		// Tracing
 		// https://github.com/opentracing/specification/blob/master/semantic_conventions.md

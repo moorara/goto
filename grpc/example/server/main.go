@@ -190,8 +190,8 @@ func main() {
 	tracer, closer, _ := trace.NewTracer(trace.Options{Name: "server"})
 	defer closer.Close()
 
-	// Create a gRPC interceptor for observability
-	i := xgrpc.NewServerObservabilityInterceptor(logger, mf, tracer)
+	// Create a gRPC interceptor
+	i := xgrpc.NewServerInterceptor(logger, mf, tracer)
 
 	optUnaryInterceptor := grpc.UnaryInterceptor(i.UnaryInterceptor)
 	optStreamInterceptor := grpc.StreamInterceptor(i.StreamInterceptor)

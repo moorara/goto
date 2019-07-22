@@ -25,15 +25,15 @@ const (
 	clientSummaryMetricName   = "grpc_client_request_duration_quantiles_seconds"
 )
 
-// ClientObservabilityInterceptor is a gRPC client interceptor for logging, metrics, and tracing
-type ClientObservabilityInterceptor struct {
+// ClientInterceptor is a gRPC client interceptor for logging, metrics, and tracing
+type ClientInterceptor struct {
 	logger  *log.Logger
 	metrics *metrics.RequestMetrics
 	tracer  opentracing.Tracer
 }
 
-// NewClientObservabilityInterceptor creates a new instance of gRPC server interceptor for observability
-func NewClientObservabilityInterceptor(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ClientObservabilityInterceptor {
+// NewClientInterceptor creates a new instance of gRPC server interceptor
+func NewClientInterceptor(logger *log.Logger, mf *metrics.Factory, tracer opentracing.Tracer) *ClientInterceptor {
 	metrics := &metrics.RequestMetrics{
 		ReqGauge:        mf.Gauge(clientGaugeMetricName, "gauge metric for number of active client-side grpc requests", []string{"package", "service", "method", "stream"}),
 		ReqCounter:      mf.Counter(clientCounterMetricName, "counter metric for total number of client-side grpc requests", []string{"package", "service", "method", "stream", "success"}),
@@ -41,14 +41,14 @@ func NewClientObservabilityInterceptor(logger *log.Logger, mf *metrics.Factory, 
 		ReqDurationSumm: mf.Summary(clientSummaryMetricName, "summary metric for duration of client-side grpc requests in seconds", []string{"package", "service", "method", "stream", "success"}),
 	}
 
-	return &ClientObservabilityInterceptor{
+	return &ClientInterceptor{
 		logger:  logger,
 		metrics: metrics,
 		tracer:  tracer,
 	}
 }
 
-func (i *ClientObservabilityInterceptor) createSpan(ctx context.Context) opentracing.Span {
+func (i *ClientInterceptor) createSpan(ctx context.Context) opentracing.Span {
 	var span opentracing.Span
 
 	// Get trace information from the context if passed
@@ -63,7 +63,7 @@ func (i *ClientObservabilityInterceptor) createSpan(ctx context.Context) opentra
 	return span
 }
 
-func (i *ClientObservabilityInterceptor) injectSpan(ctx context.Context, span opentracing.Span) context.Context {
+func (i *ClientInterceptor) injectSpan(ctx context.Context, span opentracing.Span) context.Context {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if ok {
 		md = md.Copy()
@@ -83,7 +83,7 @@ func (i *ClientObservabilityInterceptor) injectSpan(ctx context.Context, span op
 	return metadata.NewOutgoingContext(ctx, md)
 }
 
-func (i *ClientObservabilityInterceptor) injectRequestID(ctx context.Context, requestID string) context.Context {
+func (i *ClientInterceptor) injectRequestID(ctx context.Context, requestID string) context.Context {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if ok {
 		md = md.Copy()
@@ -97,7 +97,7 @@ func (i *ClientObservabilityInterceptor) injectRequestID(ctx context.Context, re
 }
 
 // UnaryInterceptor is the gRPC UnaryClientInterceptor for logging, metrics, and tracing
-func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, fullMethod string, req, res interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+func (i *ClientInterceptor) UnaryInterceptor(ctx context.Context, fullMethod string, req, res interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	stream := "false"
 	pkg, service, method, ok := parseMethod(fullMethod)
 	if !ok {
@@ -176,7 +176,7 @@ func (i *ClientObservabilityInterceptor) UnaryInterceptor(ctx context.Context, f
 }
 
 // StreamInterceptor is the gRPC StreamClientInterceptor for logging, metrics, and tracing
-func (i *ClientObservabilityInterceptor) StreamInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, fullMethod string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+func (i *ClientInterceptor) StreamInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, fullMethod string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	stream := "true"
 	pkg, service, method, ok := parseMethod(fullMethod)
 	if !ok {

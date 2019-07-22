@@ -87,7 +87,7 @@ func TestLoggerFromContext(t *testing.T) {
 	}
 }
 
-func TestNewServerObservabilityInterceptor(t *testing.T) {
+func TestNewServerInterceptor(t *testing.T) {
 	logger := log.NewLogger(log.Options{
 		Level:       "info",
 		Name:        "logger",
@@ -122,7 +122,7 @@ func TestNewServerObservabilityInterceptor(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			soi := NewServerObservabilityInterceptor(tc.logger, tc.mf, tc.tracer)
+			soi := NewServerInterceptor(tc.logger, tc.mf, tc.tracer)
 
 			assert.Equal(t, tc.logger, soi.logger)
 			assert.NotNil(t, soi.metrics)
@@ -248,7 +248,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 			tracer := mocktracer.New()
 
 			// Create the interceptor
-			i := NewServerObservabilityInterceptor(logger, mf, tracer)
+			i := NewServerInterceptor(logger, mf, tracer)
 			assert.NotNil(t, i)
 
 			if tc.parentSpan != nil {
@@ -483,7 +483,7 @@ func TestStreamServerInterceptor(t *testing.T) {
 			tracer := mocktracer.New()
 
 			// Create the interceptor
-			i := NewServerObservabilityInterceptor(logger, mf, tracer)
+			i := NewServerInterceptor(logger, mf, tracer)
 			assert.NotNil(t, i)
 
 			if tc.parentSpan != nil {

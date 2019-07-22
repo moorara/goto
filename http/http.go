@@ -10,8 +10,8 @@ import (
 type contextKey string
 
 const (
-	requestIDHeader     = "request-id"
-	requestIDContextKey = contextKey("requestID")
+	requestIDHeader     = "Request-Id"
+	requestIDContextKey = contextKey("RequestID")
 )
 
 // Error is an http error

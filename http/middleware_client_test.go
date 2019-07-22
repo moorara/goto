@@ -13,7 +13,6 @@ import (
 
 	"github.com/moorara/goto/log"
 	"github.com/moorara/goto/metrics"
-	"github.com/moorara/goto/trace"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,19 +30,7 @@ func extractSpanContext(req *http.Request, tracer opentracing.Tracer) opentracin
 	return nil
 }
 
-func TestNewClientObservabilityMiddleware(t *testing.T) {
-	logger := log.NewLogger(log.Options{
-		Level:       "info",
-		Name:        "logger",
-		Environment: "test",
-	})
-
-	promReg := prometheus.NewRegistry()
-	mFac := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
-
-	tracer, closer, _ := trace.NewTracer(trace.Options{})
-	defer closer.Close()
-
+func TestNewClientMiddleware(t *testing.T) {
 	tests := []struct {
 		name   string
 		logger *log.Logger
@@ -51,22 +38,16 @@ func TestNewClientObservabilityMiddleware(t *testing.T) {
 		tracer opentracing.Tracer
 	}{
 		{
-			"Default",
-			logger,
-			mFac,
-			tracer,
-		},
-		{
-			"WithMocks",
-			log.NewNopLogger(),
-			metrics.NewFactory(metrics.FactoryOptions{}),
-			mocktracer.New(),
+			name:   "WithMocks",
+			logger: log.NewNopLogger(),
+			mf:     metrics.NewFactory(metrics.FactoryOptions{}),
+			tracer: mocktracer.New(),
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			m := NewClientObservabilityMiddleware(tc.logger, tc.mf, tc.tracer)
+			m := NewClientMiddleware(tc.logger, tc.mf, tc.tracer)
 
 			assert.Equal(t, tc.logger, m.logger)
 			assert.NotNil(t, m.metrics)
@@ -75,53 +56,117 @@ func TestNewClientObservabilityMiddleware(t *testing.T) {
 	}
 }
 
-func TestClientObservabilityMiddlewareInjectSpan(t *testing.T) {
-	tracer := mocktracer.New()
-
+func TestClientMiddlewareRequestID(t *testing.T) {
 	tests := []struct {
-		name     string
-		tracer   opentracing.Tracer
-		req      *http.Request
-		span     opentracing.Span
-		expected bool
+		name                         string
+		req                          *http.Request
+		reqHeaders                   map[string][]string
+		reqCtx                       context.Context
+		resError                     error
+		resStatusCode                int
+		expectedRequestIDFromHeader  string
+		expectedRequestIDFromContext string
 	}{
 		{
-			name:     "InjectSucceeds",
-			tracer:   tracer,
-			req:      httptest.NewRequest("GET", "/", nil),
-			span:     tracer.StartSpan("test-span"),
-			expected: true,
+			name:                         "NoRequestID",
+			req:                          httptest.NewRequest("GET", "/v1/items", nil),
+			reqHeaders:                   map[string][]string{},
+			reqCtx:                       context.Background(),
+			resError:                     nil,
+			resStatusCode:                200,
+			expectedRequestIDFromHeader:  "", // expected to be generated
+			expectedRequestIDFromContext: "", // expected to be generated
 		},
 		{
-			name:     "InjectFails",
-			tracer:   tracer,
-			req:      httptest.NewRequest("GET", "/", nil),
-			span:     &mockSpan{},
-			expected: false,
+			name:                         "RequestIDInContext",
+			req:                          httptest.NewRequest("GET", "/v1/items", nil),
+			reqHeaders:                   map[string][]string{},
+			reqCtx:                       context.WithValue(context.Background(), requestIDContextKey, "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			resError:                     nil,
+			resStatusCode:                200,
+			expectedRequestIDFromHeader:  "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+			expectedRequestIDFromContext: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+		},
+		{
+			name:                         "RequestIDInHeaders",
+			req:                          httptest.NewRequest("GET", "/v1/items", nil),
+			reqHeaders:                   map[string][]string{requestIDHeader: []string{"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}},
+			reqCtx:                       context.Background(),
+			resError:                     nil,
+			resStatusCode:                200,
+			expectedRequestIDFromHeader:  "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+			expectedRequestIDFromContext: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+		},
+		{
+			name:                         "RequestIDInContextAndHeaders",
+			req:                          httptest.NewRequest("GET", "/v1/items", nil),
+			reqHeaders:                   map[string][]string{requestIDHeader: []string{"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}},
+			reqCtx:                       context.WithValue(context.Background(), requestIDContextKey, "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			resError:                     nil,
+			resStatusCode:                200,
+			expectedRequestIDFromHeader:  "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+			expectedRequestIDFromContext: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			m := &ClientObservabilityMiddleware{
-				tracer: tc.tracer,
+			var requestIDFromHeader string
+			var requestIDFromContext string
+
+			mid := &ClientMiddleware{}
+
+			// Add context and headers to request
+			tc.req = tc.req.WithContext(tc.reqCtx)
+			for k, vals := range tc.reqHeaders {
+				for _, v := range vals {
+					tc.req.Header.Add(k, v)
+				}
 			}
 
-			m.injectSpan(tc.req, tc.span)
+			// Test http doer
+			doer := mid.RequestID(func(r *http.Request) (*http.Response, error) {
+				requestIDFromHeader = r.Header.Get(requestIDHeader)
+				requestIDFromContext, _ = r.Context().Value(requestIDContextKey).(string)
+				if tc.resError != nil {
+					return nil, tc.resError
+				}
+				return &http.Response{StatusCode: tc.resStatusCode}, nil
+			})
 
-			injectedSpanContext := extractSpanContext(tc.req, tc.tracer)
-			assert.Equal(t, tc.expected, injectedSpanContext != nil)
+			// Make the mock request
+			res, err := doer(tc.req)
+
+			if tc.resError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, res)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.resStatusCode, res.StatusCode)
+			}
+
+			// Verify request id
+
+			if tc.expectedRequestIDFromHeader == "" {
+				assert.NotEmpty(t, requestIDFromHeader)
+			} else {
+				assert.Equal(t, tc.expectedRequestIDFromHeader, requestIDFromHeader)
+			}
+
+			if tc.expectedRequestIDFromContext == "" {
+				assert.NotEmpty(t, requestIDFromContext)
+			} else {
+				assert.Equal(t, tc.expectedRequestIDFromContext, requestIDFromContext)
+			}
 		})
 	}
 }
 
-func TestClientObservabilityMiddlewareWrap(t *testing.T) {
+func TestClientMiddlewareLogging(t *testing.T) {
 	tests := []struct {
 		name                string
-		parentSpan          opentracing.Span
-		requestID           string
-		ctx                 context.Context
 		req                 *http.Request
+		requestID           string
 		resDelay            time.Duration
 		resError            error
 		resStatusCode       int
@@ -133,106 +178,74 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 	}{
 		{
 			name:                "Error",
-			parentSpan:          nil,
-			requestID:           "",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("GET", "/v1/dogs", nil),
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
 			resDelay:            10 * time.Millisecond,
-			resError:            errors.New("reachability error"),
+			resError:            errors.New("uknown error"),
 			resStatusCode:       0,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  -1,
 			expectedStatusClass: "",
 		},
 		{
 			name:                "200",
-			parentSpan:          nil,
-			requestID:           "",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds", nil),
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
 			resDelay:            10 * time.Millisecond,
 			resError:            nil,
 			resStatusCode:       200,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs/breeds",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  200,
 			expectedStatusClass: "2xx",
 		},
 		{
 			name:                "301",
-			parentSpan:          nil,
-			requestID:           "",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("GET", "/v1/dogs/breeds/1234", nil),
+			req:                 httptest.NewRequest("GET", "/v1/items/1234", nil),
 			resDelay:            10 * time.Millisecond,
 			resError:            nil,
 			resStatusCode:       301,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs/breeds/1234",
+			expectedURL:         "/v1/items/1234",
 			expectedStatusCode:  301,
 			expectedStatusClass: "3xx",
 		},
 		{
 			name:                "404",
-			parentSpan:          nil,
-			requestID:           "",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("POST", "/v1/breeds/dogs", nil),
+			req:                 httptest.NewRequest("POST", "/v1/items", nil),
 			resDelay:            10 * time.Millisecond,
 			resError:            nil,
 			resStatusCode:       404,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "POST",
-			expectedURL:         "/v1/breeds/dogs",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  404,
 			expectedStatusClass: "4xx",
 		},
 		{
 			name:                "500",
-			parentSpan:          nil,
-			requestID:           "",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("PUT", "/v1/dogs/breeds/abcd", nil),
+			req:                 httptest.NewRequest("PUT", "/v1/items/1234", nil),
 			resDelay:            10 * time.Millisecond,
 			resError:            nil,
 			resStatusCode:       500,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "PUT",
-			expectedURL:         "/v1/dogs/breeds/abcd",
+			expectedURL:         "/v1/items/1234",
 			expectedStatusCode:  500,
 			expectedStatusClass: "5xx",
 		},
 		{
-			name:                "WithParentSpan",
-			parentSpan:          mocktracer.New().StartSpan("parent-span"),
-			requestID:           "",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("DELETE", "/v1/dogs/breeds/1234-abcd", nil),
-			resDelay:            10 * time.Millisecond,
-			resError:            nil,
-			resStatusCode:       204,
-			expectedProto:       "HTTP/1.1",
-			expectedMethod:      "DELETE",
-			expectedURL:         "/v1/dogs/breeds/1234-abcd",
-			expectedStatusCode:  204,
-			expectedStatusClass: "2xx",
-		},
-		{
 			name:                "WithRequestID",
-			parentSpan:          nil,
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
 			requestID:           "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-			ctx:                 context.Background(),
-			req:                 httptest.NewRequest("GET", "/v1/dogs", nil),
 			resDelay:            10 * time.Millisecond,
 			resError:            nil,
 			resStatusCode:       200,
 			expectedProto:       "HTTP/1.1",
 			expectedMethod:      "GET",
-			expectedURL:         "/v1/dogs",
+			expectedURL:         "/v1/items",
 			expectedStatusCode:  200,
 			expectedStatusClass: "2xx",
 		},
@@ -241,39 +254,26 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buff := &bytes.Buffer{}
-			var injectedSpanContext opentracing.SpanContext
-			var injectedRequestID string
-
 			logger := log.NewLogger(log.Options{Writer: buff})
-			promReg := prometheus.NewRegistry()
-			metricsFactory := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
-			tracer := mocktracer.New()
-
-			// Create http client middleware
-			mid := NewClientObservabilityMiddleware(logger, metricsFactory, tracer)
-			assert.NotNil(t, mid)
-
-			if tc.parentSpan != nil {
-				tc.ctx = opentracing.ContextWithSpan(tc.ctx, tc.parentSpan)
-			}
+			mid := &ClientMiddleware{logger: logger}
 
 			if tc.requestID != "" {
-				tc.ctx = context.WithValue(tc.ctx, requestIDContextKey, tc.requestID)
+				ctx := tc.req.Context()
+				ctx = context.WithValue(ctx, requestIDContextKey, tc.requestID)
+				tc.req = tc.req.WithContext(ctx)
 			}
 
 			// Test http doer
-			doer := func(req *http.Request) (*http.Response, error) {
+			doer := mid.Logging(func(r *http.Request) (*http.Response, error) {
 				time.Sleep(tc.resDelay)
-				injectedSpanContext = extractSpanContext(req, tracer)
-				injectedRequestID = req.Header.Get(requestIDHeader)
 				if tc.resError != nil {
 					return nil, tc.resError
 				}
 				return &http.Response{StatusCode: tc.resStatusCode}, nil
-			}
+			})
 
-			// Wrap and make the request
-			res, err := mid.Wrap(tc.ctx, tc.req, doer)
+			// Make the mock request
+			res, err := doer(tc.req)
 
 			if tc.resError != nil {
 				assert.Error(t, err)
@@ -282,14 +282,6 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, res)
 				assert.Equal(t, tc.resStatusCode, res.StatusCode)
-			}
-
-			// Verify request id
-
-			if tc.requestID != "" {
-				assert.Equal(t, tc.requestID, injectedRequestID)
-			} else {
-				assert.NotEmpty(t, injectedRequestID)
 			}
 
 			// Verify logs
@@ -308,8 +300,106 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 
 			if tc.requestID != "" {
 				assert.Equal(t, tc.requestID, log["requestId"])
+			}
+		})
+	}
+}
+
+func TestClientMiddlewareMetrics(t *testing.T) {
+	tests := []struct {
+		name                string
+		req                 *http.Request
+		resDelay            time.Duration
+		resError            error
+		resStatusCode       int
+		expectedMethod      string
+		expectedURL         string
+		expectedStatusCode  int
+		expectedStatusClass string
+	}{
+		{
+			name:                "Error",
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
+			resDelay:            10 * time.Millisecond,
+			resError:            errors.New("uknown error"),
+			resStatusCode:       0,
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/items",
+			expectedStatusCode:  -1,
+			expectedStatusClass: "",
+		},
+		{
+			name:                "200",
+			req:                 httptest.NewRequest("GET", "/v1/items", nil),
+			resDelay:            10 * time.Millisecond,
+			resError:            nil,
+			resStatusCode:       200,
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/items",
+			expectedStatusCode:  200,
+			expectedStatusClass: "2xx",
+		},
+		{
+			name:                "301",
+			req:                 httptest.NewRequest("GET", "/v1/items/1234", nil),
+			resDelay:            10 * time.Millisecond,
+			resError:            nil,
+			resStatusCode:       301,
+			expectedMethod:      "GET",
+			expectedURL:         "/v1/items/1234",
+			expectedStatusCode:  301,
+			expectedStatusClass: "3xx",
+		},
+		{
+			name:                "404",
+			req:                 httptest.NewRequest("POST", "/v1/items", nil),
+			resDelay:            10 * time.Millisecond,
+			resError:            nil,
+			resStatusCode:       404,
+			expectedMethod:      "POST",
+			expectedURL:         "/v1/items",
+			expectedStatusCode:  404,
+			expectedStatusClass: "4xx",
+		},
+		{
+			name:                "500",
+			req:                 httptest.NewRequest("PUT", "/v1/items/1234", nil),
+			resDelay:            10 * time.Millisecond,
+			resError:            nil,
+			resStatusCode:       500,
+			expectedMethod:      "PUT",
+			expectedURL:         "/v1/items/1234",
+			expectedStatusCode:  500,
+			expectedStatusClass: "5xx",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			promReg := prometheus.NewRegistry()
+			metricsFactory := metrics.NewFactory(metrics.FactoryOptions{Registerer: promReg})
+			mid := NewClientMiddleware(nil, metricsFactory, nil)
+			assert.NotNil(t, mid)
+
+			// Test http doer
+			doer := mid.Metrics(func(r *http.Request) (*http.Response, error) {
+				time.Sleep(tc.resDelay)
+				if tc.resError != nil {
+					return nil, tc.resError
+				}
+				return &http.Response{StatusCode: tc.resStatusCode}, nil
+			})
+
+			// Make the mock request
+			res, err := doer(tc.req)
+
+			if tc.resError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, res)
 			} else {
-				assert.NotEmpty(t, log["requestId"])
+				assert.NoError(t, err)
+				assert.NotNil(t, res)
+				assert.Equal(t, tc.resStatusCode, res.StatusCode)
 			}
 
 			// Verify metrics
@@ -348,6 +438,172 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 					verifyLabels(metricFamily.Metric[0].Label)
 				}
 			}
+		})
+	}
+}
+
+func TestClientMiddlewareInjectSpan(t *testing.T) {
+	tracer := mocktracer.New()
+
+	tests := []struct {
+		name     string
+		tracer   opentracing.Tracer
+		req      *http.Request
+		span     opentracing.Span
+		expected bool
+	}{
+		{
+			name:     "InjectSucceeds",
+			tracer:   tracer,
+			req:      httptest.NewRequest("GET", "/", nil),
+			span:     tracer.StartSpan("test-span"),
+			expected: true,
+		},
+		{
+			name:     "InjectFails",
+			tracer:   tracer,
+			req:      httptest.NewRequest("GET", "/", nil),
+			span:     &mockSpan{},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &ClientMiddleware{
+				tracer: tc.tracer,
+			}
+
+			m.injectSpan(tc.req, tc.span)
+
+			injectedSpanContext := extractSpanContext(tc.req, tc.tracer)
+			assert.Equal(t, tc.expected, injectedSpanContext != nil)
+		})
+	}
+}
+
+func TestClientMiddlewareTracing(t *testing.T) {
+	tests := []struct {
+		name               string
+		req                *http.Request
+		parentSpan         opentracing.Span
+		resDelay           time.Duration
+		resError           error
+		resStatusCode      int
+		expectedProto      string
+		expectedMethod     string
+		expectedURL        string
+		expectedStatusCode int
+	}{
+		{
+			name:               "Error",
+			req:                httptest.NewRequest("GET", "/v1/items", nil),
+			parentSpan:         nil,
+			resDelay:           10 * time.Millisecond,
+			resError:           errors.New("uknown error"),
+			resStatusCode:      0,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "GET",
+			expectedURL:        "/v1/items",
+			expectedStatusCode: -1,
+		},
+		{
+			name:               "200",
+			req:                httptest.NewRequest("GET", "/v1/items", nil),
+			parentSpan:         nil,
+			resDelay:           10 * time.Millisecond,
+			resError:           nil,
+			resStatusCode:      200,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "GET",
+			expectedURL:        "/v1/items",
+			expectedStatusCode: 200,
+		},
+		{
+			name:               "301",
+			req:                httptest.NewRequest("GET", "/v1/items/1234", nil),
+			parentSpan:         nil,
+			resDelay:           10 * time.Millisecond,
+			resError:           nil,
+			resStatusCode:      301,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "GET",
+			expectedURL:        "/v1/items/1234",
+			expectedStatusCode: 301,
+		},
+		{
+			name:               "404",
+			req:                httptest.NewRequest("POST", "/v1/items", nil),
+			parentSpan:         nil,
+			resDelay:           10 * time.Millisecond,
+			resError:           nil,
+			resStatusCode:      404,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "POST",
+			expectedURL:        "/v1/items",
+			expectedStatusCode: 404,
+		},
+		{
+			name:               "500",
+			req:                httptest.NewRequest("PUT", "/v1/items/1234", nil),
+			parentSpan:         nil,
+			resDelay:           10 * time.Millisecond,
+			resError:           nil,
+			resStatusCode:      500,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "PUT",
+			expectedURL:        "/v1/items/1234",
+			expectedStatusCode: 500,
+		},
+		{
+			name:               "WithParentSpan",
+			req:                httptest.NewRequest("DELETE", "/v1/items/1234", nil),
+			parentSpan:         mocktracer.New().StartSpan("parent-span"),
+			resDelay:           10 * time.Millisecond,
+			resError:           nil,
+			resStatusCode:      204,
+			expectedProto:      "HTTP/1.1",
+			expectedMethod:     "DELETE",
+			expectedURL:        "/v1/items/1234",
+			expectedStatusCode: 204,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var injectedSpanContext opentracing.SpanContext
+
+			tracer := mocktracer.New()
+			mid := &ClientMiddleware{tracer: tracer}
+
+			// Insert the parent span if any
+			if tc.parentSpan != nil {
+				ctx := tc.req.Context()
+				ctx = opentracing.ContextWithSpan(ctx, tc.parentSpan)
+				tc.req = tc.req.WithContext(ctx)
+			}
+
+			// Test http doer
+			doer := mid.Tracing(func(r *http.Request) (*http.Response, error) {
+				time.Sleep(tc.resDelay)
+				injectedSpanContext = extractSpanContext(r, tracer)
+				if tc.resError != nil {
+					return nil, tc.resError
+				}
+				return &http.Response{StatusCode: tc.resStatusCode}, nil
+			})
+
+			// Make the mock request
+			res, err := doer(tc.req)
+
+			if tc.resError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, res)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, res)
+				assert.Equal(t, tc.resStatusCode, res.StatusCode)
+			}
 
 			// Verify traces
 
@@ -365,6 +621,13 @@ func TestClientObservabilityMiddlewareWrap(t *testing.T) {
 				assert.Equal(t, parentSpan.SpanContext.SpanID, span.ParentID)
 				assert.Equal(t, parentSpan.SpanContext.TraceID, span.SpanContext.TraceID)
 			}
+
+			/* spanLogs := span.Logs()
+			spanLogFields := spanLogs[0].Fields
+			for _, lf := range spanLogFields {
+				switch lf.Key {
+				}
+			} */
 		})
 	}
 }
