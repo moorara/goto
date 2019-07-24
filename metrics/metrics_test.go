@@ -14,36 +14,42 @@ func TestNewFactory(t *testing.T) {
 	tests := []struct {
 		name               string
 		opts               FactoryOptions
+		expectedPrefix     string
 		expectedBuckets    []float64
 		expectedQuantiles  map[float64]float64
 		expectedRegisterer prometheus.Registerer
 	}{
 		{
-			name: "Defaults",
-			opts: FactoryOptions{
-				Buckets:    nil,
-				Quantiles:  nil,
-				Registerer: nil,
-			},
+			name:               "Defaults",
+			opts:               FactoryOptions{},
+			expectedPrefix:     "",
 			expectedBuckets:    defaultBuckets,
 			expectedQuantiles:  defaultQuantiles,
 			expectedRegisterer: prometheus.DefaultRegisterer,
 		},
 		{
-			name: "CustomBuckets",
+			name: "WithPrefix",
 			opts: FactoryOptions{
-				Buckets:    []float64{0.01, 0.10, 0.50, 1.00, 5.00},
-				Quantiles:  nil,
-				Registerer: nil,
+				Prefix: "service_name",
 			},
+			expectedPrefix:     "service_name",
+			expectedBuckets:    defaultBuckets,
+			expectedQuantiles:  defaultQuantiles,
+			expectedRegisterer: prometheus.DefaultRegisterer,
+		},
+		{
+			name: "WithBuckets",
+			opts: FactoryOptions{
+				Buckets: []float64{0.01, 0.10, 0.50, 1.00, 5.00},
+			},
+			expectedPrefix:     "",
 			expectedBuckets:    []float64{0.01, 0.10, 0.50, 1.00, 5.00},
 			expectedQuantiles:  defaultQuantiles,
 			expectedRegisterer: prometheus.DefaultRegisterer,
 		},
 		{
-			name: "CustomQuantiles",
+			name: "WithQuantiles",
 			opts: FactoryOptions{
-				Buckets: []float64{0.01, 0.10, 0.50, 1.00, 5.00},
 				Quantiles: map[float64]float64{
 					0.1:  0.1,
 					0.95: 0.01,
@@ -51,7 +57,8 @@ func TestNewFactory(t *testing.T) {
 				},
 				Registerer: nil,
 			},
-			expectedBuckets: []float64{0.01, 0.10, 0.50, 1.00, 5.00},
+			expectedPrefix:  "",
+			expectedBuckets: defaultBuckets,
 			expectedQuantiles: map[float64]float64{
 				0.1:  0.1,
 				0.95: 0.01,
@@ -60,12 +67,11 @@ func TestNewFactory(t *testing.T) {
 			expectedRegisterer: prometheus.DefaultRegisterer,
 		},
 		{
-			name: "CustomRegistry",
+			name: "WithRegistry",
 			opts: FactoryOptions{
-				Buckets:    nil,
-				Quantiles:  nil,
 				Registerer: registry,
 			},
+			expectedPrefix:     "",
 			expectedBuckets:    defaultBuckets,
 			expectedQuantiles:  defaultQuantiles,
 			expectedRegisterer: registry,
@@ -76,6 +82,7 @@ func TestNewFactory(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mf := NewFactory(tc.opts)
 
+			assert.Equal(t, tc.expectedPrefix, mf.prefix)
 			assert.Equal(t, tc.expectedBuckets, mf.buckets)
 			assert.Equal(t, tc.expectedQuantiles, mf.quantiles)
 			assert.Equal(t, tc.expectedRegisterer, mf.registerer)
@@ -95,13 +102,21 @@ func TestCounter(t *testing.T) {
 		expectedName string
 	}{
 		{
-			name: "Defaults",
+			name:         "Defaults",
+			opts:         FactoryOptions{},
+			metricName:   "counter_metric_name",
+			description:  "metric description",
+			labels:       []string{"environment", "region"},
+			labelValues:  []string{"prodcution", "us-east-1"},
+			addValue:     2,
+			expectedName: "counter_metric_name",
+		},
+		{
+			name: "WithPrefix",
 			opts: FactoryOptions{
-				Buckets:    nil,
-				Quantiles:  nil,
-				Registerer: nil,
+				Prefix: "service-name",
 			},
-			metricName:   "service_name_counter_metric_name",
+			metricName:   "counter_metric_name",
 			description:  "metric description",
 			labels:       []string{"environment", "region"},
 			labelValues:  []string{"prodcution", "us-east-1"},
@@ -144,13 +159,22 @@ func TestGauge(t *testing.T) {
 		expectedName string
 	}{
 		{
-			name: "Defaults",
+			name:         "Defaults",
+			opts:         FactoryOptions{},
+			metricName:   "gauge_metric_name",
+			description:  "metric description",
+			labels:       []string{"environment", "region"},
+			labelValues:  []string{"prodcution", "us-east-1"},
+			addValue:     2,
+			subValue:     2,
+			expectedName: "gauge_metric_name",
+		},
+		{
+			name: "WithPrefix",
 			opts: FactoryOptions{
-				Buckets:    nil,
-				Quantiles:  nil,
-				Registerer: nil,
+				Prefix: "service-name",
 			},
-			metricName:   "service_name_gauge_metric_name",
+			metricName:   "gauge_metric_name",
 			description:  "metric description",
 			labels:       []string{"environment", "region"},
 			labelValues:  []string{"prodcution", "us-east-1"},
@@ -194,13 +218,21 @@ func TestHistogram(t *testing.T) {
 		expectedName string
 	}{
 		{
-			name: "Defaults",
+			name:         "Defaults",
+			opts:         FactoryOptions{},
+			metricName:   "histogram_metric_name",
+			description:  "metric description",
+			labels:       []string{"environment", "region"},
+			labelValues:  []string{"prodcution", "us-east-1"},
+			value:        0.1234,
+			expectedName: "histogram_metric_name",
+		},
+		{
+			name: "WithPrefix",
 			opts: FactoryOptions{
-				Buckets:    nil,
-				Quantiles:  nil,
-				Registerer: nil,
+				Prefix: "service-name",
 			},
-			metricName:   "service_name_histogram_metric_name",
+			metricName:   "histogram_metric_name",
 			description:  "metric description",
 			labels:       []string{"environment", "region"},
 			labelValues:  []string{"prodcution", "us-east-1"},
@@ -241,13 +273,21 @@ func TestSummary(t *testing.T) {
 		expectedName string
 	}{
 		{
-			name: "Defaults",
+			name:         "Defaults",
+			opts:         FactoryOptions{},
+			metricName:   "summary_metric_name",
+			description:  "metric description",
+			labels:       []string{"environment", "region"},
+			labelValues:  []string{"prodcution", "us-east-1"},
+			value:        0.1234,
+			expectedName: "summary_metric_name",
+		},
+		{
+			name: "WithPrefix",
 			opts: FactoryOptions{
-				Buckets:    nil,
-				Quantiles:  nil,
-				Registerer: nil,
+				Prefix: "service-name",
 			},
-			metricName:   "service_name_summary_metric_name",
+			metricName:   "summary_metric_name",
 			description:  "metric description",
 			labels:       []string{"environment", "region"},
 			labelValues:  []string{"prodcution", "us-east-1"},

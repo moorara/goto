@@ -180,7 +180,7 @@ func main() {
 		Name:        "server",
 		Environment: "dev",
 		Region:      "us-east-1",
-		Component:   "zone-server",
+		Component:   "grpc-server",
 	})
 
 	// Create a metrics factory

@@ -1,6 +1,9 @@
 package metrics
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -17,13 +20,15 @@ var (
 type (
 	// FactoryOptions contains optional options for creating a Factory
 	FactoryOptions struct {
+		Prefix     string
 		Buckets    []float64
 		Quantiles  map[float64]float64
 		Registerer prometheus.Registerer
 	}
 
-	// Factory creates new metrics factory
+	// Factory is used for creating new metrics with consistent settings
 	Factory struct {
+		prefix     string
 		buckets    []float64
 		quantiles  map[float64]float64
 		registerer prometheus.Registerer
@@ -65,16 +70,28 @@ func NewFactory(opts FactoryOptions) *Factory {
 	}
 
 	return &Factory{
+		prefix:     opts.Prefix,
 		buckets:    opts.Buckets,
 		quantiles:  opts.Quantiles,
 		registerer: opts.Registerer,
 	}
 }
 
+func (f *Factory) getMetricName(name string) string {
+	if f.prefix != "" {
+		name = fmt.Sprintf("%s_%s", f.prefix, name)
+	}
+
+	name = strings.Replace(name, " ", "_", -1)
+	name = strings.Replace(name, "-", "_", -1)
+
+	return name
+}
+
 // Counter creates a new counter metrics
 func (f *Factory) Counter(name, description string, labels []string) *prometheus.CounterVec {
 	opts := prometheus.CounterOpts{
-		Name: name,
+		Name: f.getMetricName(name),
 		Help: description,
 	}
 
@@ -87,7 +104,7 @@ func (f *Factory) Counter(name, description string, labels []string) *prometheus
 // Gauge creates a new gauge metrics
 func (f *Factory) Gauge(name, description string, labels []string) *prometheus.GaugeVec {
 	opts := prometheus.GaugeOpts{
-		Name: name,
+		Name: f.getMetricName(name),
 		Help: description,
 	}
 
@@ -100,7 +117,7 @@ func (f *Factory) Gauge(name, description string, labels []string) *prometheus.G
 // Histogram creates a new histogram metrics
 func (f *Factory) Histogram(name, description string, labels []string) *prometheus.HistogramVec {
 	opts := prometheus.HistogramOpts{
-		Name:    name,
+		Name:    f.getMetricName(name),
 		Help:    description,
 		Buckets: defaultBuckets,
 	}
@@ -114,7 +131,7 @@ func (f *Factory) Histogram(name, description string, labels []string) *promethe
 // Summary creates a new summary metrics
 func (f *Factory) Summary(name, description string, labels []string) *prometheus.SummaryVec {
 	opts := prometheus.SummaryOpts{
-		Name:       name,
+		Name:       f.getMetricName(name),
 		Help:       description,
 		Objectives: defaultQuantiles,
 	}

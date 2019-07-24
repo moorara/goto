@@ -19,7 +19,7 @@ func main() {
 		Name:        "client",
 		Environment: "dev",
 		Region:      "us-east-1",
-		Component:   "hello-client",
+		Component:   "http-client",
 	})
 
 	// Create a metrics factory

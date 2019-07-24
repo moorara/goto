@@ -172,7 +172,7 @@ func main() {
 		Name:        "client",
 		Environment: "dev",
 		Region:      "us-east-1",
-		Component:   "zone-client",
+		Component:   "grpc-client",
 	})
 
 	// Create a metrics factory
