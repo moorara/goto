@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.2.9](https://github.com/moorara/goto/tree/v0.2.9) (2019-08-06)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.8...v0.2.9)
+
+**Merged pull requests:**
+
+- Deprecate log, metrics, trace, and report packages [\#94](https://github.com/moorara/goto/pull/94) ([moorara](https://github.com/moorara))
+- Update module prometheus/client\_golang to v1.1.0 [\#93](https://github.com/moorara/goto/pull/93) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module google.golang.org/grpc to v1.22.1 [\#92](https://github.com/moorara/goto/pull/92) ([renovate[bot]](https://github.com/apps/renovate))
+- Refactoring [\#91](https://github.com/moorara/goto/pull/91) ([moorara](https://github.com/moorara))
+
 ## [v0.2.8](https://github.com/moorara/goto/tree/v0.2.8) (2019-07-22)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.7...v0.2.8)
 
