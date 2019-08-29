@@ -1,5 +1,26 @@
 # Change Log
 
+## [v0.3.0](https://github.com/moorara/goto/tree/v0.3.0) (2019-08-29)
+[Full Changelog](https://github.com/moorara/goto/compare/v0.2.9...v0.3.0)
+
+**Implemented enhancements:**
+
+- Create go documentation [\#19](https://github.com/moorara/goto/issues/19)
+
+**Closed issues:**
+
+- Fix GitHub Actions double-run issue on master branch [\#27](https://github.com/moorara/goto/issues/27)
+- Implement Patricia \(radix tree\) [\#16](https://github.com/moorara/goto/issues/16)
+- Implement B-tree [\#15](https://github.com/moorara/goto/issues/15)
+- Add graph package [\#2](https://github.com/moorara/goto/issues/2)
+
+**Merged pull requests:**
+
+- Deprecate http, grpc, ds, and graphviz packages [\#100](https://github.com/moorara/goto/pull/100) ([moorara](https://github.com/moorara))
+- Update module stretchr/testify to v1.4.0 [\#98](https://github.com/moorara/goto/pull/98) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module google.golang.org/grpc to v1.23.0 [\#97](https://github.com/moorara/goto/pull/97) ([renovate[bot]](https://github.com/apps/renovate))
+- Update module google.golang.org/grpc to v1.22.2 [\#96](https://github.com/moorara/goto/pull/96) ([renovate[bot]](https://github.com/apps/renovate))
+
 ## [v0.2.9](https://github.com/moorara/goto/tree/v0.2.9) (2019-08-06)
 [Full Changelog](https://github.com/moorara/goto/compare/v0.2.8...v0.2.9)
 
