@@ -1,3 +1,6 @@
+// Package http provides utility for http servers and clients.
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/observe/xhttp
 package http
 
 import (

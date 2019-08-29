@@ -1,5 +1,6 @@
 // Package trace can be used for creating Jaeger tracers
-// Deprecated: this package has been frozen and deprecated in favor of https://github.com/moorara/observe/trace
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/observe/trace
 package trace
 
 import (

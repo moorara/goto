@@ -1,5 +1,6 @@
 // Package report can be used for reproting and alerting on errors using Rollbar.
-// Deprecated: this package has been frozen and deprecated in favor of https://github.com/moorara/observe/report
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/observe/report
 package report
 
 import (

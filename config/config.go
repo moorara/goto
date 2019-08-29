@@ -1,5 +1,6 @@
 // Package config is a minimal unopinionated utility for reading configuration values.
-// Deprecated: this package has been frozen and deprecated in favor of https://github.com/moorara/konfig
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/konfig
 package config
 
 import (

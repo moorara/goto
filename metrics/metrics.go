@@ -1,5 +1,6 @@
 // Package metrics can be used for creating Prometheus metrics
-// Deprecated: this package has been frozen and deprecated in favor of https://github.com/moorara/observe/metrics
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/observe/metrics
 package metrics
 
 import (

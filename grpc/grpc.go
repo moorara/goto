@@ -1,3 +1,6 @@
+// Package grpc provides utility for gRPC servers and clients.
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/observe/xgrpc
 package grpc
 
 import (

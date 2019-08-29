@@ -1,5 +1,6 @@
 // Package log can be used for structured (JSON) logging
-// Deprecated: this package has been frozen and deprecated in favor of https://github.com/moorara/observe/log
+//
+// Deprecated: this package has been frozen and deprecated in favor of github.com/moorara/observe/log
 package log
 
 import (
