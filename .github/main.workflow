@@ -1,6 +1,6 @@
 workflow "Main" {
   on = "push"
-  resolves = [ "Lint", "Test", "Cover" ]
+  resolves = [ "Lint", "Test" ]
 }
 
 action "Lint" {
@@ -15,8 +15,8 @@ action "Test" {
   args = [ "-race", "./..." ]
 }
 
-action "Cover" {
+/* action "Cover" {
   uses = "./.github/action-cover"
   secrets = [ "CODECOV_TOKEN" ]
   args = [ "./..." ]
-}
+} */
